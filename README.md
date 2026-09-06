@@ -8,15 +8,16 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 
 ## Current status
 
-**Milestone 3** is in place:
+**Milestone 4** is in place:
 
 - Next.js App Router, TypeScript, and Tailwind CSS
 - Global layout, design system, and homepage
 - PostgreSQL schema, migrations, and sample seed data
 - Program directory at `/programs` and detail pages at `/programs/[slug]`
 - Server-only Supabase reads using the publishable key and RLS
+- Deterministic eligibility engine in `lib/eligibility/` (no AI, no scores)
 
-The questionnaire, matching engine, results page, and admin UI are not built yet.
+The questionnaire UI, results page, matching API, admin UI, and analytics are not built yet.
 
 ## Local development
 
@@ -45,6 +46,7 @@ Open [http://localhost:43123](http://localhost:43123).
 | `npm run build` | Production build |
 | `npm run start` | Serve the production build |
 | `npm run lint` | Run ESLint |
+| `npm run test` | Run Vitest unit tests (no network) |
 
 ## Environment variables
 
@@ -86,6 +88,47 @@ Default consumer reads (publishable key + RLS) return active, non-expired progra
 - They cannot `INSERT`, `UPDATE`, or `DELETE` catalog data.
 - Admin writes will use the secret key from server-side code, which bypasses RLS.
 
+## Eligibility engine
+
+Business logic lives in `lib/eligibility/` — not in React components. It evaluates a `UserProfile` against program rules and locations and returns machine-readable statuses only:
+
+- Rule: `PASS` | `FAIL` | `UNKNOWN`
+- Program: `LIKELY_ELIGIBLE` | `POSSIBLY_ELIGIBLE` | `NOT_ELIGIBLE`
+
+There are no percentages, probabilities, or “you qualify” claims. Missing profile values stay missing (`undefined` is never treated as `false` or `0`). Tests use local fixtures and do not call Supabase.
+
+### Operators
+
+`equals`, `not_equals`, `greater_than`, `greater_than_or_equal`, `less_than`, `less_than_or_equal`, `in`, `not_in`, `contains`, `is_true`, `is_false`, `exists`, `not_exists`.
+
+Strings are compared after trim, case-insensitively. Numbers compare numerically. Booleans compare only to booleans. Malformed rule values return `UNKNOWN` instead of throwing.
+
+`contains`: profile string contains rule string; profile array contains a rule scalar; profile array intersects a rule array.
+
+`exists` / `not_exists`: a missing field FAILs `exists` and PASSes `not_exists`. A present `false` or `0` counts as existing.
+
+### Groups
+
+Rules that share `rule_group` use that group’s `group_operator`.
+
+- AND: any FAIL → FAIL; else any UNKNOWN → UNKNOWN; else PASS
+- OR: any PASS → PASS; else any UNKNOWN → UNKNOWN; else FAIL
+
+Required groups are then combined with AND. Optional rules (`required = false`) are explained but never make a program `NOT_ELIGIBLE`.
+
+### Geography
+
+Locations are evaluated separately from rules. No GIS and no external APIs.
+
+- Statewide California programs PASS
+- Same location type = OR alternatives (any matching ZIP, county, city, or utility)
+- Different restrictive types are also OR’d so listing ZIP + city + county does not over-restrict
+- STATE `CA` is documentary for this California-only product; it does not make a ZIP-limited program match everyone
+- Known conflict → FAIL; required location missing → UNKNOWN
+- Utility is never inferred from ZIP
+
+`matchPrograms()` buckets evaluations into likely / possibly / not eligible. It does not calculate total savings.
+
 ## Next milestone
 
-**Milestone 4:** Deterministic eligibility evaluator and unit tests.
+**Milestone 5:** Questionnaire UI that collects a `UserProfile` and a results page that calls this engine.
