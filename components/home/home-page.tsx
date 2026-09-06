@@ -9,6 +9,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { programCategories } from "@/lib/config/categories";
@@ -70,13 +71,18 @@ export function HomePage() {
             const Icon = categoryIcons[category.slug] ?? Sprout;
             return (
               <li key={category.slug}>
-                <Card className="h-full">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary">
-                    <Icon aria-hidden className="h-5 w-5" />
-                  </div>
-                  <CardTitle className="mt-4">{category.label}</CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
-                </Card>
+                <Link
+                  href={`${siteConfig.urls.programs}?category=${category.slug}`}
+                  className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Card className="h-full">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary">
+                      <Icon aria-hidden className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="mt-4">{category.label}</CardTitle>
+                    <CardDescription>{category.description}</CardDescription>
+                  </Card>
+                </Link>
               </li>
             );
           })}

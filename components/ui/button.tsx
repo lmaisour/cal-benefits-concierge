@@ -40,6 +40,8 @@ type ButtonLinkProps = ButtonVariantProps & {
   href: string;
   children: ReactNode;
   className?: string;
+  target?: string;
+  rel?: string;
 };
 
 export function Button({
@@ -64,10 +66,14 @@ export function ButtonLink({
   variant,
   size,
   children,
+  target,
+  rel,
 }: ButtonLinkProps) {
   return (
     <Link
       href={href}
+      target={target}
+      rel={rel}
       className={cn(buttonVariants({ variant, size }), className)}
     >
       {children}

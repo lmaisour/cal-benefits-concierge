@@ -8,14 +8,15 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 
 ## Current status
 
-**Milestone 2** is in place:
+**Milestone 3** is in place:
 
 - Next.js App Router, TypeScript, and Tailwind CSS
 - Global layout, design system, and homepage
 - PostgreSQL schema, migrations, and sample seed data
-- Typed database models and a server-only Supabase client
+- Program directory at `/programs` and detail pages at `/programs/[slug]`
+- Server-only Supabase reads using the publishable key and RLS
 
-The questionnaire, matching engine, results page, program browser, and admin UI are not built yet.
+The questionnaire, matching engine, results page, and admin UI are not built yet.
 
 ## Local development
 
@@ -87,4 +88,4 @@ Default consumer reads (publishable key + RLS) return active, non-expired progra
 
 ## Next milestone
 
-**Milestone 3:** Build `/programs` and `/programs/[slug]` using this database.
+**Milestone 4:** Deterministic eligibility evaluator and unit tests.
