@@ -20,21 +20,19 @@ const CALIFORNIA_ALIASES = new Set(["ca", "california", "calif."]);
 /**
  * Deterministic MVP location matching. No GIS and no external APIs.
  *
- * Design:
- * 1. `program.statewide === true` → PASS. This product is California-only.
- * 2. STATE rows are documentary for CA (`CA` / `California` / `Calif.`).
- *    A non-California STATE row → FAIL. STATE CA is not treated as an
- *    alternative that would make every resident match a ZIP-limited program.
- * 3. Rows of the same restrictive type are OR alternatives
+ * Design (intentionally conservative to avoid false-positive matches):
+ * 1. `program.statewide === true` → PASS immediately, unless a STATE row
+ *    is clearly not California (`CA` / `California` / `Calif.`).
+ * 2. STATE California rows are documentary only. They do not satisfy a
+ *    ZIP-, city-, county-, or utility-restricted program by themselves.
+ * 3. Restrictive types: COUNTY, CITY, ZIP, ELECTRIC_UTILITY, GAS_UTILITY.
+ * 4. Rows of the same restrictive type are OR alternatives
  *    (any matching ZIP / county / city / utility PASSes that type).
- * 4. Different restrictive types are also OR'd. Seed programs list ZIP, city,
- *    and county as alternate ways to identify a service area. AND-ing them
- *    would mark a matching ZIP as UNKNOWN just because city was blank.
- * 5. A restrictive type with a known profile value that matches none of the
- *    listed rows is a conflict (FAIL for that type).
- * 6. A restrictive type whose profile value is missing is UNKNOWN for that type.
- *    We do not infer utility from ZIP (or county from city).
- * 7. Across types: any PASS → PASS; else any UNKNOWN → UNKNOWN; else FAIL.
+ * 5. Different restrictive types are AND'd. ZIP + utility both listed
+ *    means the user must satisfy both categories.
+ * 6. Within a type: any matching row → PASS; known value with no match →
+ *    FAIL; missing profile value → UNKNOWN. Utility is not inferred from ZIP.
+ * 7. Across types: any FAIL → FAIL; else any UNKNOWN → UNKNOWN; else PASS.
  * 8. No restrictive types (statewide-equivalent, or only STATE CA) → PASS.
  */
 export function evaluateGeography(
@@ -130,13 +128,13 @@ export function evaluateGeography(
 function combineTypeStatuses(
   statuses: Array<"PASS" | "FAIL" | "UNKNOWN">,
 ): "PASS" | "FAIL" | "UNKNOWN" {
-  if (statuses.some((status) => status === "PASS")) {
-    return "PASS";
+  if (statuses.some((status) => status === "FAIL")) {
+    return "FAIL";
   }
   if (statuses.some((status) => status === "UNKNOWN")) {
     return "UNKNOWN";
   }
-  return "FAIL";
+  return "PASS";
 }
 
 function profileValueForType(

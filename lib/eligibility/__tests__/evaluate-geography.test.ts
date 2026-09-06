@@ -118,26 +118,96 @@ describe("evaluateGeography", () => {
     expect(result.status).toBe("UNKNOWN");
   });
 
-  it("ORs different restrictive types so a ZIP match is enough", () => {
-    const program = makeProgram({ id: "geo-or-types", statewide: false });
+  it("PASSes when ZIP and utility both match", () => {
+    const program = makeProgram({ id: "geo-and-pass", statewide: false });
+    const locations = zipAndUtilityLocations(program.id);
+    const result = evaluateGeography(program, locations, {
+      zip: "91331",
+      electric_utility: "LADWP",
+    });
+    expect(result.status).toBe("PASS");
+  });
+
+  it("FAILs when ZIP matches and utility conflicts", () => {
+    const program = makeProgram({ id: "geo-and-fail", statewide: false });
+    const locations = zipAndUtilityLocations(program.id);
+    const result = evaluateGeography(program, locations, {
+      zip: "91331",
+      electric_utility: "PG&E",
+    });
+    expect(result.status).toBe("FAIL");
+    expect(result.conflictingTypes).toContain("ELECTRIC_UTILITY");
+  });
+
+  it("returns UNKNOWN when ZIP matches and utility is missing", () => {
+    const program = makeProgram({ id: "geo-and-unknown", statewide: false });
+    const locations = zipAndUtilityLocations(program.id);
+    const result = evaluateGeography(program, locations, { zip: "91331" });
+    expect(result.status).toBe("UNKNOWN");
+    expect(result.unknownTypes).toContain("ELECTRIC_UTILITY");
+  });
+
+  it("PASSes the ZIP type when one of several ZIP rows matches", () => {
+    const program = makeProgram({ id: "geo-zip-or", statewide: false });
     const locations = [
       makeLocation({
         program_id: program.id,
         location_type: "ZIP",
-        location_value: "93722",
+        location_value: "91331",
       }),
       makeLocation({
         program_id: program.id,
-        location_type: "CITY",
-        location_value: "Fresno",
+        location_type: "ZIP",
+        location_value: "91340",
       }),
       makeLocation({
         program_id: program.id,
-        location_type: "COUNTY",
-        location_value: "Fresno",
+        location_type: "ZIP",
+        location_value: "90012",
       }),
     ];
-    const result = evaluateGeography(program, locations, { zip: "93722" });
+    const result = evaluateGeography(program, locations, { zip: "91340" });
     expect(result.status).toBe("PASS");
+    expect(result.matchedLocations.map((row) => row.location_value)).toEqual([
+      "91340",
+    ]);
+  });
+
+  it("does not let STATE CA bypass a ZIP restriction", () => {
+    const program = makeProgram({ id: "geo-state-zip", statewide: false });
+    const locations = [
+      makeLocation({
+        program_id: program.id,
+        location_type: "STATE",
+        location_value: "CA",
+      }),
+      makeLocation({
+        program_id: program.id,
+        location_type: "ZIP",
+        location_value: "91331",
+      }),
+    ];
+    expect(evaluateGeography(program, locations, {}).status).toBe("UNKNOWN");
+    expect(evaluateGeography(program, locations, { zip: "10001" }).status).toBe(
+      "FAIL",
+    );
+    expect(evaluateGeography(program, locations, { zip: "91331" }).status).toBe(
+      "PASS",
+    );
   });
 });
+
+function zipAndUtilityLocations(programId: string) {
+  return [
+    makeLocation({
+      program_id: programId,
+      location_type: "ZIP",
+      location_value: "91331",
+    }),
+    makeLocation({
+      program_id: programId,
+      location_type: "ELECTRIC_UTILITY",
+      location_value: "LADWP",
+    }),
+  ];
+}

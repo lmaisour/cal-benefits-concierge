@@ -120,9 +120,10 @@ Required groups are then combined with AND. Optional rules (`required = false`) 
 
 Locations are evaluated separately from rules. No GIS and no external APIs.
 
-- Statewide California programs PASS
+- Statewide California programs PASS immediately, unless a STATE row is not California
 - Same location type = OR alternatives (any matching ZIP, county, city, or utility)
-- Different restrictive types are also OR’d so listing ZIP + city + county does not over-restrict
+- Different restrictive types (COUNTY, CITY, ZIP, ELECTRIC_UTILITY, GAS_UTILITY) are AND’d — ZIP + utility both listed means both must be satisfied
+- Across types: any FAIL → FAIL; else any UNKNOWN → UNKNOWN; else PASS
 - STATE `CA` is documentary for this California-only product; it does not make a ZIP-limited program match everyone
 - Known conflict → FAIL; required location missing → UNKNOWN
 - Utility is never inferred from ZIP
