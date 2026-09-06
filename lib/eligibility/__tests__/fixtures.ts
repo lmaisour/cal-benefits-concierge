@@ -38,6 +38,8 @@ export function makeProgram(overrides: Partial<Program> = {}): Program {
     confidence: "MEDIUM",
     featured: false,
     active: true,
+    has_unmodeled_required_criteria: false,
+    unmodeled_required_criteria_summary: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     ...overrides,

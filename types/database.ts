@@ -119,6 +119,8 @@ export type ProgramRow = {
   confidence: Confidence | null;
   featured: boolean;
   active: boolean;
+  has_unmodeled_required_criteria: boolean;
+  unmodeled_required_criteria_summary: string | null;
   created_at: string;
   updated_at: string;
 };

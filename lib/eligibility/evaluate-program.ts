@@ -32,6 +32,10 @@ import type {
  * still PASSes.
  *
  * Geography is a required gate, evaluated separately from `program_rules`.
+ *
+ * If every executable required group and geography PASSes, but
+ * `has_unmodeled_required_criteria` is true, the program stays
+ * POSSIBLY_ELIGIBLE. Unmodeled criteria are never treated as PASS or FAIL.
  */
 export function evaluateProgram(
   program: Program,
@@ -52,7 +56,10 @@ export function evaluateProgram(
 
   const groupStatuses = requiredGroups.map((group) => group.status);
   const combined = andStatuses([...groupStatuses, geography.status]);
-  const status = programStatusFromRequired(combined);
+  const status = programStatusFromRequired(
+    combined,
+    program.has_unmodeled_required_criteria,
+  );
 
   return {
     program,
@@ -66,6 +73,8 @@ export function evaluateProgram(
     requiredGroups,
     optionalRuleResults,
     geography,
+    hasUnmodeledRequiredCriteria: program.has_unmodeled_required_criteria,
+    unmodeledRequiredCriteriaSummary: program.unmodeled_required_criteria_summary,
   };
 }
 
@@ -130,11 +139,15 @@ function andStatuses(statuses: RuleResultStatus[]): RuleResultStatus {
 
 function programStatusFromRequired(
   requiredStatus: RuleResultStatus,
+  hasUnmodeledRequiredCriteria: boolean,
 ): ProgramEligibilityStatus {
   if (requiredStatus === "FAIL") {
     return "NOT_ELIGIBLE";
   }
   if (requiredStatus === "UNKNOWN") {
+    return "POSSIBLY_ELIGIBLE";
+  }
+  if (hasUnmodeledRequiredCriteria) {
     return "POSSIBLY_ELIGIBLE";
   }
   return "LIKELY_ELIGIBLE";

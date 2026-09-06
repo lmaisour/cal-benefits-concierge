@@ -18,14 +18,24 @@ import type { CatalogCategory } from "@/lib/programs/import/types";
 export const VERIFIED_AT = "2026-09-06T00:00:00Z";
 
 export function program(
-  input: Omit<CatalogProgram, "featured" | "last_verified_at"> & {
+  input: Omit<
+    CatalogProgram,
+    | "featured"
+    | "last_verified_at"
+    | "has_unmodeled_required_criteria"
+    | "unmodeled_required_criteria_summary"
+  > & {
     featured?: boolean;
     last_verified_at?: string;
+    has_unmodeled_required_criteria?: boolean;
+    unmodeled_required_criteria_summary?: string | null;
   },
 ): CatalogProgram {
   return {
     featured: false,
     last_verified_at: VERIFIED_AT,
+    has_unmodeled_required_criteria: false,
+    unmodeled_required_criteria_summary: null,
     ...input,
   };
 }

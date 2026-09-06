@@ -48,8 +48,13 @@ describe("Milestone 7A local integration profiles", () => {
     });
 
     expect(result.likelyEligible.some((item) => item.slug === "california-alternate-rates-for-energy")).toBe(
-      true,
+      false,
     );
+    const care = result.possiblyEligible.find(
+      (item) => item.slug === "california-alternate-rates-for-energy",
+    );
+    expect(care).toBeDefined();
+    expect(care?.additionalRequirements).toMatch(/federal poverty|assistance program/i);
     expect(result.likelyEligible.some((item) => item.slug === "homeowners-property-tax-exemption")).toBe(
       true,
     );
@@ -75,7 +80,10 @@ describe("Milestone 7A local integration profiles", () => {
       interests: ["utilities"],
     });
 
-    expect(result.likelyEligible.some((item) => item.slug === "ladwp-ez-save")).toBe(true);
+    expect(result.likelyEligible.some((item) => item.slug === "ladwp-ez-save")).toBe(false);
+    const ezSave = result.possiblyEligible.find((item) => item.slug === "ladwp-ez-save");
+    expect(ezSave).toBeDefined();
+    expect(ezSave?.additionalRequirements).toMatch(/EZ-SAVE|income/i);
     expect(names(result.likelyEligible)).not.toContain("DAC-SASH");
     const care = [...result.likelyEligible, ...result.possiblyEligible].find(
       (item) => item.slug === "california-alternate-rates-for-energy",
@@ -100,9 +108,11 @@ describe("Milestone 7A local integration profiles", () => {
       interests: ["vehicles"],
     });
 
-    const myFirst = result.likelyEligible.find((item) => item.slug === "myfirstev");
+    const myFirst = result.possiblyEligible.find((item) => item.slug === "myfirstev");
     expect(myFirst).toBeDefined();
+    expect(result.likelyEligible.some((item) => item.slug === "myfirstev")).toBe(false);
     expect(myFirst?.whyMatched.some((reason) => /first/i.test(reason))).toBe(true);
+    expect(myFirst?.additionalRequirements).toMatch(/vehicle|seller|price/i);
   });
 
   it("omitted income stays Possible rather than false Likely when income is required", () => {
@@ -119,7 +129,8 @@ describe("Milestone 7A local integration profiles", () => {
       gas_utility: "SoCalGas",
     });
 
-    expect(result.likelyEligible.some((item) => item.slug === "myfirstev")).toBe(true);
+    expect(result.likelyEligible.some((item) => item.slug === "myfirstev")).toBe(false);
+    expect(result.possiblyEligible.some((item) => item.slug === "myfirstev")).toBe(true);
     expect(
       [...result.likelyEligible, ...result.possiblyEligible].every(
         (item) => item.status !== "EXPIRED" && !item.name.startsWith("SAMPLE:"),

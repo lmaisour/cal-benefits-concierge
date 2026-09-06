@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { programCatalog } from "@/data/programs/index";
+import { UNMODELED_REQUIRED_CRITERIA } from "@/data/programs/unmodeled-criteria";
 import { loadCatalogJson } from "@/data/programs/load-json";
 import { isRepayableBenefit } from "@/lib/programs/labels";
 import { validateCatalog } from "@/lib/programs/import/validate-catalog";
@@ -69,6 +70,13 @@ function assertQuality(catalog: ProgramCatalog) {
 
   const activeCount = catalog.programs.filter((program) => program.active).length;
   expect(activeCount).toBeGreaterThanOrEqual(50);
+
+  const catalogIds = new Set(catalog.programs.map((program) => program.external_id));
+  for (const externalId of Object.keys(UNMODELED_REQUIRED_CRITERIA)) {
+    expect(catalogIds.has(externalId)).toBe(true);
+  }
+  const marked = catalog.programs.filter((program) => program.has_unmodeled_required_criteria);
+  expect(marked.length).toBe(Object.keys(UNMODELED_REQUIRED_CRITERIA).length);
 }
 
 describe("Milestone 7A catalog quality", () => {

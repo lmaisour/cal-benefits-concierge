@@ -154,6 +154,29 @@ export function validateCatalog(catalog: ProgramCatalog): CatalogIssue[] {
         externalId: program.external_id,
       });
     }
+
+    if (program.has_unmodeled_required_criteria) {
+      const summary = program.unmodeled_required_criteria_summary?.trim() ?? "";
+      if (!summary) {
+        issues.push({
+          code: "unmodeled_summary",
+          message: `${program.external_id} is marked unmodeled without a consumer summary`,
+          externalId: program.external_id,
+        });
+      } else if (/(userprofile|unmodeled|engine rule|fake pass)/i.test(summary)) {
+        issues.push({
+          code: "unmodeled_wording",
+          message: `${program.external_id} summary uses internal implementation wording`,
+          externalId: program.external_id,
+        });
+      }
+    } else if (program.unmodeled_required_criteria_summary) {
+      issues.push({
+        code: "unmodeled_orphan_summary",
+        message: `${program.external_id} has a summary but is not marked unmodeled`,
+        externalId: program.external_id,
+      });
+    }
   }
 
   const sourcesByProgram = new Map<string, number>();

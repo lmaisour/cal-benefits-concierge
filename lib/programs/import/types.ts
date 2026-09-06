@@ -50,6 +50,8 @@ export type CatalogProgram = {
   confidence: Confidence;
   featured: boolean;
   active: boolean;
+  has_unmodeled_required_criteria: boolean;
+  unmodeled_required_criteria_summary: string | null;
 };
 
 export type CatalogRule = {
