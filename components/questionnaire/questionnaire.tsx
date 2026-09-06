@@ -36,8 +36,10 @@ import {
   clearQuestionnaireState,
   getQuestionnaireServerSnapshot,
   getQuestionnaireSnapshot,
+  markSkipped,
   parseQuestionnaireSnapshot,
   subscribeQuestionnaire,
+  unmarkSkipped,
   writeQuestionnaireState,
 } from "@/lib/questionnaire/storage";
 import {
@@ -107,6 +109,7 @@ export function Questionnaire() {
   const profile = stored?.profile ?? {};
   const stepId = stored?.stepId ?? "zip";
   const completed = stored?.completed ?? false;
+  const skipped = stored?.skipped ?? [];
 
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Drafts | null>(null);
@@ -123,9 +126,13 @@ export function Questionnaire() {
     (profile.vehicle_price !== undefined ? String(profile.vehicle_price) : "");
   const electricFromProfile = electricChoiceFromProfile(profile.electric_utility);
   const gasFromProfile = gasChoiceFromProfile(profile.gas_utility);
-  const electricChoice = drafts?.electricChoice ?? electricFromProfile.choice;
+  const electricChoice =
+    drafts?.electricChoice ??
+    (skipped.includes("electric_utility") ? SKIP : electricFromProfile.choice);
   const otherElectric = drafts?.otherElectric ?? electricFromProfile.other;
-  const gasChoice = drafts?.gasChoice ?? gasFromProfile.choice;
+  const gasChoice =
+    drafts?.gasChoice ??
+    (skipped.includes("gas_utility") ? SKIP : gasFromProfile.choice);
   const otherGas = drafts?.otherGas ?? gasFromProfile.other;
 
   useEffect(() => {
@@ -136,17 +143,15 @@ export function Questionnaire() {
     profile?: UserProfile;
     stepId?: QuestionnaireStepId;
     completed?: boolean;
+    skipped?: string[];
   }) {
     const nextProfile = next.profile ?? profile;
     writeQuestionnaireState({
       profile: nextProfile,
       stepId: clampStepId(nextProfile, next.stepId ?? stepId),
       completed: next.completed ?? completed,
+      skipped: next.skipped ?? skipped,
     });
-  }
-
-  function setProfile(nextProfile: UserProfile) {
-    persist({ profile: nextProfile });
   }
 
   function setZipDraft(value: string) {
@@ -204,14 +209,14 @@ export function Questionnaire() {
     }
   }
 
-  function advance(nextProfile: UserProfile) {
+  function advance(nextProfile: UserProfile, nextSkipped = skipped) {
     setError(null);
     const next = getNextStepId(nextProfile, stepId);
     if (next === "complete") {
-      persist({ profile: nextProfile, completed: true });
+      persist({ profile: nextProfile, completed: true, skipped: nextSkipped });
       return;
     }
-    persist({ profile: nextProfile, stepId: next });
+    persist({ profile: nextProfile, stepId: next, skipped: nextSkipped });
   }
 
   function continueFromStep() {
@@ -220,7 +225,7 @@ export function Questionnaire() {
       setError(result.error);
       return;
     }
-    advance(result.profile);
+    advance(result.profile, result.skipped);
   }
 
   function skipNumberField(field: "household_income" | "age") {
@@ -230,11 +235,14 @@ export function Questionnaire() {
     if (field === "age") {
       setAgeDraft("");
     }
-    advance(applyOptionalNumber(profile, field, undefined));
+    advance(
+      applyOptionalNumber(profile, field, undefined),
+      markSkipped(skipped, field),
+    );
   }
 
   function commitCurrentStep():
-    | { ok: true; profile: UserProfile }
+    | { ok: true; profile: UserProfile; skipped: string[] }
     | { ok: false; error: string } {
     switch (stepId) {
       case "zip": {
@@ -242,7 +250,7 @@ export function Questionnaire() {
         if (message) {
           return { ok: false, error: message };
         }
-        return { ok: true, profile: applyZip(profile, zipDraft.trim()) };
+        return { ok: true, profile: applyZip(profile, zipDraft.trim()), skipped };
       }
       case "household_size": {
         const message = householdSizeError(sizeDraft);
@@ -256,11 +264,16 @@ export function Questionnaire() {
             "household_size",
             parseIntegerInRange(sizeDraft, 1, 20),
           ),
+          skipped,
         };
       }
       case "household_income": {
         if (incomeDraft.trim() === "") {
-          return { ok: true, profile: applyOptionalNumber(profile, "household_income", undefined) };
+          return {
+            ok: true,
+            profile: applyOptionalNumber(profile, "household_income", undefined),
+            skipped,
+          };
         }
         const message = incomeError(incomeDraft);
         if (message) {
@@ -273,21 +286,26 @@ export function Questionnaire() {
             "household_income",
             parseNonNegativeNumber(incomeDraft),
           ),
+          skipped: unmarkSkipped(skipped, "household_income"),
         };
       }
       case "housing_status":
         if (!profile.housing_status) {
           return { ok: false, error: "Choose whether you own or rent." };
         }
-        return { ok: true, profile };
+        return { ok: true, profile, skipped };
       case "property_type":
         if (!profile.property_type) {
           return { ok: false, error: "Choose the type of home you live in." };
         }
-        return { ok: true, profile };
+        return { ok: true, profile, skipped };
       case "age": {
         if (ageDraft.trim() === "") {
-          return { ok: true, profile: applyOptionalNumber(profile, "age", undefined) };
+          return {
+            ok: true,
+            profile: applyOptionalNumber(profile, "age", undefined),
+            skipped,
+          };
         }
         const message = ageError(ageDraft);
         if (message) {
@@ -296,15 +314,34 @@ export function Questionnaire() {
         return {
           ok: true,
           profile: applyOptionalNumber(profile, "age", parseIntegerInRange(ageDraft, 18, 120)),
+          skipped: unmarkSkipped(skipped, "age"),
         };
       }
       case "electric_utility":
-        return { ok: true, profile: applyElectric(profile, electricChoice, otherElectric) };
+        return {
+          ok: true,
+          profile: applyElectric(profile, electricChoice, otherElectric),
+          skipped:
+            !electricChoice || electricChoice === SKIP
+              ? markSkipped(skipped, "electric_utility")
+              : unmarkSkipped(skipped, "electric_utility"),
+        };
       case "gas_utility":
-        return { ok: true, profile: applyGas(profile, gasChoice, otherGas) };
+        return {
+          ok: true,
+          profile: applyGas(profile, gasChoice, otherGas),
+          skipped:
+            !gasChoice || gasChoice === SKIP
+              ? markSkipped(skipped, "gas_utility")
+              : unmarkSkipped(skipped, "gas_utility"),
+        };
       case "vehicle_price": {
         if (priceDraft.trim() === "") {
-          return { ok: true, profile: applyOptionalNumber(profile, "vehicle_price", undefined) };
+          return {
+            ok: true,
+            profile: applyOptionalNumber(profile, "vehicle_price", undefined),
+            skipped,
+          };
         }
         const message = vehiclePriceError(priceDraft);
         if (message) {
@@ -317,13 +354,14 @@ export function Questionnaire() {
             "vehicle_price",
             parseNonNegativeNumber(priceDraft),
           ),
+          skipped,
         };
       }
       default:
         if (isRequiredStep(stepId)) {
           return { ok: false, error: "Please answer this question to continue." };
         }
-        return { ok: true, profile };
+        return { ok: true, profile, skipped };
     }
   }
 
@@ -350,7 +388,8 @@ export function Questionnaire() {
         <StepBody
           stepId={visibleStep}
           profile={profile}
-          setProfile={setProfile}
+          skipped={skipped}
+          persist={persist}
           headingRef={headingRef}
           helperId={helperId}
           errorId={errorId}
@@ -392,7 +431,8 @@ export function Questionnaire() {
 function StepBody({
   stepId,
   profile,
-  setProfile,
+  skipped,
+  persist,
   headingRef,
   helperId,
   errorId,
@@ -426,7 +466,11 @@ function StepBody({
 }: {
   stepId: QuestionnaireStepId;
   profile: UserProfile;
-  setProfile: (profile: UserProfile) => void;
+  skipped: string[];
+  persist: (next: {
+    profile?: UserProfile;
+    skipped?: string[];
+  }) => void;
   headingRef: Ref<HTMLHeadingElement>;
   helperId: string;
   errorId: string;
@@ -529,9 +573,12 @@ function StepBody({
           value={profile.housing_status}
           describedBy={describedBy}
           onChange={(value) =>
-            setProfile(
-              applyHousingStatus(profile, value as "owner" | "renter" | "other"),
-            )
+            persist({
+              profile: applyHousingStatus(
+                profile,
+                value as "owner" | "renter" | "other",
+              ),
+            })
           }
         />
       ) : null}
@@ -544,9 +591,11 @@ function StepBody({
           value={profile.property_type}
           describedBy={describedBy}
           onChange={(value) =>
-            setProfile({
-              ...profile,
-              property_type: value as NonNullable<UserProfile["property_type"]>,
+            persist({
+              profile: {
+                ...profile,
+                property_type: value as NonNullable<UserProfile["property_type"]>,
+              },
             })
           }
         />
@@ -574,9 +623,16 @@ function StepBody({
           legend={copy.title}
           options={YES_NO_SKIP}
           value={profile.has_children}
+          skipped={skipped.includes("has_children")}
           describedBy={describedBy}
           onChange={(value) =>
-            setProfile(applyOptionalBoolean(profile, "has_children", value))
+            persist({
+              profile: applyOptionalBoolean(profile, "has_children", value),
+              skipped:
+                value === undefined
+                  ? markSkipped(skipped, "has_children")
+                  : unmarkSkipped(skipped, "has_children"),
+            })
           }
         />
       ) : null}
@@ -587,8 +643,17 @@ function StepBody({
           legend={copy.title}
           options={YES_NO_SKIP}
           value={profile.veteran}
+          skipped={skipped.includes("veteran")}
           describedBy={describedBy}
-          onChange={(value) => setProfile(applyOptionalBoolean(profile, "veteran", value))}
+          onChange={(value) =>
+            persist({
+              profile: applyOptionalBoolean(profile, "veteran", value),
+              skipped:
+                value === undefined
+                  ? markSkipped(skipped, "veteran")
+                  : unmarkSkipped(skipped, "veteran"),
+            })
+          }
         />
       ) : null}
 
@@ -598,9 +663,16 @@ function StepBody({
           legend={copy.title}
           options={YES_NO_SKIP}
           value={profile.disability}
+          skipped={skipped.includes("disability")}
           describedBy={describedBy}
           onChange={(value) =>
-            setProfile(applyOptionalBoolean(profile, "disability", value))
+            persist({
+              profile: applyOptionalBoolean(profile, "disability", value),
+              skipped:
+                value === undefined
+                  ? markSkipped(skipped, "disability")
+                  : unmarkSkipped(skipped, "disability"),
+            })
           }
         />
       ) : null}
@@ -678,13 +750,13 @@ function StepBody({
             } else {
               current.add(value);
             }
-            setProfile(applyInterests(profile, [...current]));
+            persist({ profile: applyInterests(profile, [...current]) });
           }}
           onToggleEverything={() => {
             if (allInterestsSelected(profile.interests)) {
-              setProfile(applyInterests(profile, undefined));
+              persist({ profile: applyInterests(profile, undefined) });
             } else {
-              setProfile(applyInterests(profile, [...ALL_INTEREST_VALUES]));
+              persist({ profile: applyInterests(profile, [...ALL_INTEREST_VALUES]) });
             }
           }}
         />
@@ -696,8 +768,17 @@ function StepBody({
           legend={copy.title}
           options={YES_NO_UNSURE}
           value={profile.owned_zev_before}
+          skipped={skipped.includes("owned_zev_before")}
           describedBy={describedBy}
-          onChange={(value) => setProfile(applyZevOwnership(profile, value))}
+          onChange={(value) =>
+            persist({
+              profile: applyZevOwnership(profile, value),
+              skipped:
+                value === undefined
+                  ? markSkipped(skipped, "owned_zev_before")
+                  : unmarkSkipped(skipped, "owned_zev_before"),
+            })
+          }
         />
       ) : null}
 
@@ -707,7 +788,8 @@ function StepBody({
           legend={copy.title}
           describedBy={describedBy}
           value={
-            profile.vehicle_condition === undefined ? undefined : profile.vehicle_condition
+            profile.vehicle_condition ??
+            (skipped.includes("vehicle_condition") ? SKIP : undefined)
           }
           options={[
             { value: "new", label: "New" },
@@ -715,13 +797,17 @@ function StepBody({
             { value: SKIP, label: "Not sure" },
           ]}
           onChange={(value) =>
-            setProfile(
-              applyOptionalString(
+            persist({
+              profile: applyOptionalString(
                 profile,
                 "vehicle_condition",
                 value === SKIP ? undefined : (value as "new" | "used"),
               ),
-            )
+              skipped:
+                value === SKIP
+                  ? markSkipped(skipped, "vehicle_condition")
+                  : unmarkSkipped(skipped, "vehicle_condition"),
+            })
           }
         />
       ) : null}
@@ -744,9 +830,20 @@ function StepBody({
           legend={copy.title}
           options={YES_NO_UNSURE}
           value={profile.willing_to_retire_vehicle}
+          skipped={skipped.includes("willing_to_retire_vehicle")}
           describedBy={describedBy}
           onChange={(value) =>
-            setProfile(applyOptionalBoolean(profile, "willing_to_retire_vehicle", value))
+            persist({
+              profile: applyOptionalBoolean(
+                profile,
+                "willing_to_retire_vehicle",
+                value,
+              ),
+              skipped:
+                value === undefined
+                  ? markSkipped(skipped, "willing_to_retire_vehicle")
+                  : unmarkSkipped(skipped, "willing_to_retire_vehicle"),
+            })
           }
         />
       ) : null}
@@ -759,6 +856,7 @@ function BooleanOptions({
   legend,
   options,
   value,
+  skipped = false,
   onChange,
   describedBy,
 }: {
@@ -766,11 +864,12 @@ function BooleanOptions({
   legend: string;
   options: readonly { value: string; label: string }[];
   value: boolean | undefined;
+  skipped?: boolean;
   onChange: (value: boolean | undefined) => void;
   describedBy?: string;
 }) {
   const selected =
-    value === true ? "yes" : value === false ? "no" : undefined;
+    value === true ? "yes" : value === false ? "no" : skipped ? SKIP : undefined;
   return (
     <OptionsQuestion
       name={name}

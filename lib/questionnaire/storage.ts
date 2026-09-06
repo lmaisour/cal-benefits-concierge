@@ -43,6 +43,8 @@ export type QuestionnairePersistedState = {
   profile: UserProfile;
   stepId: QuestionnaireStepId;
   completed: boolean;
+  /** Fields the resident explicitly skipped (Prefer not to say / Not sure). */
+  skipped: string[];
 };
 
 function canUseSessionStorage(): boolean {
@@ -92,6 +94,9 @@ export function parseQuestionnaireSnapshot(
       profile,
       stepId: clampStepId(profile, requestedStep),
       completed: parsed.completed === true,
+      skipped: Array.isArray(parsed.skipped)
+        ? parsed.skipped.filter((item): item is string => typeof item === "string")
+        : [],
     };
   } catch {
     return null;
@@ -114,6 +119,18 @@ export function writeQuestionnaireState(
   } catch {
     // Private mode or quota — progress is kept in memory for this visit.
   }
+}
+
+export function markSkipped(skipped: string[], field: string): string[] {
+  return skipped.includes(field) ? skipped : [...skipped, field];
+}
+
+export function unmarkSkipped(skipped: string[], field: string): string[] {
+  return skipped.filter((item) => item !== field);
+}
+
+export function wasSkipped(skipped: string[], field: string): boolean {
+  return skipped.includes(field);
 }
 
 export function clearQuestionnaireState(): void {
