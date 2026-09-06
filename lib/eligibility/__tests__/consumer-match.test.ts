@@ -33,6 +33,37 @@ describe("toMatchResponse", () => {
     expect(consumer.counts).toEqual({ likely: 0, possible: 0 });
   });
 
+  it("does not repeat the same housing-status reason twice", () => {
+    const program = makeProgram({
+      id: "housing-dup",
+      statewide: true,
+    });
+    const evaluation = evaluateProgram(
+      program,
+      [
+        makeRule({
+          program_id: program.id,
+          field: "housing_status",
+          operator: "equals",
+          value: "owner",
+        }),
+        makeRule({
+          program_id: program.id,
+          field: "homeowner",
+          operator: "is_true",
+          value: true,
+        }),
+      ],
+      statewideLocations(program.id),
+      { housing_status: "owner", homeowner: true },
+    );
+    const match = toConsumerProgramMatch(evaluation);
+    const housingReasons = match?.whyMatched.filter((reason) =>
+      reason.toLowerCase().includes("housing status"),
+    );
+    expect(housingReasons).toHaveLength(1);
+  });
+
   it("maps a likely match correctly", () => {
     const evaluation = evaluateProgram(
       valleyFirstEvProgram,

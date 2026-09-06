@@ -113,7 +113,10 @@ export function whyMatchedFor(evaluation: ProgramEvaluation): string[] {
     if (reasons.length >= 3) {
       break;
     }
-    reasons.push(reasonFromPassedRule(result.rule.field, result.explanation));
+    const reason = reasonFromPassedRule(result.rule.field, result.explanation);
+    if (!reasons.includes(reason)) {
+      reasons.push(reason);
+    }
   }
 
   if (evaluation.geography.status === "PASS" && reasons.length < 3) {
