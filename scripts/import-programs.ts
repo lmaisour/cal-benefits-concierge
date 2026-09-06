@@ -38,7 +38,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  await assertExternalIdColumn(supabase);
+  await assertProgramImportColumns(supabase);
 
   const idByExternal = await upsertPrograms(supabase, catalog);
   await replaceChildren(supabase, catalog, idByExternal);
@@ -85,6 +85,8 @@ async function upsertPrograms(
       confidence: program.confidence,
       featured: program.featured,
       active: program.active,
+      has_unmodeled_required_criteria: program.has_unmodeled_required_criteria,
+      unmodeled_required_criteria_summary: program.unmodeled_required_criteria_summary,
     };
 
     const { data: existing, error: lookupError } = await supabase
@@ -298,8 +300,11 @@ async function countRows(
   return count ?? 0;
 }
 
-async function assertExternalIdColumn(supabase: SupabaseClient<Database>) {
-  const { error } = await supabase.from("programs").select("external_id").limit(1);
+async function assertProgramImportColumns(supabase: SupabaseClient<Database>) {
+  const { error } = await supabase
+    .from("programs")
+    .select("external_id, has_unmodeled_required_criteria, unmodeled_required_criteria_summary")
+    .limit(1);
   if (!error) {
     return;
   }
@@ -308,7 +313,15 @@ async function assertExternalIdColumn(supabase: SupabaseClient<Database>) {
       "programs.external_id does not exist yet. Run supabase/migrations/20260906200000_add_programs_external_id.sql in the Supabase SQL editor, then rerun npm run import:programs.",
     );
   }
-  throw new Error(`Could not read programs.external_id: ${error.message}`);
+  if (
+    error.message.includes("has_unmodeled_required_criteria") ||
+    error.message.includes("unmodeled_required_criteria_summary")
+  ) {
+    throw new Error(
+      "programs unmodeled-criteria columns do not exist yet. Run supabase/migrations/20260906210000_add_unmodeled_required_criteria.sql in the Supabase SQL editor, then rerun npm run import:programs.",
+    );
+  }
+  throw new Error(`Could not read programs import columns: ${error.message}`);
 }
 
 function requireId(map: Map<string, string>, externalId: string): string {

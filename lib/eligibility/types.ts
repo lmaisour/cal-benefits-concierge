@@ -123,6 +123,8 @@ export type ProgramEvaluation = {
   requiredGroups: RuleGroupEvaluation[];
   optionalRuleResults: RuleEvaluation[];
   geography: GeographyEvaluation;
+  hasUnmodeledRequiredCriteria: boolean;
+  unmodeledRequiredCriteriaSummary: string | null;
 };
 
 export type MatchProgramsResult = {

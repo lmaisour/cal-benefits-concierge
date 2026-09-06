@@ -86,6 +86,21 @@ export function ResultCard({ match }: { match: ConsumerProgramMatch }) {
       ) : null}
 
       {match.eligibilityStatus === "POSSIBLY_ELIGIBLE" &&
+      match.additionalRequirements ? (
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">
+            Additional requirements
+          </h4>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Additional program requirements need to be confirmed.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {match.additionalRequirements}
+          </p>
+        </div>
+      ) : null}
+
+      {match.eligibilityStatus === "POSSIBLY_ELIGIBLE" &&
       match.missingInformation.length > 0 ? (
         <div>
           <h4 className="text-sm font-semibold text-foreground">

@@ -172,9 +172,23 @@ export default async function ProgramDetailPage({ params }: PageProps) {
 
       <section className="mt-8">
         <h2 className="font-serif text-2xl font-semibold">Who may qualify</h2>
+        {program.has_unmodeled_required_criteria ? (
+          <div className="mt-3 rounded-xl border border-border bg-muted px-4 py-3">
+            <p className="text-sm font-medium text-foreground">
+              Additional program requirements need to be confirmed.
+            </p>
+            {program.unmodeled_required_criteria_summary ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {program.unmodeled_required_criteria_summary}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         {rules.length === 0 ? (
           <p className="mt-3 text-muted-foreground">
-            Eligibility rules are not listed for this sample record.
+            {program.has_unmodeled_required_criteria
+              ? "Not every requirement is listed below. Confirm the full rules with the program administrator."
+              : "Eligibility rules are not listed for this record."}
           </p>
         ) : (
           <div className="mt-4 space-y-4">

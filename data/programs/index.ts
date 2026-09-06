@@ -9,6 +9,7 @@ import { inactiveCatalog } from "@/data/programs/inactive";
 import { utilityCatalog } from "@/data/programs/utilities";
 import { utilityHardshipCatalog } from "@/data/programs/utility-hardship";
 import { vehicleCatalog } from "@/data/programs/vehicles";
+import { withUnmodeledCriteria } from "@/data/programs/unmodeled-criteria";
 import type {
   CatalogRelationship,
   ProgramCatalog,
@@ -108,7 +109,7 @@ const relationships: CatalogRelationship[] = [
 ];
 
 export const programCatalog: ProgramCatalog = {
-  programs: parts.flatMap((part) => part.programs),
+  programs: parts.flatMap((part) => part.programs).map(withUnmodeledCriteria),
   rules: parts.flatMap((part) => part.rules),
   locations: parts.flatMap((part) => part.locations),
   sources: parts.flatMap((part) => part.sources),
@@ -126,6 +127,7 @@ export function catalogSummary(catalog: ProgramCatalog = programCatalog) {
   let withLocations = 0;
   let withApplicationUrl = 0;
   let withMultipleSources = 0;
+  let withUnmodeledRequiredCriteria = 0;
 
   const rulesByProgram = new Set(catalog.rules.map((row) => row.program_external_id));
   const locationsByProgram = new Set(catalog.locations.map((row) => row.program_external_id));
@@ -157,6 +159,9 @@ export function catalogSummary(catalog: ProgramCatalog = programCatalog) {
     if ((sourceCounts.get(program.external_id) ?? 0) > 1) {
       withMultipleSources += 1;
     }
+    if (program.has_unmodeled_required_criteria) {
+      withUnmodeledRequiredCriteria += 1;
+    }
   }
 
   return {
@@ -171,6 +176,7 @@ export function catalogSummary(catalog: ProgramCatalog = programCatalog) {
     withLocations,
     withApplicationUrl,
     withMultipleSources,
+    withUnmodeledRequiredCriteria,
     sources: catalog.sources.length,
     relationships: catalog.relationships.length,
   };

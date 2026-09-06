@@ -27,6 +27,8 @@ This pass did **not** invent programs, amounts, or eligibility to reach 100. Aft
 | Programs with eligibility rules | 55 |
 | Programs with location rows | 108 |
 | Programs with an application URL | 98 |
+| Programs with unmodeled required criteria | 107 |
+| Fully modeled required criteria (can become Likely) | 1 (Homeowners’ Property Tax Exemption) |
 | Relationship rows | 12 |
 
 ## Programs by category
@@ -126,20 +128,31 @@ Research areas that remain if a later pass wants to close the 2-program shortfal
 
 Profiles were run against the imported catalog through `matchPrograms` / `toMatchResponse`.
 
-1. **Lower-income LA County homeowner (SCE / SoCalGas)** — CARE can be Likely because IOU utility rules pass and income is not encoded. LACDA Handyworker stays Possible (county is unknown). Homeowners’ exemption can be Likely.
-2. **LADWP renter** — EZ-SAVE can be Likely (utility gate only). DAC-SASH does not match LADWP electric service. CARE can still appear via SoCalGas.
-3. **First-EV buyer** — MyFirstEV can be Likely from `first_ev`. Dealer/channel requirements stay unresolved.
-4. **Household omitting income** — Programs without income rules can still be Likely. That is an engine limitation, not a guessed income cutoff.
+1. **Lower-income LA County homeowner (SCE / SoCalGas)** — CARE stays Possible because the 200% FPL table is unmodeled. LACDA Handyworker stays Possible (county is unknown). Homeowners’ exemption can be Likely.
+2. **LADWP renter** — EZ-SAVE stays Possible (income table unmodeled). DAC-SASH does not match LADWP electric service. CARE can still appear as Possible via SoCalGas.
+3. **First-EV buyer** — MyFirstEV stays Possible even when `first_ev` passes, because participating-seller and vehicle rules are unmodeled.
+4. **Household omitting income** — Programs with executable income rules stay Possible. Programs with unmodeled income tables also stay Possible instead of becoming false Likely.
 5. **Senior homeowner** — LACDA Senior Grant stays Possible without county. Age 62+ can pass. Homeowners’ exemption can be Likely.
-6. **Solar / storage interest** — DAC-SASH may appear; SGIP equity does not, because it is inactive.
-7. **Medical-energy need** — Medical Baseline can appear when `disability` is true and an IOU rule passes. SMUD-only medical discounts are not a separate invented program.
-8. **First-time homebuyer** — CalHFA MyHome appears as **financing**, not free savings.
+6. **Solar / storage interest** — DAC-SASH may appear as Possible; SGIP equity does not, because it is inactive.
+7. **Medical-energy need** — Medical Baseline can appear as Possible when `disability` is true and an IOU rule passes. A clinician certification is still unmodeled.
+8. **First-time homebuyer** — CalHFA MyHome appears as **financing**, not free savings, and stays Possible because AMI / first-time-buyer rules are unmodeled.
 
 Expired federal credits, HEEHRA, TECH, and SGIP equity do not appear in consumer matching.
 
+## Conservative unmodeled-criteria handling
+
+Required eligibility that the current questionnaire cannot execute is stored on the program row:
+
+- `has_unmodeled_required_criteria`
+- `unmodeled_required_criteria_summary` (consumer wording only)
+
+`evaluateProgram()` still returns NOT_ELIGIBLE on any executable required FAIL. Otherwise UNKNOWN executable rules stay Possible. If every executable required rule and geography PASSes but the unmodeled flag is true, the program stays Possible. Unmodeled text is never scored as PASS or FAIL.
+
+Possible matches caused by unmodeled criteria include “Additional program requirements need to be confirmed.” plus the program summary.
+
 ## Unresolved schema / engine limitations
 
-- No FPL / AMI / CARE-table engine. Published percentage and household-size income tests stay in descriptions. Missing income rules make some statewide programs **Likely** for everyone, which is more confident than the research supports. We did not add guessed numeric cutoffs.
+- No FPL / AMI / CARE-table engine. Published percentage and household-size income tests stay in descriptions and, when required, set `has_unmodeled_required_criteria`. Those programs stay **Possible**, not false Likely. We did not add guessed numeric cutoffs.
 - Questionnaire does not collect county or city. COUNTY/CITY programs become Possible, not false Likely.
 - Different location types are AND. Utility programs that serve electric **or** gas use OR rule groups, not two restrictive location types.
 - CCA territories (CPA, MCE, Ava, 3CE) often have only `STATE = CA`, so geography can over-match. That is documented, not papered over with guessed ZIP lists.
@@ -163,3 +176,6 @@ Once the real catalog exceeded 50 active programs:
 
 - `supabase/migrations/20260906120000_create_program_tables.sql` (existing)
 - `supabase/migrations/20260906200000_add_programs_external_id.sql` — adds nullable unique `programs.external_id`
+- `supabase/migrations/20260906210000_add_unmodeled_required_criteria.sql` — adds `has_unmodeled_required_criteria` and `unmodeled_required_criteria_summary`
+
+Do not apply these migrations or `npm run import:programs` until this code is confirmed on `lmaisour/cal-benefits-concierge`.

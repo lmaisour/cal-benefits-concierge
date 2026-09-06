@@ -1,3 +1,4 @@
+import { UNMODELED_REQUIRED_CRITERIA_MESSAGE } from "@/data/programs/unmodeled-criteria";
 import { formatProgramValue } from "@/lib/programs/format";
 import { fieldLabel, isRepayableBenefit } from "@/lib/programs/labels";
 import type {
@@ -52,6 +53,7 @@ export type ConsumerProgramMatch = {
   eligibilityStatus: ConsumerEligibilityStatus;
   whyMatched: string[];
   missingInformation: string[];
+  additionalRequirements: string | null;
   importantWarning: string | null;
   lastVerifiedAt: string | null;
   applicationUrl: string | null;
@@ -83,6 +85,21 @@ export function importantWarningFor(program: Program): string | null {
     return PURCHASE_BEFORE_APPROVAL_WARNING;
   }
   return null;
+}
+
+export function additionalRequirementsFor(
+  evaluation: ProgramEvaluation,
+): string | null {
+  if (
+    evaluation.status !== "POSSIBLY_ELIGIBLE" ||
+    !evaluation.hasUnmodeledRequiredCriteria
+  ) {
+    return null;
+  }
+  const summary = evaluation.unmodeledRequiredCriteriaSummary?.trim();
+  return summary && summary.length > 0
+    ? summary
+    : UNMODELED_REQUIRED_CRITERIA_MESSAGE;
 }
 
 export function missingInformationFor(evaluation: ProgramEvaluation): string[] {
@@ -170,6 +187,7 @@ export function toConsumerProgramMatch(
       evaluation.status === "POSSIBLY_ELIGIBLE"
         ? missingInformationFor(evaluation)
         : [],
+    additionalRequirements: additionalRequirementsFor(evaluation),
     importantWarning: importantWarningFor(evaluation.program),
     lastVerifiedAt: evaluation.program.last_verified_at,
     applicationUrl: evaluation.program.application_url,

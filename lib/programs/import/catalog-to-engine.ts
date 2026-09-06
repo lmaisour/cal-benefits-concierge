@@ -40,6 +40,8 @@ export function catalogToEngine(catalog: ProgramCatalog): EngineCatalog {
     confidence: program.confidence,
     featured: program.featured,
     active: program.active,
+    has_unmodeled_required_criteria: program.has_unmodeled_required_criteria,
+    unmodeled_required_criteria_summary: program.unmodeled_required_criteria_summary,
     created_at: program.last_verified_at,
     updated_at: program.last_verified_at,
   }));

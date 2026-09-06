@@ -65,7 +65,7 @@ Helpers for reading these values are in `lib/supabase/env.ts`. The server client
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy the project URL, publishable key, and secret key into `.env.local`.
-3. In the Supabase SQL editor, run the files in `supabase/migrations/` in timestamp order, including `20260906200000_add_programs_external_id.sql`.
+3. In the Supabase SQL editor, run the files in `supabase/migrations/` in timestamp order, including `20260906200000_add_programs_external_id.sql` and `20260906210000_add_unmodeled_required_criteria.sql`.
 4. Import the verified catalog (this uses `SUPABASE_SECRET_KEY` on the server only):
 
 ```bash
@@ -79,6 +79,7 @@ If you use the Supabase CLI with this folder as the project root:
 ```bash
 npx supabase db query --file supabase/migrations/20260906120000_create_program_tables.sql
 npx supabase db query --file supabase/migrations/20260906200000_add_programs_external_id.sql
+npx supabase db query --file supabase/migrations/20260906210000_add_unmodeled_required_criteria.sql
 npm run import:programs
 ```
 
