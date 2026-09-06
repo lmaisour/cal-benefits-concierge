@@ -5,7 +5,7 @@
 --   active and not EXPIRED, plus rules/locations/sources/relationships
 --   that belong to those programs.
 --   Anonymous and authenticated users cannot INSERT, UPDATE, or DELETE.
---   Admin writes will use the service-role key from server-side code,
+--   Admin writes will use the secret key from server-side code,
 --   which bypasses RLS.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;

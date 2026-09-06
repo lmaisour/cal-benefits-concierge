@@ -50,8 +50,8 @@ Open [http://localhost:43123](http://localhost:43123).
 | Variable | Where it is used | Notes |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Browser + server | Public Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + server | Public anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server only | Never expose this to the browser. Needed later for admin writes. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser + server | Publishable (public) key |
+| `SUPABASE_SECRET_KEY` | Server only | Never expose this to the browser. Needed later for admin writes. |
 | `ADMIN_PASSWORD` | Server only | Simple admin gate in a later milestone |
 
 Helpers for reading these values are in `lib/supabase/env.ts`. The server client is in `lib/supabase/server.ts`.
@@ -59,7 +59,7 @@ Helpers for reading these values are in `lib/supabase/env.ts`. The server client
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Copy the project URL, anon key, and service-role key into `.env.local`.
+2. Copy the project URL, publishable key, and secret key into `.env.local`.
 3. In the Supabase SQL editor, run `supabase/migrations/20260906120000_create_program_tables.sql`.
 4. Then run `supabase/seed.sql`.
 
@@ -76,14 +76,14 @@ The exact CLI command can vary by CLI version; the SQL editor path above always 
 
 Seed programs are **fictional test fixtures**. Names are prefixed with `SAMPLE:` and descriptions say they are not verified government benefits. Replace them with researched programs before any public launch.
 
-Default consumer reads (anon key + RLS) return active, non-expired programs only. The expired solar sample exists so you can confirm expired rows stay hidden.
+Default consumer reads (publishable key + RLS) return active, non-expired programs only. The expired solar sample exists so you can confirm expired rows stay hidden.
 
 ### Row Level Security
 
 - Anonymous and signed-in users may `SELECT` programs where `active = TRUE` and `status <> 'EXPIRED'`.
 - They may also read rules, locations, sources, and relationships that belong to those programs.
 - They cannot `INSERT`, `UPDATE`, or `DELETE` catalog data.
-- Admin writes will use the service-role key from server-side code, which bypasses RLS.
+- Admin writes will use the secret key from server-side code, which bypasses RLS.
 
 ## Next milestone
 
