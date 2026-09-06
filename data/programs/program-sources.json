@@ -1,0 +1,1226 @@
+[
+  {
+    "program_external_id": "CA-VEH-MYFIRSTEV",
+    "source_type": "GENERAL",
+    "organization": "California Air Resources Board",
+    "url": "https://ww2.arb.ca.gov/myfirstev",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-MYFIRSTEV",
+    "source_type": "ELIGIBILITY",
+    "organization": "California Air Resources Board",
+    "url": "https://ww2.arb.ca.gov/resources/fact-sheets/myfirstev-frequently-asked-questions",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-MYFIRSTEV",
+    "source_type": "STATUS",
+    "organization": "California Air Resources Board",
+    "url": "https://ww2.arb.ca.gov/myfirstev/about",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "source_type": "GENERAL",
+    "organization": "Driving Clean Assistance Program",
+    "url": "https://drivingcleanca.org/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "Driving Clean Assistance Program",
+    "url": "https://drivingcleanca.org/about-us/dcap-eligibility/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "source_type": "STATUS",
+    "organization": "California Air Resources Board",
+    "url": "https://ww2.arb.ca.gov/our-work/programs/driving-clean-assistance-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "source_type": "GENERAL",
+    "organization": "Bay Area Air Quality Management District",
+    "url": "https://www.baaqmd.gov/en/funding-and-incentives/residents/clean-cars-for-all",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "source_type": "APPLICATION",
+    "organization": "Bay Area Air Quality Management District",
+    "url": "https://www.baaqmd.gov/funding-and-incentives/residents/clean-cars-for-all/apply",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDAPCD-VEH-CC4A",
+    "source_type": "STATUS",
+    "organization": "San Diego County Air Pollution Control District",
+    "url": "https://www.sdapcd.org/content/sdapcd/grants/grants-equipment/passenger-vehicles.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDAPCD-VEH-CC4A",
+    "source_type": "APPLICATION",
+    "organization": "San Diego Clean Cars 4 All",
+    "url": "https://www.sdcc4a.org/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "source_type": "GENERAL",
+    "organization": "Bureau of Automotive Repair",
+    "url": "https://www.bar.ca.gov/cap",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "source_type": "ELIGIBILITY",
+    "organization": "Bureau of Automotive Repair",
+    "url": "https://www.bar.ca.gov/cap/retirement",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "source_type": "APPLICATION",
+    "organization": "Bureau of Automotive Repair",
+    "url": "https://bar.ca.gov/caponline/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-REPAIR",
+    "source_type": "ELIGIBILITY",
+    "organization": "Bureau of Automotive Repair",
+    "url": "https://www.bar.ca.gov/cap/repair",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-REPAIR",
+    "source_type": "APPLICATION",
+    "organization": "Bureau of Automotive Repair",
+    "url": "https://bar.ca.gov/caponline/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-VEH-POEV",
+    "source_type": "GENERAL",
+    "organization": "PG&E",
+    "url": "https://evrebates.pge.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-VEH-POEV",
+    "source_type": "ELIGIBILITY",
+    "organization": "PG&E",
+    "url": "https://evrebates.pge.com/program-requirements",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCE-VEH-POEV",
+    "source_type": "GENERAL",
+    "organization": "Southern California Edison",
+    "url": "https://evrebates.sce.com/site/home",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCE-VEH-POEV",
+    "source_type": "ELIGIBILITY",
+    "organization": "Southern California Edison",
+    "url": "https://evrebates.sce.com/site/program-details",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDGE-VEH-POEV",
+    "source_type": "GENERAL",
+    "organization": "San Diego Gas & Electric",
+    "url": "https://evrebates.sdge.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDGE-VEH-POEV",
+    "source_type": "ELIGIBILITY",
+    "organization": "San Diego Gas & Electric",
+    "url": "https://evrebates.sdge.com/program-requirements",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-VEH-USED-EV",
+    "source_type": "GENERAL",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/used-electric-vehicle-rebate-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-VEH-HOME-CHARGING",
+    "source_type": "GENERAL",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/clean-energy/electric-vehicles/getting-started-with-electric-vehicles/residential-electric-vehicle-charging-rebate.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCE-VEH-CHARGE-READY-HOME",
+    "source_type": "GENERAL",
+    "organization": "Southern California Edison",
+    "url": "https://evhome.sce.com/residents",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-VEH-CHARGER",
+    "source_type": "GENERAL",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/residential-ev-charger-rebate-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMUD-VEH-CHARGE-HOME",
+    "source_type": "GENERAL",
+    "organization": "SMUD",
+    "url": "https://www.smud.org/Going-Green/Electric-Vehicles/Charge-at-Home-application-page",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMUD-VEH-CHARGE-HOME",
+    "source_type": "GENERAL",
+    "organization": "SMUD",
+    "url": "https://www.smud.org/ev",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "source_type": "GENERAL",
+    "organization": "California Department of Insurance",
+    "url": "https://www.insurance.ca.gov/01-consumers/105-type/95-guides/01-auto/lca/index.cfm",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "source_type": "APPLICATION",
+    "organization": "California Low Cost Auto",
+    "url": "https://www.mylowcostauto.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "source_type": "ELIGIBILITY",
+    "organization": "California Low Cost Auto",
+    "url": "https://www.mylowcostauto.com/faq",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-CARE",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/care",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-CARE",
+    "source_type": "APPLICATION",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/account/billing-and-assistance/financial-assistance/california-alternate-rates-for-energy-program.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-FERA",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/consumer-support/financial-assistance-savings-and-discounts/family-electric-rate-assistance-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-ESA",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/consumer-support/financial-assistance-savings-and-discounts/energy-savings-assistance",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-MEDICAL-BASELINE",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/consumer-support/financial-assistance-savings-and-discounts/medical-baseline",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-LIHEAP",
+    "source_type": "GENERAL",
+    "organization": "CSD",
+    "url": "https://csd.ca.gov/Pages/LIHEAPProgram.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-LIHEAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "CSD",
+    "url": "https://csd.ca.gov/Pages/LIHEAP-Income-Eligibility.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-LIHEAP",
+    "source_type": "APPLICATION",
+    "organization": "CSD",
+    "url": "https://csd.ca.gov/Pages/FindServicesInYourArea.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-WAP",
+    "source_type": "GENERAL",
+    "organization": "CSD",
+    "url": "https://csd.ca.gov/Pages/Residential-Energy-Efficiency.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-WAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "CSD",
+    "url": "https://csd.ca.gov/Pages/DOE-Income-Eligibility.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-DAC-GT",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/solar-in-disadvantaged-communities/the-disadvantaged-communities-green-tariff-dac-gt-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-UTIL-AMP",
+    "source_type": "GENERAL",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/account/billing-and-assistance/financial-assistance/arrearage-management-plan-amp.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-UTIL-EZ-SAVE",
+    "source_type": "GENERAL",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/assistance-programs/ez-save-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMUD-UTIL-EAPR",
+    "source_type": "GENERAL",
+    "organization": "SMUD",
+    "url": "https://www.smud.org/lowincome",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMUD-UTIL-EAPR",
+    "source_type": "APPLICATION",
+    "organization": "SMUD",
+    "url": "https://www.smud.org/EAPRapp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "source_type": "GENERAL",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/account/billing-and-assistance/financial-assistance/relief-for-energy-assistance-through-community-help.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "source_type": "APPLICATION",
+    "organization": "Dollar Energy Fund",
+    "url": "https://myappconnect.com/pge/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "source_type": "BENEFIT",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/account/billing-and-assistance/financial-assistance/relief-for-energy-assistance-through-community-help.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-MATCH-MY-PAYMENT",
+    "source_type": "GENERAL",
+    "organization": "PG&E",
+    "url": "https://www.pge.com/en/account/billing-and-assistance/financial-assistance/match-my-payment-program.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PGE-MATCH-MY-PAYMENT",
+    "source_type": "APPLICATION",
+    "organization": "Dollar Energy Fund",
+    "url": "https://myappconnect.com/pge/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCE-EAF",
+    "source_type": "GENERAL",
+    "organization": "Southern California Edison",
+    "url": "https://www.sce.com/residential/assistance/energy-assistance-fund",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCE-EAF",
+    "source_type": "BENEFIT",
+    "organization": "Southern California Edison",
+    "url": "https://www.sce.com/residential/assistance/energy-assistance-fund",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDGE-N2N",
+    "source_type": "GENERAL",
+    "organization": "San Diego Gas & Electric",
+    "url": "https://www.sdge.com/residential/pay-bill/get-payment-bill-assistance/bill-payment-options-temporary-financial-help/one-time-assistance-bill-assistance",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDGE-N2N",
+    "source_type": "APPLICATION",
+    "organization": "San Diego Gas & Electric",
+    "url": "https://www.sdge.com/residential/pay-bill/get-payment-bill-assistance/bill-payment-options-temporary-financial-help/one-time-assistance-bill-assistance/neighbor-neighbor-program-application-form",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-CALEITC",
+    "source_type": "GENERAL",
+    "organization": "Franchise Tax Board",
+    "url": "https://www.ftb.ca.gov/file/personal/credits/california-earned-income-tax-credit.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-CALEITC",
+    "source_type": "ELIGIBILITY",
+    "organization": "Franchise Tax Board",
+    "url": "https://www.ftb.ca.gov/file/personal/credits/caleitc/eligibility-and-credit-information.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-YCTC",
+    "source_type": "GENERAL",
+    "organization": "Franchise Tax Board",
+    "url": "https://www.ftb.ca.gov/file/personal/credits/young-child-tax-credit.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-FYTC",
+    "source_type": "GENERAL",
+    "organization": "Franchise Tax Board",
+    "url": "https://www.ftb.ca.gov/file/personal/credits/foster-youth-tax-credit.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-RENTERS-CREDIT",
+    "source_type": "GENERAL",
+    "organization": "Franchise Tax Board",
+    "url": "https://www.ftb.ca.gov/file/personal/credits/nonrefundable-renters-credit.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-TAX-HOMEOWNERS-EXEMPTION",
+    "source_type": "GENERAL",
+    "organization": "State Board of Equalization",
+    "url": "https://boe.ca.gov/proptaxes/homeowners_exemption.htm",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-CALFRESH",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/inforesources/calfresh",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-CALFRESH",
+    "source_type": "APPLICATION",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/calfresh/application",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-CFAP",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://cdss.ca.gov/inforesources/cdss-programs/calfresh/cfap/what-is-cfap",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-CFAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/inforesources/cdss-programs/calfresh/cfap/who-is-eligible",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-SUN-BUCKS",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/sun-bucks",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-SUN-BUCKS",
+    "source_type": "ELIGIBILITY",
+    "organization": "California Department of Education",
+    "url": "https://www.cde.ca.gov/ls/nu/sunbucks.asp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS-CHILD-CARE",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/calworks-child-care",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CAPP",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/inforesources/child-care-and-development/child-care-and-development-programs",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CSPP",
+    "source_type": "GENERAL",
+    "organization": "California Department of Education",
+    "url": "https://www.cde.ca.gov/sp/Cd/op/cdprograms.asp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CSPP",
+    "source_type": "ELIGIBILITY",
+    "organization": "California Department of Education",
+    "url": "https://www.cde.ca.gov/sp/cd/ci/mb2603.asp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CHILD-CARE-BRIDGE",
+    "source_type": "GENERAL",
+    "organization": "CDSS",
+    "url": "https://www.cdss.ca.gov/inforesources/calworks-child-care/ecc-bridge-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/consumer-support/financial-assistance-savings-and-discounts/lifeline",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE",
+    "source_type": "APPLICATION",
+    "organization": "California LifeLine",
+    "url": "https://www.californialifeline.com",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE-BROADBAND",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/consumer-support/financial-assistance-savings-and-discounts/lifeline",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE-BROADBAND",
+    "source_type": "STATUS",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/news-and-updates/all-news/cpuc-launches-pilot-to-improve-broadband-for-low-income-households-through-california-lifeline",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-WIC",
+    "source_type": "GENERAL",
+    "organization": "California Department of Public Health",
+    "url": "https://www.cdph.ca.gov/Programs/CFH/DWICSN/Pages/Program-Landing1.aspx",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-WIC",
+    "source_type": "APPLICATION",
+    "organization": "California WIC",
+    "url": "https://myfamily.wic.ca.gov/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-WIC",
+    "source_type": "STATUS",
+    "organization": "California WIC",
+    "url": "https://myfamily.wic.ca.gov/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS",
+    "source_type": "GENERAL",
+    "organization": "California Department of Social Services",
+    "url": "https://www.cdss.ca.gov/calworks",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS",
+    "source_type": "APPLICATION",
+    "organization": "BenefitsCal",
+    "url": "https://www.benefitscal.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HLTH-MEDICAL",
+    "source_type": "GENERAL",
+    "organization": "Covered California",
+    "url": "https://www.coveredca.com/health/medi-cal/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HLTH-MEDICAL",
+    "source_type": "APPLICATION",
+    "organization": "Covered California",
+    "url": "https://www.coveredca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HLTH-COVEREDCA",
+    "source_type": "GENERAL",
+    "organization": "Covered California",
+    "url": "https://www.coveredca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HLTH-COVEREDCA",
+    "source_type": "APPLICATION",
+    "organization": "Covered California",
+    "url": "https://www.coveredca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-IHSS",
+    "source_type": "GENERAL",
+    "organization": "California Department of Social Services",
+    "url": "https://www.cdss.ca.gov/in-home-supportive-services",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CAPI",
+    "source_type": "GENERAL",
+    "organization": "California Department of Social Services",
+    "url": "https://www.cdss.ca.gov/capi",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-CAPI",
+    "source_type": "ELIGIBILITY",
+    "organization": "California Department of Social Services",
+    "url": "https://cdss.ca.gov/inforesources/cash-assistance-for-immigrants",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FOOD-UNIVERSAL-MEALS",
+    "source_type": "GENERAL",
+    "organization": "California Department of Education",
+    "url": "https://www.cde.ca.gov/ls/nu/sn/cauniversalmeals.asp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-EDU-CALGRANT",
+    "source_type": "GENERAL",
+    "organization": "California Student Aid Commission",
+    "url": "https://www.csac.ca.gov/cal-grants",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-EDU-CALGRANT",
+    "source_type": "APPLICATION",
+    "organization": "California Student Aid Commission",
+    "url": "https://www.csac.ca.gov/cal-grants",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-EDU-MCS",
+    "source_type": "GENERAL",
+    "organization": "California Student Aid Commission",
+    "url": "https://www.csac.ca.gov/middle-class-scholarship",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-SSP",
+    "source_type": "GENERAL",
+    "organization": "California Department of Social Services",
+    "url": "https://www.cdss.ca.gov/inforesources/ssi-ssp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-EDU-CALKIDS",
+    "source_type": "GENERAL",
+    "organization": "CalKIDS",
+    "url": "https://calkids.org/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-PFL",
+    "source_type": "GENERAL",
+    "organization": "Employment Development Department",
+    "url": "https://edd.ca.gov/en/disability/paid-family-leave/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-PFL",
+    "source_type": "BENEFIT",
+    "organization": "Employment Development Department",
+    "url": "https://edd.ca.gov/en/disability/paid-family-leave/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-SDI",
+    "source_type": "GENERAL",
+    "organization": "Employment Development Department",
+    "url": "https://edd.ca.gov/en/disability/disability_insurance/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-FAM-SDI",
+    "source_type": "BENEFIT",
+    "organization": "Employment Development Department",
+    "url": "https://edd.ca.gov/en/disability/disability_insurance/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-CALHFA-MYHOME",
+    "source_type": "GENERAL",
+    "organization": "CalHFA",
+    "url": "https://www.calhfa.ca.gov/homebuyer/programs/myhome.htm",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-PLATINUM",
+    "source_type": "GENERAL",
+    "organization": "GSFA",
+    "url": "https://www.gsfahome.org/programs/dpa/platinum.shtml",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-ASSIST-TO-OWN",
+    "source_type": "GENERAL",
+    "organization": "GSFA",
+    "url": "https://www.gsfahome.org/programs/dpa/platinum.shtml",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "source_type": "GENERAL",
+    "organization": "HCD",
+    "url": "https://www.hcd.ca.gov/funding/recoverca",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "source_type": "APPLICATION",
+    "organization": "HCD",
+    "url": "https://www.hcd.ca.gov/funding/recoverca/apply",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "USDA-HOUS-504",
+    "source_type": "GENERAL",
+    "organization": "USDA Rural Development",
+    "url": "https://www.rd.usda.gov/programs-services/single-family-housing-programs/single-family-housing-repair-loans-grants-9",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "FRE-HOUS-OORP",
+    "source_type": "GENERAL",
+    "organization": "County of Fresno",
+    "url": "https://www.fresnocountyca.gov/Departments/Public-Works-and-Planning/divisions-of-public-works-and-planning/community-development-division/housing-programs/owner-occupied-rehabilitation-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "KIN-HOUS-FTHB",
+    "source_type": "GENERAL",
+    "organization": "Kings County",
+    "url": "https://www.countyofkingsca.gov/departments/community-development-agency/information/cdbg",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "KIN-HOUS-REHAB",
+    "source_type": "GENERAL",
+    "organization": "Kings County",
+    "url": "https://www.countyofkingsca.gov/departments/community-development-agency/information/cdbg",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LAC-GREENLINE",
+    "source_type": "GENERAL",
+    "organization": "LA County DCBA",
+    "url": "https://dcba.lacounty.gov/greenline/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LAC-HOUS-HANDYWORKER",
+    "source_type": "GENERAL",
+    "organization": "LACDA",
+    "url": "https://www.lacda.org/home-improvements/handyworker-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "source_type": "GENERAL",
+    "organization": "LACDA",
+    "url": "https://www.lacda.org/home-improvements/senior-grant-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LAC-HOUS-HOP",
+    "source_type": "GENERAL",
+    "organization": "LACDA",
+    "url": "https://www.lacda.org/home-ownership/home-ownership-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LA-HOUS-LIPA",
+    "source_type": "GENERAL",
+    "organization": "Los Angeles Housing Department",
+    "url": "https://housing.lacity.gov/housing/helping-low-income-first-time-homebuyers",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LA-HOUS-MIPA",
+    "source_type": "GENERAL",
+    "organization": "Los Angeles Housing Department",
+    "url": "https://housing.lacity.gov/housing/help-moderate-income-first-home-buyers",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
+    "source_type": "GENERAL",
+    "organization": "City of Monterey",
+    "url": "https://monterey.gov/your_city_hall/departments/community_development/housing_programs/rehab_grants_and_loans.php",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "NAP-HOUS-PROXIMITY",
+    "source_type": "GENERAL",
+    "organization": "Napa County",
+    "url": "https://www.napacounty.gov/520/Proximity-Housing-Homebuyers-Assistance-",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "NAP-HOUS-REHAB",
+    "source_type": "GENERAL",
+    "organization": "City of Napa",
+    "url": "https://www.cityofnapa.org/204/Housing-Rehabilitation",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "NEV-HOUS-DPA",
+    "source_type": "GENERAL",
+    "organization": "Nevada County",
+    "url": "https://www.readynevadacounty.org/547/Down-Payment-Assistance",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PLA-HOUS-WHPP",
+    "source_type": "GENERAL",
+    "organization": "Placer County",
+    "url": "https://www.placer.ca.gov/whpp",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMC-HOUS-EDPAP",
+    "source_type": "GENERAL",
+    "organization": "San Mateo County",
+    "url": "https://www.smcgov.org/housing/edpap-employee-down-payment-assistance-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "STA-HOUS-REHAB",
+    "source_type": "GENERAL",
+    "organization": "Stanislaus County",
+    "url": "https://www.stancounty.com/planning/cdbg/housing-rehab.shtm",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "TUO-HOUS-FTHB",
+    "source_type": "GENERAL",
+    "organization": "Tuolumne County",
+    "url": "https://tuolumnecounty.ca.gov/711/County-First-Time-Homebuyer-Programs",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "TUO-HOUS-REHAB",
+    "source_type": "GENERAL",
+    "organization": "Tuolumne County",
+    "url": "https://www.tuolumnecounty.ca.gov/FAQ.aspx?QID=287",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-PROP-TAX-POSTPONEMENT",
+    "source_type": "STATUS",
+    "organization": "California State Controller",
+    "url": "https://www.sco.ca.gov/ardtax_prop_tax_postponement.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOUS-PROP-TAX-POSTPONEMENT",
+    "source_type": "ELIGIBILITY",
+    "organization": "California State Controller",
+    "url": "https://www.sco.ca.gov/ardtax_prop_tax_postponement.html",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-EBD",
+    "source_type": "GENERAL",
+    "organization": "California Energy Commission",
+    "url": "https://www.energy.ca.gov/programs-and-topics/programs/equitable-building-decarbonization-program/ebd-statewide-direct",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "source_type": "GENERAL",
+    "organization": "California Public Utilities Commission",
+    "url": "https://www.cpuc.ca.gov/SolarInDACs",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "source_type": "APPLICATION",
+    "organization": "GRID Alternatives",
+    "url": "https://gridalternatives.org/what-we-do/program-administration/dac-sash",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCG-HOME-REBATES",
+    "source_type": "BENEFIT",
+    "organization": "SoCalGas",
+    "url": "https://www.socalgas.com/savings/rebates-and-incentives",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-HOME-CONSUMER-REBATE",
+    "source_type": "BENEFIT",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/assistance-programs/consumer-rebate-program",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SMUD-HOME-GO-ELECTRIC",
+    "source_type": "BENEFIT",
+    "organization": "SMUD",
+    "url": "https://www.smud.org/Rebates-and-Savings-Tips/Improve-Home-Efficiency",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CPA-HOME-AC-SAVINGS",
+    "source_type": "BENEFIT",
+    "organization": "Clean Power Alliance",
+    "url": "https://cleanpoweralliance.org/instant-ac-savings-program-faqs/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CPA-HOME-SUN-STORAGE",
+    "source_type": "BENEFIT",
+    "organization": "Clean Power Alliance",
+    "url": "https://cleanpoweralliance.org/sun-storage-rebate/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "MCE-HOME-HEAT-PUMP",
+    "source_type": "BENEFIT",
+    "organization": "MCE",
+    "url": "https://mcecleanenergy.org/heat-pump-rebates/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "PCE-HOME-WESTLIGHT",
+    "source_type": "BENEFIT",
+    "organization": "Peninsula Clean Energy",
+    "url": "https://www.westlightenergy.org/residential/rebates-offers/appliance-rebate-application-form/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SVCE-HOME-REBATES",
+    "source_type": "BENEFIT",
+    "organization": "SVCE",
+    "url": "https://www.svcleanenergy.org/home-rebates/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "AVA-HOME-SMARTHOME-BATTERY",
+    "source_type": "BENEFIT",
+    "organization": "Ava Community Energy",
+    "url": "https://avaenergy.org/go-electric/residential-solar-storage/smarthome-battery/residents/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "3CE-HOME-ELECTRIFY",
+    "source_type": "GENERAL",
+    "organization": "Central Coast Community Energy",
+    "url": "https://3cenergy.org/rebates/electrify-your-home/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDCP-HOME-SOLAR-BATTERY",
+    "source_type": "BENEFIT",
+    "organization": "San Diego Community Power",
+    "url": "https://sdcommunitypower.org/solar-battery-savings/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "MWD-WATER-SOCAL-WATERSMART",
+    "source_type": "GENERAL",
+    "organization": "Metropolitan Water District",
+    "url": "https://socalwatersmart.com/en/residential/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "MWD-WATER-SOCAL-WATERSMART",
+    "source_type": "APPLICATION",
+    "organization": "Metropolitan Water District",
+    "url": "https://socalwatersmart.com/en/residential/rebates/apply-online/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-WATER-CONSERVATION",
+    "source_type": "GENERAL",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/who-we-are/water-system/water-conservation/rebates-free-items",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCVWD-WATER-LANDSCAPE",
+    "source_type": "GENERAL",
+    "organization": "Valley Water",
+    "url": "https://www.valleywater.org/saving-water/rebates-surveys/landscape-rebates",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "EBMUD-WATER-REBATES",
+    "source_type": "GENERAL",
+    "organization": "EBMUD",
+    "url": "https://www.ebmud.com/water/conservation-and-rebates/rebates",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SDCWA-WATER-RESIDENTIAL",
+    "source_type": "GENERAL",
+    "organization": "San Diego County Water Authority",
+    "url": "https://www.sdcwa.org/your-water/water-use-efficiency/residential-rebates-programs/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-VEH-30D",
+    "source_type": "STATUS",
+    "organization": "Internal Revenue Service",
+    "url": "https://www.irs.gov/credits-deductions/credits-for-new-clean-vehicles-purchased-in-2023-or-after",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-VEH-25E",
+    "source_type": "STATUS",
+    "organization": "Internal Revenue Service",
+    "url": "https://www.irs.gov/credits-deductions/used-clean-vehicle-credit",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-HOME-25C",
+    "source_type": "STATUS",
+    "organization": "Internal Revenue Service",
+    "url": "https://www.irs.gov/credits-deductions/energy-efficient-home-improvement-credit",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-HOME-25D",
+    "source_type": "STATUS",
+    "organization": "Internal Revenue Service",
+    "url": "https://www.irs.gov/credits-deductions/residential-clean-energy-credit",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-VEH-30C",
+    "source_type": "STATUS",
+    "organization": "Internal Revenue Service",
+    "url": "https://www.irs.gov/credits-deductions/alternative-fuel-vehicle-refueling-property-credit",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-HOME-HEEHRA-SF",
+    "source_type": "STATUS",
+    "organization": "TECH Clean California",
+    "url": "https://techcleanca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "US-HOME-HEEHRA-MF",
+    "source_type": "STATUS",
+    "organization": "TECH Clean California",
+    "url": "https://techcleanca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-TECH-SF",
+    "source_type": "STATUS",
+    "organization": "TECH Clean California",
+    "url": "https://techcleanca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "CA-HOME-SGIP-RSSE",
+    "source_type": "STATUS",
+    "organization": "Self-Generation Incentive Program",
+    "url": "https://www.selfgenca.com/",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCG-GAF",
+    "source_type": "STATUS",
+    "organization": "Southern California Gas Company",
+    "url": "https://www.socalgas.com/billing-payment/assistance-programs/gas-assistance-fund",
+    "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  }
+]

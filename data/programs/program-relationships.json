@@ -1,0 +1,74 @@
+[
+  {
+    "program_a_external_id": "CA-VEH-MYFIRSTEV",
+    "program_b_external_id": "CA-VEH-DCAP",
+    "relationship_type": "CONDITIONALLY_STACKABLE",
+    "notes": "CARB MyFirstEV materials describe stacking with DCAP in some cases. DCAP materials say the program cannot be combined with other CARB incentives. Treat as conditional, not guaranteed additive."
+  },
+  {
+    "program_a_external_id": "CA-VEH-MYFIRSTEV",
+    "program_b_external_id": "BAAQMD-VEH-CC4A",
+    "relationship_type": "CONDITIONALLY_STACKABLE",
+    "notes": "CARB MyFirstEV materials describe stacking with Clean Cars 4 All in some cases. Confirm with both administrators before assuming both awards apply."
+  },
+  {
+    "program_a_external_id": "CA-VEH-MYFIRSTEV",
+    "program_b_external_id": "SDAPCD-VEH-CC4A",
+    "relationship_type": "CONDITIONALLY_STACKABLE",
+    "notes": "CARB MyFirstEV materials describe stacking with Clean Cars 4 All in some cases. Confirm with both administrators before assuming both awards apply."
+  },
+  {
+    "program_a_external_id": "CA-VEH-BAR-RETIRE",
+    "program_b_external_id": "BAAQMD-VEH-CC4A",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "Do not treat BAR retirement and a Clean Cars 4 All scrap-and-replace award as additive for the same surrendered vehicle."
+  },
+  {
+    "program_a_external_id": "CA-VEH-BAR-RETIRE",
+    "program_b_external_id": "SDAPCD-VEH-CC4A",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "Do not treat BAR retirement and a Clean Cars 4 All scrap-and-replace award as additive for the same surrendered vehicle."
+  },
+  {
+    "program_a_external_id": "CA-VEH-BAR-RETIRE",
+    "program_b_external_id": "CA-VEH-DCAP",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "Do not treat BAR retirement and DCAP scrap-and-replace as additive for the same surrendered vehicle."
+  },
+  {
+    "program_a_external_id": "PGE-VEH-POEV",
+    "program_b_external_id": "SCE-VEH-POEV",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "The same vehicle cannot receive more than one IOU pre-owned EV rebate."
+  },
+  {
+    "program_a_external_id": "PGE-VEH-POEV",
+    "program_b_external_id": "SDGE-VEH-POEV",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "The same vehicle cannot receive more than one IOU pre-owned EV rebate."
+  },
+  {
+    "program_a_external_id": "SCE-VEH-POEV",
+    "program_b_external_id": "SDGE-VEH-POEV",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "The same vehicle cannot receive more than one IOU pre-owned EV rebate."
+  },
+  {
+    "program_a_external_id": "CA-UTIL-CARE",
+    "program_b_external_id": "CA-UTIL-FERA",
+    "relationship_type": "MUTUALLY_EXCLUSIVE",
+    "notes": "FERA cannot be combined with CARE on the same electric account."
+  },
+  {
+    "program_a_external_id": "CA-TAX-CALEITC",
+    "program_b_external_id": "CA-TAX-YCTC",
+    "relationship_type": "REQUIRES_SEQUENCE",
+    "notes": "Young Child Tax Credit generally requires CalEITC qualification, with a published zero-income exception."
+  },
+  {
+    "program_a_external_id": "PGE-REACH",
+    "program_b_external_id": "PGE-MATCH-MY-PAYMENT",
+    "relationship_type": "CONDITIONALLY_STACKABLE",
+    "notes": "PG&E’s official pages say some customers may receive both REACH and Match My Payment, subject to each program’s rules and remaining funds."
+  }
+]

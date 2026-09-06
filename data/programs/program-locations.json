@@ -1,0 +1,857 @@
+[
+  {
+    "program_external_id": "CA-VEH-MYFIRSTEV",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Alameda"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Contra Costa"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Marin"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Napa"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "San Francisco"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "San Mateo"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Santa Clara"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Solano"
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "Sonoma"
+  },
+  {
+    "program_external_id": "SDAPCD-VEH-CC4A",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDAPCD-VEH-CC4A",
+    "location_type": "COUNTY",
+    "location_value": "San Diego"
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-REPAIR",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PGE-VEH-POEV",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PGE-VEH-POEV",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "PG&E"
+  },
+  {
+    "program_external_id": "SCE-VEH-POEV",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCE-VEH-POEV",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "SDGE-VEH-POEV",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDGE-VEH-POEV",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SDG&E"
+  },
+  {
+    "program_external_id": "LADWP-VEH-USED-EV",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-VEH-USED-EV",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "PGE-VEH-HOME-CHARGING",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PGE-VEH-HOME-CHARGING",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "PG&E"
+  },
+  {
+    "program_external_id": "SCE-VEH-CHARGE-READY-HOME",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCE-VEH-CHARGE-READY-HOME",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "LADWP-VEH-CHARGER",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-VEH-CHARGER",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "SMUD-VEH-CHARGE-HOME",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SMUD-VEH-CHARGE-HOME",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SMUD"
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-CARE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-FERA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-FERA",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "PG&E"
+  },
+  {
+    "program_external_id": "CA-UTIL-FERA",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "CA-UTIL-FERA",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SDG&E"
+  },
+  {
+    "program_external_id": "CA-UTIL-ESA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-MEDICAL-BASELINE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-LIHEAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-WAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-DAC-GT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-UTIL-DAC-GT",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "PG&E"
+  },
+  {
+    "program_external_id": "CA-UTIL-DAC-GT",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "CA-UTIL-DAC-GT",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SDG&E"
+  },
+  {
+    "program_external_id": "CA-UTIL-AMP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-UTIL-EZ-SAVE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-UTIL-EZ-SAVE",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "SMUD-UTIL-EAPR",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SMUD-UTIL-EAPR",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SMUD"
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PGE-MATCH-MY-PAYMENT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCE-EAF",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCE-EAF",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "SDGE-N2N",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-TAX-CALEITC",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-TAX-YCTC",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-TAX-FYTC",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-TAX-RENTERS-CREDIT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-TAX-HOMEOWNERS-EXEMPTION",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FOOD-CALFRESH",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FOOD-CFAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FOOD-SUN-BUCKS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS-CHILD-CARE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CAPP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CSPP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CHILD-CARE-BRIDGE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-COMM-LIFELINE-BROADBAND",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-WIC",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HLTH-MEDICAL",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HLTH-COVEREDCA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-IHSS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-CAPI",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FOOD-UNIVERSAL-MEALS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-EDU-CALGRANT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-EDU-MCS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-SSP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-EDU-CALKIDS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-PFL",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-FAM-SDI",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOUS-CALHFA-MYHOME",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-PLATINUM",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-ASSIST-TO-OWN",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "Monterey"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "San Benito"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "Santa Cruz"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "Tulare"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "Tuolumne"
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "location_type": "COUNTY",
+    "location_value": "San Diego"
+  },
+  {
+    "program_external_id": "USDA-HOUS-504",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "FRE-HOUS-OORP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "FRE-HOUS-OORP",
+    "location_type": "COUNTY",
+    "location_value": "Fresno"
+  },
+  {
+    "program_external_id": "KIN-HOUS-FTHB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "KIN-HOUS-FTHB",
+    "location_type": "COUNTY",
+    "location_value": "Kings"
+  },
+  {
+    "program_external_id": "KIN-HOUS-REHAB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "KIN-HOUS-REHAB",
+    "location_type": "COUNTY",
+    "location_value": "Kings"
+  },
+  {
+    "program_external_id": "LAC-GREENLINE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LAC-GREENLINE",
+    "location_type": "COUNTY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "LAC-HOUS-HANDYWORKER",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LAC-HOUS-HANDYWORKER",
+    "location_type": "COUNTY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "location_type": "COUNTY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "LAC-HOUS-HOP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LAC-HOUS-HOP",
+    "location_type": "COUNTY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "LA-HOUS-LIPA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-HOUS-LIPA",
+    "location_type": "CITY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "LA-HOUS-MIPA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-HOUS-MIPA",
+    "location_type": "CITY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
+    "location_type": "CITY",
+    "location_value": "Monterey"
+  },
+  {
+    "program_external_id": "NAP-HOUS-PROXIMITY",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "NAP-HOUS-PROXIMITY",
+    "location_type": "COUNTY",
+    "location_value": "Napa"
+  },
+  {
+    "program_external_id": "NAP-HOUS-REHAB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "NAP-HOUS-REHAB",
+    "location_type": "CITY",
+    "location_value": "Napa"
+  },
+  {
+    "program_external_id": "NEV-HOUS-DPA",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "NEV-HOUS-DPA",
+    "location_type": "COUNTY",
+    "location_value": "Nevada"
+  },
+  {
+    "program_external_id": "PLA-HOUS-WHPP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PLA-HOUS-WHPP",
+    "location_type": "COUNTY",
+    "location_value": "Placer"
+  },
+  {
+    "program_external_id": "SMC-HOUS-EDPAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SMC-HOUS-EDPAP",
+    "location_type": "COUNTY",
+    "location_value": "San Mateo"
+  },
+  {
+    "program_external_id": "STA-HOUS-REHAB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "STA-HOUS-REHAB",
+    "location_type": "COUNTY",
+    "location_value": "Stanislaus"
+  },
+  {
+    "program_external_id": "TUO-HOUS-FTHB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "TUO-HOUS-FTHB",
+    "location_type": "COUNTY",
+    "location_value": "Tuolumne"
+  },
+  {
+    "program_external_id": "TUO-HOUS-REHAB",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "TUO-HOUS-REHAB",
+    "location_type": "COUNTY",
+    "location_value": "Tuolumne"
+  },
+  {
+    "program_external_id": "CA-HOUS-PROP-TAX-POSTPONEMENT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-EBD",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "PG&E"
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SCE"
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SDG&E"
+  },
+  {
+    "program_external_id": "SCG-HOME-REBATES",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCG-HOME-REBATES",
+    "location_type": "GAS_UTILITY",
+    "location_value": "SoCalGas"
+  },
+  {
+    "program_external_id": "LADWP-HOME-CONSUMER-REBATE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-HOME-CONSUMER-REBATE",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "SMUD-HOME-GO-ELECTRIC",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SMUD-HOME-GO-ELECTRIC",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "SMUD"
+  },
+  {
+    "program_external_id": "CPA-HOME-AC-SAVINGS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CPA-HOME-SUN-STORAGE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "MCE-HOME-HEAT-PUMP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PCE-HOME-WESTLIGHT",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "PCE-HOME-WESTLIGHT",
+    "location_type": "COUNTY",
+    "location_value": "San Mateo"
+  },
+  {
+    "program_external_id": "SVCE-HOME-REBATES",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SVCE-HOME-REBATES",
+    "location_type": "COUNTY",
+    "location_value": "Santa Clara"
+  },
+  {
+    "program_external_id": "AVA-HOME-SMARTHOME-BATTERY",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "3CE-HOME-ELECTRIFY",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDCP-HOME-SOLAR-BATTERY",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDCP-HOME-SOLAR-BATTERY",
+    "location_type": "COUNTY",
+    "location_value": "San Diego"
+  },
+  {
+    "program_external_id": "MWD-WATER-SOCAL-WATERSMART",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-WATER-CONSERVATION",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-WATER-CONSERVATION",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "SCVWD-WATER-LANDSCAPE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCVWD-WATER-LANDSCAPE",
+    "location_type": "COUNTY",
+    "location_value": "Santa Clara"
+  },
+  {
+    "program_external_id": "EBMUD-WATER-REBATES",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDCWA-WATER-RESIDENTIAL",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SDCWA-WATER-RESIDENTIAL",
+    "location_type": "COUNTY",
+    "location_value": "San Diego"
+  },
+  {
+    "program_external_id": "US-VEH-30D",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-VEH-25E",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-HOME-25C",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-HOME-25D",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-VEH-30C",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-HOME-HEEHRA-SF",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "US-HOME-HEEHRA-MF",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-TECH-SF",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "CA-HOME-SGIP-RSSE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "SCG-GAF",
+    "location_type": "STATE",
+    "location_value": "CA"
+  }
+]
