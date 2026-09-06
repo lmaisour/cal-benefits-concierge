@@ -111,4 +111,53 @@ describe("validateUserProfile", () => {
       expect(result.profile.age).toBe(42);
     }
   });
+
+  it("preserves known interests", () => {
+    const result = validateUserProfile({
+      ...validProfile,
+      interests: ["vehicles", "solar", "tax-credits"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.profile.interests).toEqual([
+        "vehicles",
+        "solar",
+        "tax-credits",
+      ]);
+    }
+  });
+
+  it("discards unknown interests without rejecting the profile", () => {
+    const result = validateUserProfile({
+      ...validProfile,
+      interests: ["everything", "not-a-real-interest"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.profile.interests).toBeUndefined();
+      expect(result.profile.zip).toBe("91331");
+    }
+  });
+
+  it("keeps only valid interests when mixed with invalid values", () => {
+    const result = validateUserProfile({
+      ...validProfile,
+      interests: ["vehicles", "everything", "water", "", 12, "solar"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.profile.interests).toEqual(["vehicles", "water", "solar"]);
+    }
+  });
+
+  it("deduplicates valid interests", () => {
+    const result = validateUserProfile({
+      ...validProfile,
+      interests: ["vehicles", "vehicles", " home-upgrades ", "home-upgrades"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.profile.interests).toEqual(["vehicles", "home-upgrades"]);
+    }
+  });
 });

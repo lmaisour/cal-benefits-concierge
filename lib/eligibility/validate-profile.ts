@@ -1,4 +1,5 @@
 import type { UserProfile } from "@/lib/eligibility/types";
+import { isInterestValue } from "@/lib/questionnaire/interests";
 import { isValidZip } from "@/lib/questionnaire/validation";
 
 const HOUSING_STATUSES = ["owner", "renter", "other"] as const;
@@ -173,11 +174,18 @@ export function validateUserProfile(input: unknown): ProfileValidationResult {
 
   if (input.interests !== undefined) {
     if (Array.isArray(input.interests)) {
-      const interests = input.interests.filter(
-        (item): item is string => typeof item === "string" && item.trim() !== "",
-      );
+      const interests: string[] = [];
+      for (const item of input.interests) {
+        if (typeof item !== "string") {
+          continue;
+        }
+        const trimmed = item.trim();
+        if (isInterestValue(trimmed) && !interests.includes(trimmed)) {
+          interests.push(trimmed);
+        }
+      }
       if (interests.length > 0) {
-        profile.interests = interests.map((item) => item.trim());
+        profile.interests = interests;
       }
     }
   }
