@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,34 +8,49 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files
+# environment files — never commit secrets
 .env
-.env.*
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# keep the documented template
 !.env.example
 
 # vercel
-.vercel
+.vercel/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# os / editor
+.DS_Store
+**/.DS_Store
+Thumbs.db
+*.pem
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# testing / coverage
+coverage/
+
+# supabase local cache (if the CLI is used later)
+supabase/.temp/
+supabase/.branches/
