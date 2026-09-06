@@ -35,8 +35,8 @@ export function CompletionScreen({
           Your profile is ready.
         </h1>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-          We saved your answers for this browser session. Matching is not
-          connected yet, so you will not see program results on this page.
+          We saved your answers for this browser session. Next, we can compare
+          them with published program rules.
         </p>
       </div>
 
@@ -70,17 +70,12 @@ export function CompletionScreen({
       </dl>
 
       <div>
-        <Button
-          type="button"
-          size="lg"
-          disabled
-          aria-describedby="matching-not-ready"
-          className="w-full sm:w-auto"
-        >
+        <ButtonLink href={siteConfig.urls.results} size="lg" className="w-full sm:w-auto">
           See my matches
-        </Button>
-        <p id="matching-not-ready" className="mt-3 text-sm text-muted-foreground">
-          Matching will be connected in the next development milestone.
+        </ButtonLink>
+        <p className="mt-3 text-sm text-muted-foreground">
+          We’ll compare your answers with programs in our database. This is not
+          an official eligibility decision.
         </p>
       </div>
 

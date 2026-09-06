@@ -8,7 +8,7 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 
 ## Current status
 
-**Milestone 5** is in place:
+**Milestone 6** is in place:
 
 - Next.js App Router, TypeScript, and Tailwind CSS
 - Global layout, design system, and homepage
@@ -17,8 +17,9 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 - Server-only Supabase reads using the publishable key and RLS
 - Deterministic eligibility engine in `lib/eligibility/` (no AI, no scores)
 - Consumer questionnaire at `/check` that collects a `UserProfile` in the browser
+- `POST /api/match` and `/results` that run the engine against that profile
 
-The results page, matching API, admin UI, and analytics are not built yet. The questionnaire does not call the eligibility engine or Supabase.
+Admin, accounts, saved profiles, analytics, and application submission are not built yet.
 
 ## Local development
 
@@ -144,8 +145,16 @@ Locations are evaluated separately from rules. No GIS and no external APIs.
 - Answers are stored in `sessionStorage` for this browser tab only (`cbf.questionnaire.v1`). Start over clears them. Nothing is sent to analytics or Supabase.
 - Southern California Edison is stored as `SCE`. No gas service is stored as `NONE` so it is not confused with a missing answer.
 
-The completion screen confirms the profile is ready. Matching is not connected yet.
+The completion screen links to `/results`. Matching is not run until the resident opens that page.
+
+## Matching API and results
+
+`POST /api/match` accepts `{ "profile": { ... } }`. The server sanitizes known `UserProfile` fields (`lib/eligibility/validate-profile.ts`), loads active programs plus rules and locations (`lib/programs/get-matchable-program-data.ts`), and calls `matchPrograms()`. NOT_ELIGIBLE programs are omitted from the consumer response.
+
+ZIP, household size, housing status, and property type are required. Invalid optional fields are dropped. Booleans are not coerced from strings. The profile is not written to Supabase or logged.
+
+`/results` reads the questionnaire from `sessionStorage` and POSTs it. Opening `/results` without a completed profile shows a questionnaire CTA. A failed API call is distinct from zero matches. There is no grand-total savings number. Loans and financing are labeled repayable.
 
 ## Next milestone
 
-**Milestone 6:** Results page and matching API that run the eligibility engine against the collected profile.
+**Milestone 7:** Admin and catalog-management tools, or optional refinement of missing-information follow-ups.
