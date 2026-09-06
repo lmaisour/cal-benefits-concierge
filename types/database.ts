@@ -163,75 +163,81 @@ export type ProgramRelationshipRow = {
   created_at: string;
 };
 
+/**
+ * Insert shapes: only NOT NULL columns without a database default are required.
+ * Defaults (id, timestamps, statewide, featured, active, rule_group, …)
+ * and nullable columns may be omitted.
+ */
+export type ProgramInsert = Pick<
+  ProgramRow,
+  "name" | "slug" | "category" | "benefit_type" | "status"
+> &
+  Partial<Omit<ProgramRow, "name" | "slug" | "category" | "benefit_type" | "status">>;
+
+export type ProgramRuleInsert = Pick<
+  ProgramRuleRow,
+  "program_id" | "field" | "operator"
+> &
+  Partial<Omit<ProgramRuleRow, "program_id" | "field" | "operator">>;
+
+export type ProgramLocationInsert = Pick<
+  ProgramLocationRow,
+  "program_id" | "location_type" | "location_value"
+> &
+  Partial<Omit<ProgramLocationRow, "program_id" | "location_type" | "location_value">>;
+
+export type ProgramSourceInsert = Pick<
+  ProgramSourceRow,
+  "program_id" | "source_type" | "url"
+> &
+  Partial<Omit<ProgramSourceRow, "program_id" | "source_type" | "url">>;
+
+export type ProgramRelationshipInsert = Pick<
+  ProgramRelationshipRow,
+  "program_a_id" | "program_b_id" | "relationship_type"
+> &
+  Partial<
+    Omit<ProgramRelationshipRow, "program_a_id" | "program_b_id" | "relationship_type">
+  >;
+
 export type Database = {
   public: {
     Tables: {
       programs: {
         Row: ProgramRow;
-        Insert: Omit<ProgramRow, "id" | "created_at" | "updated_at"> & {
-          id?: string;
-          statewide?: boolean;
-          featured?: boolean;
-          active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
+        Insert: ProgramInsert;
         Update: Partial<ProgramRow>;
         Relationships: [];
       };
       program_rules: {
         Row: ProgramRuleRow;
-        Insert: Omit<ProgramRuleRow, "id" | "created_at"> & {
-          id?: string;
-          value?: Json | null;
-          rule_group?: number;
-          group_operator?: RuleGroupOperator;
-          required?: boolean;
-          created_at?: string;
-        };
+        Insert: ProgramRuleInsert;
         Update: Partial<ProgramRuleRow>;
         Relationships: [];
       };
       program_locations: {
         Row: ProgramLocationRow;
-        Insert: Omit<ProgramLocationRow, "id" | "created_at"> & {
-          id?: string;
-          created_at?: string;
-        };
+        Insert: ProgramLocationInsert;
         Update: Partial<ProgramLocationRow>;
         Relationships: [];
       };
       program_sources: {
         Row: ProgramSourceRow;
-        Insert: Omit<ProgramSourceRow, "id" | "created_at"> & {
-          id?: string;
-          created_at?: string;
-        };
+        Insert: ProgramSourceInsert;
         Update: Partial<ProgramSourceRow>;
         Relationships: [];
       };
       program_relationships: {
         Row: ProgramRelationshipRow;
-        Insert: Omit<ProgramRelationshipRow, "id" | "created_at"> & {
-          id?: string;
-          created_at?: string;
-        };
+        Insert: ProgramRelationshipInsert;
         Update: Partial<ProgramRelationshipRow>;
         Relationships: [];
       };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
-    Enums: {
-      program_status: ProgramStatus;
-      benefit_type: BenefitType;
-      confidence: Confidence;
-      rule_operator: RuleOperator;
-      rule_group_operator: RuleGroupOperator;
-      location_type: LocationType;
-      source_type: SourceType;
-      relationship_type: RelationshipType;
-    };
+    // Constrained values are TEXT + CHECK in SQL, not PostgreSQL enum types.
+    Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
 };
