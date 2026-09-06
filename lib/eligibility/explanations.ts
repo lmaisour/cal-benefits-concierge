@@ -93,7 +93,10 @@ export function explainRule(
 
 export function explainGeography(evaluation: Omit<GeographyEvaluation, "explanation">): string {
   if (evaluation.status === "PASS") {
-    if (evaluation.matchedLocations.length === 0) {
+    const onlyState =
+      evaluation.matchedLocations.length === 0 ||
+      evaluation.matchedLocations.every((location) => location.location_type === "STATE");
+    if (onlyState) {
       return "This program appears to be available statewide in California.";
     }
     return "Your location appears to match this program’s listed service area.";

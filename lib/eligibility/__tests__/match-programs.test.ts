@@ -84,7 +84,12 @@ describe("seeded programs", () => {
   });
 
   it("marks Valley First EV without income as POSSIBLY_ELIGIBLE", () => {
-    const { household_income: _omitted, ...partial } = matchingEvProfile;
+    const partial = {
+      zip: matchingEvProfile.zip,
+      first_ev: matchingEvProfile.first_ev,
+      vehicle_price: matchingEvProfile.vehicle_price,
+      vehicle_condition: matchingEvProfile.vehicle_condition,
+    };
     const evaluation = evaluateProgram(
       valleyFirstEvProgram,
       valleyFirstEvRules,
