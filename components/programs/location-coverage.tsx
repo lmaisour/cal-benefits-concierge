@@ -4,9 +4,11 @@ import { LOCATION_TYPE_LABELS } from "@/lib/programs/labels";
 export function LocationCoverage({
   statewide,
   locations,
+  compact = false,
 }: {
   statewide: boolean;
   locations: ProgramLocation[];
+  compact?: boolean;
 }) {
   const grouped = new Map<string, string[]>();
   for (const location of locations) {
@@ -16,7 +18,7 @@ export function LocationCoverage({
   }
 
   return (
-    <div className="space-y-2 text-foreground">
+    <div className={compact ? "space-y-1 text-sm text-muted-foreground" : "space-y-2 text-foreground"}>
       {statewide ? <p>Statewide in California</p> : null}
       {(["ZIP", "COUNTY", "CITY", "ELECTRIC_UTILITY", "GAS_UTILITY"] as const).map(
         (type) => {
