@@ -14,7 +14,7 @@ export default function ProgramNotFound() {
       <p className="mt-6">
         <Link
           href={siteConfig.urls.programs}
-          className="font-semibold text-primary underline-offset-4 hover:underline"
+          className="font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Browse all programs
         </Link>

@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config/site";
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-border bg-card px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "mt-1.5 w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+const labelClass = "text-sm font-medium text-foreground";
 
 export function ProgramFilters({
   query,
@@ -29,24 +31,25 @@ export function ProgramFilters({
     <form
       method="get"
       action={siteConfig.urls.programs}
-      className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
+      className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.05),0_10px_24px_rgba(28,25,23,0.04)] sm:p-6"
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <label htmlFor="program-search" className="text-sm font-medium text-foreground">
-            Search
-          </label>
-          <input
-            id="program-search"
-            name="q"
-            type="search"
-            defaultValue={query}
-            placeholder="Program name, administrator, or description"
-            className={fieldClass}
-          />
-        </div>
+      <div>
+        <label htmlFor="program-search" className={labelClass}>
+          Search programs
+        </label>
+        <input
+          id="program-search"
+          name="q"
+          type="search"
+          defaultValue={query}
+          placeholder="Search by name, administrator, or description"
+          className={`${fieldClass} h-12 text-lg`}
+        />
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div>
-          <label htmlFor="program-category" className="text-sm font-medium text-foreground">
+          <label htmlFor="program-category" className={labelClass}>
             Category
           </label>
           <select
@@ -64,7 +67,25 @@ export function ProgramFilters({
           </select>
         </div>
         <div>
-          <label htmlFor="program-benefit" className="text-sm font-medium text-foreground">
+          <label htmlFor="program-status" className={labelClass}>
+            Status
+          </label>
+          <select
+            id="program-status"
+            name="status"
+            defaultValue={status}
+            className={fieldClass}
+          >
+            <option value="">All statuses</option>
+            {CONSUMER_PROGRAM_STATUSES.map((item) => (
+              <option key={item} value={item}>
+                {STATUS_LABELS[item]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="program-benefit" className={labelClass}>
             Benefit type
           </label>
           <select
@@ -82,27 +103,7 @@ export function ProgramFilters({
           </select>
         </div>
         <div>
-          <label htmlFor="program-status" className="text-sm font-medium text-foreground">
-            Status
-          </label>
-          <select
-            id="program-status"
-            name="status"
-            defaultValue={status}
-            className={fieldClass}
-          >
-            <option value="">All statuses</option>
-            {CONSUMER_PROGRAM_STATUSES.map((item) => (
-              <option key={item} value={item}>
-                {STATUS_LABELS[item]}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="sm:w-64">
-          <label htmlFor="program-sort" className="text-sm font-medium text-foreground">
+          <label htmlFor="program-sort" className={labelClass}>
             Sort
           </label>
           <select id="program-sort" name="sort" defaultValue={sort} className={fieldClass}>
@@ -111,15 +112,16 @@ export function ProgramFilters({
             <option value="alpha">Alphabetical</option>
           </select>
         </div>
-        <div className="flex gap-2">
-          <Button type="submit">Apply filters</Button>
-          <a
-            href={siteConfig.urls.programs}
-            className="inline-flex h-11 items-center justify-center rounded-lg px-5 text-base font-semibold text-foreground hover:bg-muted"
-          >
-            Clear
-          </a>
-        </div>
+      </div>
+
+      <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <a
+          href={siteConfig.urls.programs}
+          className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-base font-semibold text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Clear filters
+        </a>
+        <Button type="submit">Apply filters</Button>
       </div>
     </form>
   );

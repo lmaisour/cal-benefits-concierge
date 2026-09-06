@@ -14,13 +14,13 @@ export function SiteFooter() {
         <nav aria-label="Footer" className="flex flex-col gap-2 text-sm">
           <Link
             href={siteConfig.urls.check}
-            className="text-muted-foreground hover:text-foreground"
+            className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {siteConfig.hero.primaryCta}
           </Link>
           <Link
             href={siteConfig.urls.programs}
-            className="text-muted-foreground hover:text-foreground"
+            className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {siteConfig.hero.secondaryCta}
           </Link>
