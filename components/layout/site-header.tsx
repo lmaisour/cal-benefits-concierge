@@ -9,12 +9,12 @@ const navItems = [
 export function SiteHeader() {
   return (
     <header className="border-b border-border bg-card/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Link
           href={siteConfig.urls.home}
-          className="min-w-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span className="block truncate font-serif text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+          <span className="block font-serif text-lg font-semibold tracking-tight text-foreground sm:text-xl">
             {siteConfig.name}
           </span>
         </Link>
