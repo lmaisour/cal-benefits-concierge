@@ -178,8 +178,16 @@ export function Questionnaire() {
   }
 
   function startOver() {
+    setDrafts({
+      zip: "",
+      size: "",
+      income: "",
+      age: "",
+      price: "",
+      otherElectric: "",
+      otherGas: "",
+    });
     clearQuestionnaireState();
-    setDrafts(null);
     setError(null);
   }
 
@@ -480,7 +488,7 @@ function StepBody({
           maxLength={5}
           autoComplete="postal-code"
           describedBy={describedBy}
-          placeholder="91331"
+          placeholder="e.g. 91331"
         />
       ) : null}
 
@@ -507,7 +515,7 @@ function StepBody({
             onChange={setIncomeDraft}
             prefix="$"
             describedBy={describedBy}
-            placeholder="65000"
+            placeholder="e.g. 65000"
           />
           <SkipButton label="Prefer not to say" onClick={onSkipIncome} />
         </div>
@@ -726,7 +734,7 @@ function StepBody({
           onChange={setPriceDraft}
           prefix="$"
           describedBy={describedBy}
-          placeholder="35000"
+          placeholder="e.g. 35000"
         />
       ) : null}
 
