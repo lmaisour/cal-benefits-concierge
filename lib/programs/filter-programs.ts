@@ -1,5 +1,6 @@
 import type { BenefitType, ProgramStatus } from "@/types/database";
 import type { Program } from "@/types/program";
+import { isSavingsBenefitType } from "@/types/program";
 import { toNumber } from "@/lib/programs/format";
 
 export type ProgramSort = "value" | "verified" | "alpha";
@@ -50,9 +51,25 @@ export function filterAndSortPrograms(
     sorted.sort((a, b) => a.name.localeCompare(b.name));
   } else if (sort === "value") {
     sorted.sort((a, b) => {
-      const aMax = toNumber(a.benefit_max) ?? -1;
-      const bMax = toNumber(b.benefit_max) ?? -1;
-      return bMax - aMax;
+      const aSavings = isSavingsBenefitType(a.benefit_type);
+      const bSavings = isSavingsBenefitType(b.benefit_type);
+      if (aSavings !== bSavings) {
+        return aSavings ? -1 : 1;
+      }
+      if (aSavings && bSavings) {
+        const aMax = toNumber(a.benefit_max);
+        const bMax = toNumber(b.benefit_max);
+        if (aMax !== null && bMax !== null && aMax !== bMax) {
+          return bMax - aMax;
+        }
+        if (aMax !== null && bMax === null) {
+          return -1;
+        }
+        if (aMax === null && bMax !== null) {
+          return 1;
+        }
+      }
+      return a.name.localeCompare(b.name);
     });
   } else {
     sorted.sort((a, b) => {

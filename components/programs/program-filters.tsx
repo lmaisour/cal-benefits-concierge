@@ -107,7 +107,7 @@ export function ProgramFilters({
           </label>
           <select id="program-sort" name="sort" defaultValue={sort} className={fieldClass}>
             <option value="verified">Recently verified</option>
-            <option value="value">Highest potential value</option>
+            <option value="value">Highest potential savings</option>
             <option value="alpha">Alphabetical</option>
           </select>
         </div>
