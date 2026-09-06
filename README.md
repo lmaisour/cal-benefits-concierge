@@ -8,7 +8,7 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 
 ## Current status
 
-**Milestone 4** is in place:
+**Milestone 5** is in place:
 
 - Next.js App Router, TypeScript, and Tailwind CSS
 - Global layout, design system, and homepage
@@ -16,8 +16,9 @@ The product name and tagline live in `lib/config/site.ts` so branding can be cha
 - Program directory at `/programs` and detail pages at `/programs/[slug]`
 - Server-only Supabase reads using the publishable key and RLS
 - Deterministic eligibility engine in `lib/eligibility/` (no AI, no scores)
+- Consumer questionnaire at `/check` that collects a `UserProfile` in the browser
 
-The questionnaire UI, results page, matching API, admin UI, and analytics are not built yet.
+The results page, matching API, admin UI, and analytics are not built yet. The questionnaire does not call the eligibility engine or Supabase.
 
 ## Local development
 
@@ -130,6 +131,21 @@ Locations are evaluated separately from rules. No GIS and no external APIs.
 
 `matchPrograms()` buckets evaluations into likely / possibly / not eligible. It does not calculate total savings.
 
+## Questionnaire
+
+`/check` collects a `UserProfile` one question at a time. Logic lives in `lib/questionnaire/`; UI lives in `components/questionnaire/`.
+
+- Required: ZIP, household size, housing status, property type
+- Optional questions can be skipped or answered “Prefer not to say” / “Not sure”
+- Missing answers stay `undefined` — never coerced to `false` or `0`
+- Vehicle questions appear only when interests include Vehicles / EVs (or Everything, which selects every interest category)
+- Home-upgrade / solar / repair interests set `home_improvement_interest = true` without an extra question
+- Progress is “Step X of Y” using the current path (12 steps, or 16 with vehicles)
+- Answers are stored in `sessionStorage` for this browser tab only (`cbf.questionnaire.v1`). Start over clears them. Nothing is sent to analytics or Supabase.
+- Southern California Edison is stored as `SCE`. No gas service is stored as `NONE` so it is not confused with a missing answer.
+
+The completion screen confirms the profile is ready. Matching is not connected yet.
+
 ## Next milestone
 
-**Milestone 5:** Questionnaire UI that collects a `UserProfile` and a results page that calls this engine.
+**Milestone 6:** Results page and matching API that run the eligibility engine against the collected profile.
