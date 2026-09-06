@@ -32,6 +32,8 @@ const CATEGORY_FILTERS: {
   { id: "housing", label: "Housing", slugs: ["housing"] },
   { id: "water", label: "Water", slugs: ["water"] },
   { id: "family", label: "Family", slugs: ["family"] },
+  { id: "food", label: "Food", slugs: ["food"] },
+  { id: "communications", label: "Phone & internet", slugs: ["communications"] },
   { id: "tax", label: "Tax", slugs: ["taxes"] },
 ];
 

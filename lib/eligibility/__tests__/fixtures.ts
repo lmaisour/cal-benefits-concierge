@@ -13,6 +13,7 @@ let locationId = 1;
 export function makeProgram(overrides: Partial<Program> = {}): Program {
   return {
     id: "program-test",
+    external_id: null,
     name: "Test program",
     slug: "test-program",
     administrator: "Sample administrator",

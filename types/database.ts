@@ -94,6 +94,7 @@ export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 
 export type ProgramRow = {
   id: string;
+  external_id: string | null;
   name: string;
   slug: string;
   administrator: string | null;

@@ -5,6 +5,8 @@ export const programCategories = [
   { slug: "housing", label: "Housing", description: "Homebuyer and housing help" },
   { slug: "water", label: "Water", description: "Rebates for water and landscaping" },
   { slug: "family", label: "Family", description: "Household and family benefits" },
+  { slug: "food", label: "Food", description: "Food benefits and nutrition programs" },
+  { slug: "communications", label: "Communications", description: "Phone and broadband assistance" },
   { slug: "taxes", label: "Taxes", description: "Credits and tax-related programs" },
   { slug: "other", label: "Other assistance", description: "Additional California programs" },
 ] as const;

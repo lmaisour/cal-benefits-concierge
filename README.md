@@ -65,23 +65,28 @@ Helpers for reading these values are in `lib/supabase/env.ts`. The server client
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy the project URL, publishable key, and secret key into `.env.local`.
-3. In the Supabase SQL editor, run `supabase/migrations/20260906120000_create_program_tables.sql`.
-4. Then run `supabase/seed.sql`.
+3. In the Supabase SQL editor, run the files in `supabase/migrations/` in timestamp order, including `20260906200000_add_programs_external_id.sql`.
+4. Import the verified catalog (this uses `SUPABASE_SECRET_KEY` on the server only):
+
+```bash
+npm run import:programs
+```
+
+`supabase/seed.sql` no longer inserts fictional SAMPLE consumer programs. Automated tests keep SAMPLE fixtures local to `lib/eligibility/__tests__`.
 
 If you use the Supabase CLI with this folder as the project root:
 
 ```bash
 npx supabase db query --file supabase/migrations/20260906120000_create_program_tables.sql
-npx supabase db query --file supabase/seed.sql
+npx supabase db query --file supabase/migrations/20260906200000_add_programs_external_id.sql
+npm run import:programs
 ```
 
 The exact CLI command can vary by CLI version; the SQL editor path above always works.
 
-### Seed data is sample-only
+### Catalog data
 
-Seed programs are **fictional test fixtures**. Names are prefixed with `SAMPLE:` and descriptions say they are not verified government benefits. Replace them with researched programs before any public launch.
-
-Default consumer reads (publishable key + RLS) return active, non-expired programs only. The expired solar sample exists so you can confirm expired rows stay hidden.
+Consumer programs come from `data/programs/` and are imported by `scripts/import-programs.ts`. Default consumer reads (publishable key + RLS) return active, non-expired programs only. Expired federal credits and exhausted/waitlisted pathways are stored with `active = false` so they never appear in `/programs` or `/results`.
 
 ### Row Level Security
 

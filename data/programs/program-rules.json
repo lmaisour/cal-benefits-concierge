@@ -1,0 +1,876 @@
+[
+  {
+    "program_external_id": "CA-VEH-MYFIRSTEV",
+    "field": "first_ev",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Must be a first-time zero-emission vehicle buyer or lessee."
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "field": "age",
+    "operator": "greater_than_or_equal",
+    "value": 18,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Applicants must be 18 or older."
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "field": "vehicle_price",
+    "operator": "less_than_or_equal",
+    "value": 45000,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Replacement vehicle price generally cannot exceed $45,000 before tax and fees."
+  },
+  {
+    "program_external_id": "CA-VEH-DCAP",
+    "field": "willing_to_retire_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The open pathway requires scrapping a qualifying vehicle."
+  },
+  {
+    "program_external_id": "BAAQMD-VEH-CC4A",
+    "field": "willing_to_retire_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The program is a scrap-and-replace incentive."
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "field": "owns_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must be the registered owner."
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-RETIRE",
+    "field": "willing_to_retire_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The award is paid only if you retire the vehicle after approval."
+  },
+  {
+    "program_external_id": "CA-VEH-BAR-REPAIR",
+    "field": "owns_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must be the registered owner."
+  },
+  {
+    "program_external_id": "PGE-VEH-POEV",
+    "field": "vehicle_condition",
+    "operator": "equals",
+    "value": "used",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "This rebate is for a used EV or PHEV."
+  },
+  {
+    "program_external_id": "SCE-VEH-POEV",
+    "field": "vehicle_condition",
+    "operator": "equals",
+    "value": "used",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "This rebate is for a used EV or PHEV."
+  },
+  {
+    "program_external_id": "SDGE-VEH-POEV",
+    "field": "vehicle_condition",
+    "operator": "equals",
+    "value": "used",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "This rebate is for a used EV or PHEV."
+  },
+  {
+    "program_external_id": "LADWP-VEH-USED-EV",
+    "field": "vehicle_condition",
+    "operator": "equals",
+    "value": "used",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "This rebate is for a used EV or PHEV."
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "field": "owns_vehicle",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The program is for a vehicle you own."
+  },
+  {
+    "program_external_id": "CA-VEH-CLCA",
+    "field": "vehicle_price",
+    "operator": "less_than_or_equal",
+    "value": 25000,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The insured vehicle generally must be valued at $25,000 or less."
+  },
+  {
+    "program_external_id": "CA-UTIL-CARE",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SCE",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "CARE, FERA, ESA, and Medical Baseline are offered by participating investor-owned utilities. Municipal utilities have separate discounts."
+  },
+  {
+    "program_external_id": "CA-UTIL-CARE",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SoCalGas",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "Gas CARE or Medical Baseline may apply if you take gas service from a participating IOU."
+  },
+  {
+    "program_external_id": "CA-UTIL-ESA",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SCE",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "CARE, FERA, ESA, and Medical Baseline are offered by participating investor-owned utilities. Municipal utilities have separate discounts."
+  },
+  {
+    "program_external_id": "CA-UTIL-ESA",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SoCalGas",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "Gas CARE or Medical Baseline may apply if you take gas service from a participating IOU."
+  },
+  {
+    "program_external_id": "CA-UTIL-MEDICAL-BASELINE",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SCE",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "CARE, FERA, ESA, and Medical Baseline are offered by participating investor-owned utilities. Municipal utilities have separate discounts."
+  },
+  {
+    "program_external_id": "CA-UTIL-MEDICAL-BASELINE",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SoCalGas",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "Gas CARE or Medical Baseline may apply if you take gas service from a participating IOU."
+  },
+  {
+    "program_external_id": "CA-UTIL-MEDICAL-BASELINE",
+    "field": "disability",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "A qualifying medical condition or life-support equipment must be certified. This site treats that as the disability/medical question."
+  },
+  {
+    "program_external_id": "CA-UTIL-AMP",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SCE",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "CARE, FERA, ESA, and Medical Baseline are offered by participating investor-owned utilities. Municipal utilities have separate discounts."
+  },
+  {
+    "program_external_id": "CA-UTIL-AMP",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E",
+      "SoCalGas",
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "Gas CARE or Medical Baseline may apply if you take gas service from a participating IOU."
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "PG&E hardship programs are for PG&E electric and/or gas residential customers."
+  },
+  {
+    "program_external_id": "PGE-REACH",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "A PG&E gas account can also qualify if you do not take PG&E electricity."
+  },
+  {
+    "program_external_id": "PGE-MATCH-MY-PAYMENT",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "PG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "PG&E hardship programs are for PG&E electric and/or gas residential customers."
+  },
+  {
+    "program_external_id": "PGE-MATCH-MY-PAYMENT",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "PG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "A PG&E gas account can also qualify if you do not take PG&E electricity."
+  },
+  {
+    "program_external_id": "SDGE-N2N",
+    "field": "electric_utility",
+    "operator": "in",
+    "value": [
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "Neighbor-to-Neighbor is for SDG&E residential customers."
+  },
+  {
+    "program_external_id": "SDGE-N2N",
+    "field": "gas_utility",
+    "operator": "in",
+    "value": [
+      "SDG&E"
+    ],
+    "rule_group": 1,
+    "group_operator": "OR",
+    "required": true,
+    "explanation": "An SDG&E gas account can also qualify."
+  },
+  {
+    "program_external_id": "CA-TAX-YCTC",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must have a qualifying child under 6."
+  },
+  {
+    "program_external_id": "CA-TAX-FYTC",
+    "field": "age",
+    "operator": "greater_than_or_equal",
+    "value": 18,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Claimants must be 18–25 at year-end."
+  },
+  {
+    "program_external_id": "CA-TAX-RENTERS-CREDIT",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "renter",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must have paid rent for at least half the year."
+  },
+  {
+    "program_external_id": "CA-TAX-HOMEOWNERS-EXEMPTION",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The home must be owner-occupied as your principal residence."
+  },
+  {
+    "program_external_id": "CA-TAX-HOMEOWNERS-EXEMPTION",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own the home."
+  },
+  {
+    "program_external_id": "CA-FOOD-SUN-BUCKS",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The benefit is issued for an eligible child."
+  },
+  {
+    "program_external_id": "CA-FAM-CALWORKS-CHILD-CARE",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Child care is for an eligible child."
+  },
+  {
+    "program_external_id": "CA-FAM-CAPP",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The voucher is for an eligible child."
+  },
+  {
+    "program_external_id": "CA-FAM-CSPP",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Preschool is for an eligible young child."
+  },
+  {
+    "program_external_id": "CA-FAM-CHILD-CARE-BRIDGE",
+    "field": "has_children",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The voucher is for an eligible child."
+  },
+  {
+    "program_external_id": "CA-HOUS-CALHFA-MYHOME",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-PLATINUM",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "CA-HOUS-GSFA-ASSIST-TO-OWN",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "CA-HOUS-RECOVERCA",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "USDA-HOUS-504",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "USDA-HOUS-504",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "FRE-HOUS-OORP",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "FRE-HOUS-OORP",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "KIN-HOUS-FTHB",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "KIN-HOUS-REHAB",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "KIN-HOUS-REHAB",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "LAC-GREENLINE",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "LAC-HOUS-HANDYWORKER",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "LAC-HOUS-HANDYWORKER",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "LAC-HOUS-SENIOR-GRANT",
+    "field": "age",
+    "operator": "greater_than_or_equal",
+    "value": 62,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowners must be 62 or older."
+  },
+  {
+    "program_external_id": "LAC-HOUS-HOP",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "LA-HOUS-LIPA",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "LA-HOUS-MIPA",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "NAP-HOUS-PROXIMITY",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "NAP-HOUS-REHAB",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "NAP-HOUS-REHAB",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "NEV-HOUS-DPA",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "PLA-HOUS-WHPP",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "SMC-HOUS-EDPAP",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "STA-HOUS-REHAB",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "STA-HOUS-REHAB",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "TUO-HOUS-FTHB",
+    "field": "housing_status",
+    "operator": "not_equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
+  },
+  {
+    "program_external_id": "TUO-HOUS-REHAB",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "TUO-HOUS-REHAB",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "CA-HOUS-PROP-TAX-POSTPONEMENT",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "CA-HOUS-PROP-TAX-POSTPONEMENT",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
+    "program_external_id": "CA-HOME-EBD",
+    "field": "home_improvement_interest",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": false,
+    "explanation": "This pathway is for households that can accept in-home electrification upgrades."
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "DAC-SASH is for homeowners."
+  },
+  {
+    "program_external_id": "CA-HOME-DAC-SASH",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own the home."
+  },
+  {
+    "program_external_id": "MCE-HOME-HEAT-PUMP",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "MCE’s landing page requires ownership of a single-family home."
+  },
+  {
+    "program_external_id": "MCE-HOME-HEAT-PUMP",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own the home."
+  },
+  {
+    "program_external_id": "MCE-HOME-HEAT-PUMP",
+    "field": "property_type",
+    "operator": "equals",
+    "value": "single_family",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The published path is for a single-family detached home."
+  },
+  {
+    "program_external_id": "PCE-HOME-WESTLIGHT",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The published path is for home owners."
+  },
+  {
+    "program_external_id": "SDCP-HOME-SOLAR-BATTERY",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "The published path is for single-family homeowners."
+  }
+]
