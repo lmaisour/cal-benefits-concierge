@@ -1,4 +1,4 @@
-import { loc, pack, program, rule, src, type Draft } from "@/data/programs/helpers";
+import { loc, pack, program, rule, src, VERIFIED_7C_AT, type Draft } from "@/data/programs/helpers";
 
 const ownerRules = (id: string) => [
   rule(id, "housing_status", "equals", "owner", "You must own and occupy the home."),
@@ -499,6 +499,48 @@ const drafts: Draft[] = [
     ],
     locations: [loc("LA-HOUS-MIPA", "STATE", "CA"), loc("LA-HOUS-MIPA", "CITY", "Los Angeles")],
     rules: buyerRules("LA-HOUS-MIPA"),
+  },
+  {
+    program: program({
+      external_id: "LA-HOUS-HANDYWORKER",
+      name: "LAHD Handyworker",
+      slug: "lahd-handyworker",
+      administrator: "Los Angeles Housing Department",
+      category: "housing",
+      subcategory: "home-repair",
+      short_description:
+        "Up to $5,000 in no-cost modifications or repairs for qualifying City of Los Angeles homeowners.",
+      description:
+        "The City of Los Angeles Handyworker program can provide up to $5,000 in no-cost modifications and repairs for a qualifying single-family home or most mobile homes inside the city. Income limits apply. The homeowner generally must be age 62 or older and/or have a permanent disability; those age-or-disability and income tests are not encoded as a single pass/fail rule. Demand may create a waiting list, and help depends on available funding. This is the city LAHD program, not the separate LACDA county Handyworker grant.",
+      benefit_summary: "Up to $5,000 in no-cost modifications or repairs",
+      benefit_type: "FREE_SERVICE",
+      benefit_min: null,
+      benefit_max: 5000,
+      benefit_period: "one_time",
+      status: "ACTIVE",
+      official_url: "https://housing.lacity.gov/residents/handyworker",
+      application_url: "https://housing.lacity.gov/residents/handyworker",
+      statewide: false,
+      preapproval_required: true,
+      purchase_before_approval_allowed: false,
+      effective_start: null,
+      effective_end: null,
+      last_verified_at: VERIFIED_7C_AT,
+      confidence: "MEDIUM",
+      active: true,
+    }),
+    sources: [
+      src(
+        "LA-HOUS-HANDYWORKER",
+        "GENERAL",
+        "Los Angeles Housing Department",
+        "https://housing.lacity.gov/residents/handyworker",
+        "Official LAHD page timed out during this verification pass; facts follow the current administrator URL and the verified city program rules recorded for this batch.",
+        VERIFIED_7C_AT,
+      ),
+    ],
+    locations: [loc("LA-HOUS-HANDYWORKER", "STATE", "CA"), loc("LA-HOUS-HANDYWORKER", "CITY", "Los Angeles")],
+    rules: ownerRules("LA-HOUS-HANDYWORKER"),
   },
   {
     program: program({

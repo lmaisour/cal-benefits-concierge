@@ -165,6 +165,21 @@
     "location_value": "CA"
   },
   {
+    "program_external_id": "LA-VEH-METRO-LIFE",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-VEH-METRO-LIFE",
+    "location_type": "COUNTY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "SCAQMD-VEH-RYR",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
     "program_external_id": "CA-UTIL-CARE",
     "location_type": "STATE",
     "location_value": "CA"
@@ -253,6 +268,16 @@
     "program_external_id": "SMUD-UTIL-EAPR",
     "location_type": "ELECTRIC_UTILITY",
     "location_value": "SMUD"
+  },
+  {
+    "program_external_id": "LADWP-UTIL-POWER-SAVERS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-UTIL-POWER-SAVERS",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
   },
   {
     "program_external_id": "PGE-REACH",
@@ -560,6 +585,16 @@
     "location_value": "Los Angeles"
   },
   {
+    "program_external_id": "LA-HOUS-HANDYWORKER",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-HOUS-HANDYWORKER",
+    "location_type": "CITY",
+    "location_value": "Los Angeles"
+  },
+  {
     "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
     "location_type": "STATE",
     "location_value": "CA"
@@ -775,9 +810,44 @@
     "location_value": "CA"
   },
   {
-    "program_external_id": "LADWP-WATER-CONSERVATION",
+    "program_external_id": "LADWP-HOME-ATTIC-INSULATION",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-HOME-ATTIC-INSULATION",
     "location_type": "ELECTRIC_UTILITY",
     "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "LADWP-HOME-EPM",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LADWP-HOME-EPM",
+    "location_type": "ELECTRIC_UTILITY",
+    "location_value": "LADWP"
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-HOME-CITY-PLANTS",
+    "location_type": "STATE",
+    "location_value": "CA"
+  },
+  {
+    "program_external_id": "LA-HOME-CITY-PLANTS",
+    "location_type": "CITY",
+    "location_value": "Los Angeles"
+  },
+  {
+    "program_external_id": "SCAQMD-HOME-LAWN-GARDEN",
+    "location_type": "STATE",
+    "location_value": "CA"
   },
   {
     "program_external_id": "SCVWD-WATER-LANDSCAPE",

@@ -1,4 +1,4 @@
-import { loc, pack, program, rule, src, type Draft } from "@/data/programs/helpers";
+import { loc, pack, program, rule, src, VERIFIED_7C_AT, type Draft } from "@/data/programs/helpers";
 
 const iouElectricOrGas = (id: string) => [
   rule(
@@ -419,6 +419,52 @@ const drafts: Draft[] = [
       src("SMUD-UTIL-EAPR", "APPLICATION", "SMUD", "https://www.smud.org/EAPRapp"),
     ],
     locations: [loc("SMUD-UTIL-EAPR", "STATE", "CA"), loc("SMUD-UTIL-EAPR", "ELECTRIC_UTILITY", "SMUD")],
+  },
+  {
+    program: program({
+      external_id: "LADWP-UTIL-POWER-SAVERS",
+      name: "LADWP Power Savers",
+      slug: "ladwp-power-savers",
+      administrator: "Los Angeles Department of Water and Power",
+      category: "utilities",
+      subcategory: "demand-response",
+      short_description:
+        "Prepaid-card incentives for LADWP customers who enroll a qualifying connected thermostat in demand response.",
+      description:
+        "Power Savers pays a $55 prepaid card after acceptance, then an annual participation incentive of $40 for 25%–75% event participation or $90 for more than 75% participation. The published household maximum is currently $145. You need an eligible connected or smart thermostat configured to central air conditioning and must agree to remote adjustments during the season. Qualifying thermostat models and event-participation rules are not evaluated here. Geography is LADWP electric service.",
+      benefit_summary: "$55 after acceptance, plus $40 or $90 for participation, currently up to $145 per household",
+      benefit_type: "CASH",
+      benefit_min: 55,
+      benefit_max: 145,
+      benefit_period: "annual",
+      status: "ACTIVE",
+      official_url:
+        "https://www.ladwp.com/residential-services/programs-and-rebates-residential/demand-response-%E2%80%93-power-savers",
+      application_url:
+        "https://www.ladwp.com/residential-services/programs-and-rebates-residential/demand-response-%E2%80%93-power-savers",
+      statewide: false,
+      preapproval_required: true,
+      purchase_before_approval_allowed: null,
+      effective_start: "2026-06-01",
+      effective_end: "2026-10-31",
+      last_verified_at: VERIFIED_7C_AT,
+      confidence: "HIGH",
+      active: true,
+    }),
+    sources: [
+      src(
+        "LADWP-UTIL-POWER-SAVERS",
+        "BENEFIT",
+        "LADWP",
+        "https://www.ladwp.com/residential-services/programs-and-rebates-residential/demand-response-%E2%80%93-power-savers",
+        null,
+        VERIFIED_7C_AT,
+      ),
+    ],
+    locations: [
+      loc("LADWP-UTIL-POWER-SAVERS", "STATE", "CA"),
+      loc("LADWP-UTIL-POWER-SAVERS", "ELECTRIC_UTILITY", "LADWP"),
+    ],
   },
 ];
 

@@ -644,6 +644,26 @@
     "explanation": "These down-payment programs are for buyers who do not already own the home they are purchasing."
   },
   {
+    "program_external_id": "LA-HOUS-HANDYWORKER",
+    "field": "housing_status",
+    "operator": "equals",
+    "value": "owner",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "You must own and occupy the home."
+  },
+  {
+    "program_external_id": "LA-HOUS-HANDYWORKER",
+    "field": "homeowner",
+    "operator": "is_true",
+    "value": true,
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Homeowner programs require ownership."
+  },
+  {
     "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
     "field": "housing_status",
     "operator": "equals",

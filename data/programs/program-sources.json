@@ -172,7 +172,7 @@
     "source_type": "GENERAL",
     "organization": "LADWP",
     "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/used-electric-vehicle-rebate-program",
-    "verified_at": "2026-09-06T00:00:00Z",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {
@@ -196,7 +196,7 @@
     "source_type": "GENERAL",
     "organization": "LADWP",
     "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/residential-ev-charger-rebate-program",
-    "verified_at": "2026-09-06T00:00:00Z",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {
@@ -237,6 +237,30 @@
     "organization": "California Low Cost Auto",
     "url": "https://www.mylowcostauto.com/faq",
     "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LA-VEH-METRO-LIFE",
+    "source_type": "GENERAL",
+    "organization": "LA Metro",
+    "url": "https://www.metro.net/fares/life/",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCAQMD-VEH-RYR",
+    "source_type": "GENERAL",
+    "organization": "South Coast AQMD",
+    "url": "https://www.aqmd.gov/home/programs/community/community-detail?title=ryr",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCAQMD-VEH-RYR",
+    "source_type": "APPLICATION",
+    "organization": "South Coast AQMD",
+    "url": "https://www.replaceyourride.com/",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {
@@ -357,6 +381,14 @@
     "organization": "SMUD",
     "url": "https://www.smud.org/EAPRapp",
     "verified_at": "2026-09-06T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-UTIL-POWER-SAVERS",
+    "source_type": "BENEFIT",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/demand-response-%E2%80%93-power-savers",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {
@@ -896,6 +928,14 @@
     "notes": null
   },
   {
+    "program_external_id": "LA-HOUS-HANDYWORKER",
+    "source_type": "GENERAL",
+    "organization": "Los Angeles Housing Department",
+    "url": "https://housing.lacity.gov/residents/handyworker",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": "Official LAHD page timed out during this verification pass; facts follow the current administrator URL and the verified city program rules recorded for this batch."
+  },
+  {
     "program_external_id": "MTY-HOUS-EMERGENCY-REPAIR",
     "source_type": "GENERAL",
     "organization": "City of Monterey",
@@ -1020,7 +1060,7 @@
     "source_type": "BENEFIT",
     "organization": "LADWP",
     "url": "https://www.ladwp.com/residential-services/assistance-programs/consumer-rebate-program",
-    "verified_at": "2026-09-06T00:00:00Z",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {
@@ -1115,8 +1155,56 @@
     "program_external_id": "LADWP-WATER-CONSERVATION",
     "source_type": "GENERAL",
     "organization": "LADWP",
-    "url": "https://www.ladwp.com/who-we-are/water-system/water-conservation/rebates-free-items",
-    "verified_at": "2026-09-06T00:00:00Z",
+    "url": "https://www.ladwp.com/who-we-are/water-system/water-conservation/turf-replacement-rebate",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-HOME-ATTIC-INSULATION",
+    "source_type": "BENEFIT",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/attic-insulation-rebate-program",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-HOME-EPM",
+    "source_type": "BENEFIT",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/assistance-programs/efficient-product-marketplace-epm",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "source_type": "GENERAL",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/landscape-efficiency-assistance-program",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LA-HOME-CITY-PLANTS",
+    "source_type": "GENERAL",
+    "organization": "City Plants",
+    "url": "https://www.cityplants.org/",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "LA-HOME-CITY-PLANTS",
+    "source_type": "APPLICATION",
+    "organization": "City Plants",
+    "url": "https://freetreesla.com/CustomerRegistration/HTML_Forms/Yard_Customer_Registration.html",
+    "verified_at": "2026-09-07T00:00:00Z",
+    "notes": null
+  },
+  {
+    "program_external_id": "SCAQMD-HOME-LAWN-GARDEN",
+    "source_type": "BENEFIT",
+    "organization": "South Coast AQMD",
+    "url": "https://www.aqmd.gov/home/programs/community/electric-lawn-and-garden-programs/electric-lawn-mower-rebate-program",
+    "verified_at": "2026-09-07T00:00:00Z",
     "notes": null
   },
   {

@@ -40,13 +40,16 @@ async function main() {
 
   await assertProgramImportColumns(supabase);
 
-  const idByExternal = await upsertPrograms(supabase, catalog);
-  await replaceChildren(supabase, catalog, idByExternal);
+  const upserted = await upsertPrograms(supabase, catalog);
+  await replaceChildren(supabase, catalog, upserted.idByExternal);
   const removedSamples = await removeSamplePrograms(supabase);
 
   const after = await countDatabase(supabase);
   console.log("Import complete.");
-  console.log(`Upserted programs: ${idByExternal.size}`);
+  console.log(`Inserted programs: ${upserted.inserted}`);
+  console.log(`Updated programs: ${upserted.updated}`);
+  console.log(`Unchanged programs: ${upserted.unchanged}`);
+  console.log(`Upserted programs: ${upserted.idByExternal.size}`);
   console.log(`Removed SAMPLE / example.invalid programs: ${removedSamples}`);
   console.log("Database counts after import:");
   console.log(JSON.stringify(after, null, 2));
@@ -55,8 +58,16 @@ async function main() {
 async function upsertPrograms(
   supabase: SupabaseClient<Database>,
   catalog: ProgramCatalog,
-): Promise<Map<string, string>> {
+): Promise<{
+  idByExternal: Map<string, string>;
+  inserted: number;
+  updated: number;
+  unchanged: number;
+}> {
   const idByExternal = new Map<string, string>();
+  let inserted = 0;
+  let updated = 0;
+  const unchanged = 0;
 
   for (const program of catalog.programs) {
     const row: ProgramInsert = {
@@ -104,21 +115,23 @@ async function upsertPrograms(
         throw new Error(`Update failed for ${program.external_id}: ${error.message}`);
       }
       idByExternal.set(program.external_id, existing.id);
+      updated += 1;
       continue;
     }
 
-    const { data: inserted, error } = await supabase
+    const { data: created, error } = await supabase
       .from("programs")
       .insert(row)
       .select("id")
       .single();
-    if (error || !inserted) {
+    if (error || !created) {
       throw new Error(`Insert failed for ${program.external_id}: ${error?.message ?? "no row"}`);
     }
-    idByExternal.set(program.external_id, inserted.id);
+    idByExternal.set(program.external_id, created.id);
+    inserted += 1;
   }
 
-  return idByExternal;
+  return { idByExternal, inserted, updated, unchanged };
 }
 
 async function replaceChildren(

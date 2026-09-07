@@ -28,13 +28,13 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
   "SDGE-VEH-POEV":
     "The vehicle, purchase timing, household limits, and income-qualified path must meet SDG&E’s published pre-owned EV rebate rules.",
   "LADWP-VEH-USED-EV":
-    "The vehicle and LADWP account must meet the published used-EV rebate rules, including any EZ-SAVE or Lifeline adders.",
+    "The used EV must be on LADWP’s approved list and meet the age, registration, VIN, and prior-rebate rules, and your permanent residence must receive LADWP electricity.",
   "PGE-VEH-HOME-CHARGING":
     "You must be a PG&E customer installing listed charging equipment under the published rebate path.",
   "SCE-VEH-CHARGE-READY-HOME":
     "You must be an SCE customer, and income or disadvantaged-community rules may apply for the published rebate amount.",
   "LADWP-VEH-CHARGER":
-    "You must be an LADWP customer installing a qualifying charger under the published rebate rules.",
+    "You must be the LADWP residential electric account holder installing a listed qualifying charger under the published equipment and installation rules.",
   "SMUD-VEH-CHARGE-HOME":
     "You must be a SMUD customer, and Energy Assistance Program Rate status may change what is covered.",
   "CA-VEH-CLCA":
@@ -58,6 +58,8 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
     "You must already be on CARE or FERA and meet the published past-due balance and payment rules.",
   "LADWP-UTIL-EZ-SAVE":
     "Income must meet LADWP’s published EZ-SAVE table for your household size.",
+  "LADWP-UTIL-POWER-SAVERS":
+    "You must enroll a listed connected thermostat and meet Power Savers participation rules.",
   "SMUD-UTIL-EAPR":
     "Income must meet SMUD’s published federal-poverty-level bands for the Energy Assistance Program Rate.",
 
@@ -145,6 +147,8 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
     "Priority census-tract and occupancy rules apply, and funding is limited.",
   "LAC-HOUS-HANDYWORKER":
     "The home must be in the listed unincorporated supervisorial districts, occupied at least one year, and income generally must be at or below 80% of area median income.",
+  "LA-HOUS-HANDYWORKER":
+    "The home must be a qualifying City of Los Angeles single-family house or most mobile homes, income limits apply, and you must be 62 or older and/or have a permanent disability. Funding and waitlists can change.",
   "LAC-HOUS-SENIOR-GRANT":
     "The home must be in a listed unincorporated district, occupied at least 12 months, and income generally must be at or below 80% of area median income.",
   "LAC-HOUS-HOP":
@@ -181,7 +185,11 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
   "SCG-HOME-REBATES":
     "You must be a SoCalGas customer installing a listed qualifying product while funds remain.",
   "LADWP-HOME-CONSUMER-REBATE":
-    "You must be an LADWP customer installing a listed qualifying product under the published rebate rules.",
+    "You must be an LADWP residential electric customer installing a listed qualifying product that meets that measure’s published technical and documentation rules.",
+  "LADWP-HOME-ATTIC-INSULATION":
+    "You must be an LADWP residential customer or verified property owner, and the insulation must meet the published R-value, batt-or-roll, permit, air-conditioning, and photo rules.",
+  "LADWP-HOME-EPM":
+    "You must be the LADWP residential electric account holder buying a listed ENERGY STAR or CEC-rated product under the published household limits.",
   "SMUD-HOME-GO-ELECTRIC":
     "You must be a SMUD customer, and a participating contractor must submit the rebate.",
   "CPA-HOME-AC-SAVINGS":
@@ -204,7 +212,17 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
   "MWD-WATER-SOCAL-WATERSMART":
     "You must be a customer of a participating Metropolitan member agency.",
   "LADWP-WATER-CONSERVATION":
-    "You must be an LADWP customer applying under the published conservation rebate rules.",
+    "You must be an LADWP water customer, receive project pre-approval before removing turf, and meet SoCal Water$mart landscape rules.",
+  "LADWP-WATER-LEAP":
+    "You must be an LADWP customer in a qualifying disadvantaged-community single-family home with 500 to 3,000 square feet of green front lawn, and be the owner or have written owner permission.",
+  "LA-HOME-CITY-PLANTS":
+    "You must be able to plant and water the trees on eligible City of Los Angeles private property, or qualify for the separate street-tree pathway.",
+  "LA-VEH-METRO-LIFE":
+    "You must live in Los Angeles County and meet the published household-income table or be enrolled in a listed public-benefit program.",
+  "SCAQMD-VEH-RYR":
+    "You must live in the South Coast AQMD jurisdiction and meet the published older-vehicle and household-income rules.",
+  "SCAQMD-HOME-LAWN-GARDEN":
+    "You must live in the South Coast AQMD jurisdiction, buy new battery-electric equipment, and surrender a working like-for-like gasoline machine.",
   "SCVWD-WATER-LANDSCAPE":
     "You must be a Valley Water customer, and some work cannot start before approval.",
   "EBMUD-WATER-REBATES":

@@ -1,4 +1,4 @@
-import { loc, pack, program, rule, src, type Draft } from "@/data/programs/helpers";
+import { loc, pack, program, rule, src, VERIFIED_7C_AT, type Draft } from "@/data/programs/helpers";
 
 const drafts: Draft[] = [
   {
@@ -389,15 +389,16 @@ const drafts: Draft[] = [
   {
     program: program({
       external_id: "LADWP-VEH-USED-EV",
-      name: "LADWP Used Electric Vehicle Rebate",
+      name: "LADWP Used Electric Vehicle Rebate Program",
       slug: "ladwp-used-ev-rebate",
       administrator: "Los Angeles Department of Water and Power",
       category: "vehicles",
       subcategory: "electric-vehicles",
-      short_description: "Rebate for a used EV or PHEV at an LADWP electric service address.",
+      short_description:
+        "Rebate for a qualifying used EV or plug-in hybrid at a permanent residence served by LADWP electricity.",
       description:
-        "Up to $1,500 standard, or up to $4,000 if the service address is on EZ-SAVE or Lifeline. Apply after purchase, generally within 12 months. Confirm eligibility before buying. Terms PDF reviewed was labeled September 2025; current consumer page still presents the program as open.",
-      benefit_summary: "Up to $1,500, or up to $4,000 on EZ-SAVE or Lifeline",
+        "The standard rebate is $1,500. Households whose LADWP service address is on EZ-SAVE or Lifeline at purchase and through rebate issuance can receive up to $4,000. Purchase before approval is allowed; apply after purchase, generally within 12 months. You do not have to be the LADWP account holder, but the permanent residence must receive LADWP electric service. The vehicle must be on LADWP’s approved used-EV list, at least two model years older than the application calendar year and not older than eight years, registered to the applicant at the service address, and within LADWP’s VIN/prior-rebate limits (including the 24-month wait after a prior rebate on the same VIN). Confirm eligibility before buying. Terms reviewed on the official page remain current as of September 7, 2026.",
+      benefit_summary: "$1,500 standard, or up to $4,000 on EZ-SAVE or Lifeline",
       benefit_type: "REBATE",
       benefit_min: 1500,
       benefit_max: 4000,
@@ -412,6 +413,7 @@ const drafts: Draft[] = [
       purchase_before_approval_allowed: true,
       effective_start: null,
       effective_end: null,
+      last_verified_at: VERIFIED_7C_AT,
       confidence: "HIGH",
       active: true,
     }),
@@ -421,6 +423,8 @@ const drafts: Draft[] = [
         "GENERAL",
         "LADWP",
         "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/used-electric-vehicle-rebate-program",
+        null,
+        VERIFIED_7C_AT,
       ),
     ],
     locations: [loc("LADWP-VEH-USED-EV", "STATE", "CA"), loc("LADWP-VEH-USED-EV", "ELECTRIC_UTILITY", "LADWP")],
@@ -507,8 +511,8 @@ const drafts: Draft[] = [
       subcategory: "charging",
       short_description: "Rebate for a home EV charger and installation on an LADWP residential account.",
       description:
-        "Up to $1,000 for charger and installation, plus $500 if the account is on Senior/Disability Lifeline or EZ-SAVE. An optional $250 dedicated EV meter rebate is also described. LADWP recommends a service assessment before installation.",
-      benefit_summary: "Up to $1,000, or up to $1,500 on Lifeline or EZ-SAVE",
+        "LADWP residential electric account holders may receive up to $1,000 toward a qualifying Level 2 home charger and installation. Senior/Disability Lifeline or EZ-SAVE participants may receive an additional $500 (up to $1,500). An optional $250 dedicated EV meter rebate can be selected on the same application. The applicant must be the name on an active LADWP residential electric account. Qualifying charger models, electrical-service assessment, and installation details are not evaluated here. LADWP recommends a service assessment before installation.",
+      benefit_summary: "Up to $1,000, or up to $1,500 on Lifeline or EZ-SAVE, plus an optional $250 meter rebate",
       benefit_type: "REBATE",
       benefit_min: 1000,
       benefit_max: 1500,
@@ -523,6 +527,7 @@ const drafts: Draft[] = [
       purchase_before_approval_allowed: true,
       effective_start: null,
       effective_end: null,
+      last_verified_at: VERIFIED_7C_AT,
       confidence: "HIGH",
       active: true,
     }),
@@ -532,6 +537,8 @@ const drafts: Draft[] = [
         "GENERAL",
         "LADWP",
         "https://www.ladwp.com/residential-services/programs-and-rebates-residential/electric-vehicles/residential-ev-charger-rebate-program",
+        null,
+        VERIFIED_7C_AT,
       ),
     ],
     locations: [loc("LADWP-VEH-CHARGER", "STATE", "CA"), loc("LADWP-VEH-CHARGER", "ELECTRIC_UTILITY", "LADWP")],
@@ -622,6 +629,89 @@ const drafts: Draft[] = [
         "The insured vehicle generally must be valued at $25,000 or less.",
       ),
     ],
+  },
+  {
+    program: program({
+      external_id: "LA-VEH-METRO-LIFE",
+      name: "LA Metro LIFE Program",
+      slug: "la-metro-life",
+      administrator: "Los Angeles County Metropolitan Transportation Authority",
+      category: "vehicles",
+      subcategory: "transit",
+      short_description:
+        "Free and discounted transit rides for qualifying Los Angeles County residents.",
+      description:
+        "LIFE is for Los Angeles County residents who meet a published household-income table or who are enrolled in a listed public benefit such as CalFresh, Medi-Cal, reduced-price school meals, SNAP, Social Security, SSDI, or TANF. After approval, riders receive unlimited free rides for 90 days on participating systems, then 20 free regional rides each month. A household-size income table is published on Metro’s official page and is not converted into a single engine limit here. Temporary South LA and Pomona extra-month promotions are not treated as the standing countywide benefit. Apply through Metro’s LIFE page.",
+      benefit_summary: "Unlimited free rides for 90 days after approval, then 20 free regional rides each month",
+      benefit_type: "FREE_SERVICE",
+      benefit_min: null,
+      benefit_max: null,
+      benefit_period: "monthly",
+      status: "ACTIVE",
+      official_url: "https://www.metro.net/fares/life/",
+      application_url: "https://www.metro.net/fares/life/",
+      statewide: false,
+      preapproval_required: true,
+      purchase_before_approval_allowed: null,
+      effective_start: null,
+      effective_end: null,
+      last_verified_at: VERIFIED_7C_AT,
+      confidence: "HIGH",
+      active: true,
+    }),
+    sources: [
+      src("LA-VEH-METRO-LIFE", "GENERAL", "LA Metro", "https://www.metro.net/fares/life/", null, VERIFIED_7C_AT),
+    ],
+    locations: [loc("LA-VEH-METRO-LIFE", "STATE", "CA"), loc("LA-VEH-METRO-LIFE", "COUNTY", "Los Angeles")],
+  },
+  {
+    program: program({
+      external_id: "SCAQMD-VEH-RYR",
+      name: "South Coast AQMD Replace Your Ride",
+      slug: "south-coast-aqmd-replace-your-ride",
+      administrator: "South Coast Air Quality Management District",
+      category: "vehicles",
+      subcategory: "electric-vehicles",
+      short_description:
+        "Up to $12,000 to replace a qualifying older vehicle, or choose an e-bike or transit-card alternative.",
+      description:
+        "Qualified applicants who live in the South Coast AQMD jurisdiction and meet the program’s income and older-vehicle rules can receive up to $12,000 to replace that vehicle with a newer cleaner vehicle, including a plug-in hybrid, battery-electric, or fuel-cell vehicle. Instead of a replacement car, an applicant may choose an e-bike or an alternative public-transportation charge card. This site cannot evaluate air-district boundaries, so jurisdiction stays an unmodeled required condition and is not stored as county or ZIP geography. Apply through the official Replace Your Ride site.",
+      benefit_summary: "Up to $12,000 toward a qualifying replacement vehicle, e-bike, or transit alternative",
+      benefit_type: "CASH",
+      benefit_min: null,
+      benefit_max: 12000,
+      benefit_period: "one_time",
+      status: "ACTIVE",
+      official_url: "https://www.aqmd.gov/home/programs/community/community-detail?title=ryr",
+      application_url: "https://www.replaceyourride.com/",
+      statewide: false,
+      preapproval_required: true,
+      purchase_before_approval_allowed: false,
+      effective_start: null,
+      effective_end: null,
+      last_verified_at: VERIFIED_7C_AT,
+      confidence: "HIGH",
+      active: true,
+    }),
+    sources: [
+      src(
+        "SCAQMD-VEH-RYR",
+        "GENERAL",
+        "South Coast AQMD",
+        "https://www.aqmd.gov/home/programs/community/community-detail?title=ryr",
+        null,
+        VERIFIED_7C_AT,
+      ),
+      src(
+        "SCAQMD-VEH-RYR",
+        "APPLICATION",
+        "South Coast AQMD",
+        "https://www.replaceyourride.com/",
+        null,
+        VERIFIED_7C_AT,
+      ),
+    ],
+    locations: [loc("SCAQMD-VEH-RYR", "STATE", "CA")],
   },
 ];
 

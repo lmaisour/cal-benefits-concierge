@@ -16,6 +16,7 @@ import type {
 import type { CatalogCategory } from "@/lib/programs/import/types";
 
 export const VERIFIED_AT = "2026-09-06T00:00:00Z";
+export const VERIFIED_7C_AT = "2026-09-07T00:00:00Z";
 
 export function program(
   input: Omit<
@@ -46,13 +47,14 @@ export function src(
   organization: string,
   url: string,
   notes: string | null = null,
+  verifiedAt: string = VERIFIED_AT,
 ): CatalogSource {
   return {
     program_external_id: programExternalId,
     source_type: sourceType,
     organization,
     url,
-    verified_at: VERIFIED_AT,
+    verified_at: verifiedAt,
     notes,
   };
 }
