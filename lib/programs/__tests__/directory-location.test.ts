@@ -45,6 +45,9 @@ describe("parseDirectoryZip", () => {
       "90012 · Los Angeles, CA",
     );
     expect(formatDirectoryPlaceLine({ zip: "10001" })).toBe("10001");
+    expect(formatDirectoryPlaceLine(resolveDirectoryPlaceFromZip("91331"))).toBe(
+      "91331 · Pacoima, CA",
+    );
   });
 
   it("rejects invalid ZIP input without inventing a place", () => {

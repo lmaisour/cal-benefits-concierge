@@ -228,7 +228,7 @@ export default async function ProgramsPage({
             {locationActive ? (
               <div className="mt-5">
                 <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-                  {locationResultsHeading(directoryQuery.zip, place.city)}
+                  {locationResultsHeading(directoryQuery.zip, place.place ?? place.city)}
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
                   {[

@@ -18,16 +18,21 @@ const BATCH_7C_SLUGS = [
   "south-coast-aqmd-replace-your-ride",
   "south-coast-aqmd-electric-lawn-garden-rebate",
   "lahd-handyworker",
+  "los-angeles-lipa",
+  "los-angeles-mipa",
 ] as const;
 
 describe("Milestone 7C 91331 directory buckets", () => {
-  it("resolves 91331 to Pacoima in Los Angeles County without inventing utility", () => {
+  it("resolves 91331 to place Pacoima and governing city Los Angeles", () => {
     const place = resolveDirectoryPlaceFromZip("91331");
     expect(place).toEqual({
       zip: "91331",
-      city: "Pacoima",
+      place: "Pacoima",
+      city: "Los Angeles",
       county: "Los Angeles",
+      state: "CA",
     });
+    expect(place.electricUtility).toBeUndefined();
   });
 
   it("places the batch using current matching, not forced local geography", () => {
@@ -54,6 +59,10 @@ describe("Milestone 7C 91331 directory buckets", () => {
 
     expect(byResultSlug.get("la-metro-life")?.bucket).toBe("local");
     expect(byResultSlug.get("la-metro-life")?.localReason).toBe("county");
+    expect(byResultSlug.get("city-plants-free-trees")?.bucket).toBe("local");
+    expect(byResultSlug.get("lahd-handyworker")?.bucket).toBe("local");
+    expect(byResultSlug.get("los-angeles-lipa")?.bucket).toBe("local");
+    expect(byResultSlug.get("los-angeles-mipa")?.bucket).toBe("local");
 
     for (const slug of [
       "ladwp-used-ev-rebate",
@@ -69,8 +78,5 @@ describe("Milestone 7C 91331 directory buckets", () => {
     ] as const) {
       expect(byResultSlug.get(slug)?.bucket).toBe("unresolved");
     }
-
-    expect(byResultSlug.has("city-plants-free-trees")).toBe(false);
-    expect(byResultSlug.has("lahd-handyworker")).toBe(false);
   });
 });

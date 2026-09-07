@@ -74,6 +74,7 @@ function placeValueForType(place: DirectoryPlace, type: LocationType): string | 
     case "ZIP":
       return knownPlaceValue(place.zip);
     case "CITY":
+      // Governing municipality only. Postal place/neighborhood is not CITY.
       return knownPlaceValue(place.city);
     case "COUNTY":
       return knownPlaceValue(place.county);

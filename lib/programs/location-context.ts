@@ -5,8 +5,9 @@ import { resolveZipContext } from "@/lib/geo/resolve-zip-context";
 /**
  * Consumer place used for directory discovery.
  *
- * This module fills `zip` from the programs page and resolves city/county
- * from a static California ZIP map. Later resolvers can attach:
+ * This module fills `zip` from the programs page and resolves
+ * place / governing city / county from a static California ZIP map.
+ * Later resolvers can attach:
  *   address -> electric utility
  *   address -> gas utility
  *   address -> CCA
@@ -18,8 +19,10 @@ import { resolveZipContext } from "@/lib/geo/resolve-zip-context";
  */
 export type DirectoryPlace = {
   zip?: string;
+  place?: string;
   city?: string;
   county?: string;
+  state?: string;
   electricUtility?: string;
   gasUtility?: string;
   cca?: string;
@@ -50,15 +53,18 @@ export function parseDirectoryZip(raw: string | undefined): ParsedDirectoryZip {
 
 /**
  * ZIP-only resolver. Future jurisdiction resolution belongs here, not in the UI.
- * ZIP -> city and ZIP -> county are filled by `resolveZipContext`.
+ * ZIP -> place, governing city, and county are filled by `resolveZipContext`.
+ * CITY program matching uses `city` (municipality), not `place`.
  * Do not infer utility, CCA, water, air, or special districts here.
  */
 export function resolveDirectoryPlaceFromZip(zip: string): DirectoryPlace {
   const resolved = resolveZipContext(zip);
   return {
     zip: resolved.zip,
+    place: resolved.place,
     city: resolved.city,
     county: resolved.county,
+    state: resolved.state,
   };
 }
 
@@ -72,10 +78,14 @@ export function directoryPlaceToProfile(place: DirectoryPlace): UserProfile {
   };
 }
 
-/** Consumer line for a resolved ZIP, e.g. "94110 · San Francisco, CA". */
+/**
+ * Consumer line for a resolved ZIP.
+ * Prefer the postal place label so 91331 still reads as Pacoima.
+ */
 export function formatDirectoryPlaceLine(place: DirectoryPlace): string {
-  if (place.zip && place.city) {
-    return `${place.zip} · ${place.city}, CA`;
+  const locality = place.place || place.city;
+  if (place.zip && locality) {
+    return `${place.zip} · ${locality}, CA`;
   }
   if (place.zip) {
     return place.zip;
@@ -86,8 +96,10 @@ export function formatDirectoryPlaceLine(place: DirectoryPlace): string {
 export function hasResolvedPlace(place: DirectoryPlace): boolean {
   return Boolean(
     place.zip ||
+      place.place ||
       place.city ||
       place.county ||
+      place.state ||
       place.electricUtility ||
       place.gasUtility ||
       place.cca ||
