@@ -18,8 +18,8 @@ export type ProgramDirectoryFilters = {
 export type ProgramDirectoryQuery = {
   query: string;
   category: string;
-  benefitType: string;
-  status: string;
+  benefitType: BenefitType | "";
+  status: ProgramStatus | "";
   sort: ProgramSort;
   zip: string;
 };
