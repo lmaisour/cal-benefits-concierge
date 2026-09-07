@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { formatCategory, formatDate, formatProgramValue } from "@/lib/programs/format";
 import { siteConfig } from "@/lib/config/site";
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
+import type { LocationMatchKind } from "@/lib/programs/directory-location";
+import { LOCATION_MATCH_LABEL } from "@/lib/programs/directory-location";
 import type { Program, ProgramLocation } from "@/types/program";
 
 function truncateDescription(text: string, max = 150): string {
@@ -21,9 +23,11 @@ function truncateDescription(text: string, max = 150): string {
 export function ProgramCard({
   program,
   locations = [],
+  locationMatch,
 }: {
   program: Program;
   locations?: ProgramLocation[];
+  locationMatch?: LocationMatchKind;
 }) {
   const value = formatProgramValue(program);
   const verified = formatDate(program.last_verified_at);
@@ -37,6 +41,11 @@ export function ProgramCard({
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{formatCategory(program.category)}</Badge>
         <StatusBadge status={program.status} />
+        {locationMatch && LOCATION_MATCH_LABEL[locationMatch] ? (
+          <Badge className="border-primary/15 bg-hero text-primary">
+            {LOCATION_MATCH_LABEL[locationMatch]}
+          </Badge>
+        ) : null}
       </div>
 
       <div>

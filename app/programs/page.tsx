@@ -1,15 +1,31 @@
 import type { Metadata } from "next";
+import { LocationFinder } from "@/components/programs/location-finder";
 import { ProgramCard } from "@/components/programs/program-card";
 import { ProgramFilters } from "@/components/programs/program-filters";
 import { ButtonLink } from "@/components/ui/button";
-import { filterAndSortPrograms, type ProgramSort } from "@/lib/programs/filter-programs";
+import {
+  applyDirectoryLocation,
+  groupDirectoryResults,
+  LOCATION_SECTION_COPY,
+  type DirectoryLocationResult,
+} from "@/lib/programs/directory-location";
+import {
+  filterAndSortPrograms,
+  type ProgramDirectoryQuery,
+  type ProgramSort,
+} from "@/lib/programs/filter-programs";
 import {
   getActivePrograms,
   getLocationsForPrograms,
 } from "@/lib/programs/get-active-programs";
+import {
+  parseDirectoryZip,
+  resolveDirectoryPlaceFromZip,
+} from "@/lib/programs/location-context";
 import { siteConfig } from "@/lib/config/site";
 import { BENEFIT_TYPES, PROGRAM_STATUSES } from "@/types/database";
 import type { BenefitType, ProgramStatus } from "@/types/database";
+import { cn } from "@/lib/utils/cn";
 import type { Program, ProgramLocation } from "@/types/program";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +33,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Browse California benefit programs",
   description:
-    "Browse California rebates, credits, discounts, and assistance programs. Confirm details on each official program site.",
+    "Enter your ZIP code to find California state and local rebates, credits, discounts, and assistance programs. Confirm details on each official program site.",
 };
 
 function isBenefitType(value: string): value is BenefitType {
@@ -42,6 +58,32 @@ function locationsByProgram(locations: ProgramLocation[]): Map<string, ProgramLo
   return grouped;
 }
 
+function ProgramGrid({
+  items,
+  locationMap,
+  showMatch,
+  className = "mt-4",
+}: {
+  items: DirectoryLocationResult[];
+  locationMap: Map<string, ProgramLocation[]>;
+  showMatch: boolean;
+  className?: string;
+}) {
+  return (
+    <ul className={cn("grid grid-cols-1 gap-5 md:grid-cols-2", className)}>
+      {items.map(({ program, match }) => (
+        <li key={program.id}>
+          <ProgramCard
+            program={program}
+            locations={locationMap.get(program.id) ?? []}
+            locationMatch={showMatch ? match : undefined}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default async function ProgramsPage({
   searchParams,
 }: {
@@ -51,14 +93,19 @@ export default async function ProgramsPage({
     benefit?: string;
     status?: string;
     sort?: string;
+    zip?: string;
   }>;
 }) {
   const params = await searchParams;
-  const query = params.q ?? "";
-  const category = params.category ?? "";
-  const benefitType = params.benefit && isBenefitType(params.benefit) ? params.benefit : "";
-  const status = params.status && isStatus(params.status) ? params.status : "";
-  const sort: ProgramSort = params.sort && isSort(params.sort) ? params.sort : "verified";
+  const parsedZip = parseDirectoryZip(params.zip);
+  const directoryQuery: ProgramDirectoryQuery = {
+    query: params.q ?? "",
+    category: params.category ?? "",
+    benefitType: params.benefit && isBenefitType(params.benefit) ? params.benefit : "",
+    status: params.status && isStatus(params.status) ? params.status : "",
+    sort: params.sort && isSort(params.sort) ? params.sort : "verified",
+    zip: parsedZip.zip ?? "",
+  };
 
   let programs: Program[] = [];
   let locations: ProgramLocation[] = [];
@@ -70,14 +117,12 @@ export default async function ProgramsPage({
     loadError = error instanceof Error ? error.message : "Could not load programs.";
   }
 
-  const visible = filterAndSortPrograms(programs, {
-    query,
-    category,
-    benefitType,
-    status,
-    sort,
-  });
+  const filtered = filterAndSortPrograms(programs, directoryQuery);
   const locationMap = locationsByProgram(locations);
+  const place = parsedZip.zip ? resolveDirectoryPlaceFromZip(parsedZip.zip) : {};
+  const located = applyDirectoryLocation(filtered, locationMap, place);
+  const locationActive = Boolean(parsedZip.zip);
+  const grouped = locationActive ? groupDirectoryResults(located) : [];
   const categoryCount = new Set(programs.map((program) => program.category)).size;
 
   return (
@@ -91,10 +136,10 @@ export default async function ProgramsPage({
             Explore programs that could save you money
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Browse current California rebates, credits, discounts, and assistance
-            programs, or answer a few questions to see which ones may apply to
-            your household. This is not a complete list of every California
-            benefit.
+            Enter your ZIP code to see state and local programs that may be
+            available where you live, browse the full directory, or answer a few
+            questions to check what may apply to your household. This is not a
+            complete list of every California benefit.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <ButtonLink href={siteConfig.urls.check} size="lg">
@@ -145,16 +190,31 @@ export default async function ProgramsPage({
           </div>
         ) : (
           <>
-            <ProgramFilters
-              query={query}
-              category={category}
-              benefitType={benefitType}
-              status={status}
-              sort={sort}
+            <LocationFinder
+              query={directoryQuery}
+              zipError={parsedZip.error}
+              zipDraft={params.zip ?? ""}
             />
-            <p className="mt-6 text-sm text-muted-foreground">
-              Showing {visible.length} of {programs.length} programs
-            </p>
+            <div className="mt-6">
+              <ProgramFilters query={directoryQuery} />
+            </div>
+            {locationActive ? (
+              <div className="mt-8">
+                <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
+                  Programs we found for your area
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                  Showing {located.length} of {programs.length} programs for ZIP{" "}
+                  {directoryQuery.zip}. This includes statewide programs and any
+                  programs that list this ZIP code. It is not a complete list of
+                  every benefit available at your address.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-6 text-sm text-muted-foreground">
+                Showing {located.length} of {programs.length} programs
+              </p>
+            )}
             {programs.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center">
                 <h2 className="font-serif text-2xl font-semibold">No programs yet</h2>
@@ -162,11 +222,12 @@ export default async function ProgramsPage({
                   There are no active programs in the directory right now.
                 </p>
               </div>
-            ) : visible.length === 0 ? (
+            ) : located.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center">
                 <h2 className="font-serif text-2xl font-semibold">No matching programs</h2>
                 <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-                  Try a different search, or clear filters to see the full directory.
+                  Try a different search, ZIP code, or clear filters to see the full
+                  directory.
                 </p>
                 <div className="mt-6">
                   <ButtonLink href={siteConfig.urls.programs} variant="secondary">
@@ -174,17 +235,33 @@ export default async function ProgramsPage({
                   </ButtonLink>
                 </div>
               </div>
+            ) : locationActive ? (
+              <div className="mt-8 space-y-10">
+                {grouped.map(({ kind, items }) => {
+                  const copy = LOCATION_SECTION_COPY[kind];
+                  return (
+                    <section key={kind} aria-labelledby={`location-group-${kind}`}>
+                      <h3
+                        id={`location-group-${kind}`}
+                        className="font-serif text-xl font-semibold tracking-tight text-foreground"
+                      >
+                        {copy.title}
+                      </h3>
+                      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                        {copy.description}
+                      </p>
+                      <ProgramGrid items={items} locationMap={locationMap} showMatch />
+                    </section>
+                  );
+                })}
+              </div>
             ) : (
-              <ul className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-                {visible.map((program) => (
-                  <li key={program.id}>
-                    <ProgramCard
-                      program={program}
-                      locations={locationMap.get(program.id) ?? []}
-                    />
-                  </li>
-                ))}
-              </ul>
+              <ProgramGrid
+                items={located}
+                locationMap={locationMap}
+                showMatch={false}
+                className="mt-6"
+              />
             )}
           </>
         )}
