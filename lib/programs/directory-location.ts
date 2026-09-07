@@ -7,24 +7,23 @@ import {
 } from "@/lib/programs/location-context";
 import type { LocationType, Program, ProgramLocation } from "@/types/program";
 
-/**
- * Best geographic match we can prove from structured program_locations.
- * Lower rank is shown first when a place filter is active.
- */
-export const LOCATION_MATCH_RANK = {
-  zip: 1,
-  city: 2,
-  county: 3,
-  utility: 4,
-  statewide: 5,
-  unresolved: 6,
-} as const;
+export type GeographicBucket = "local" | "statewide" | "unresolved";
 
-export type LocationMatchKind = keyof typeof LOCATION_MATCH_RANK;
+export type LocalMatchReason = "zip" | "city" | "county";
 
 export type DirectoryLocationResult = {
   program: Program;
-  match: LocationMatchKind;
+  bucket: GeographicBucket;
+  localReason?: LocalMatchReason;
+};
+
+/** Card badge typing. */
+export type LocationMatchKind = GeographicBucket | LocalMatchReason;
+
+const BUCKET_RANK: Record<GeographicBucket, number> = {
+  local: 1,
+  statewide: 2,
+  unresolved: 3,
 };
 
 function digitsZip(value: string): string | null {
@@ -46,55 +45,89 @@ function textMatches(left: string, right: string): boolean {
   return normalizeString(left) === normalizeString(right);
 }
 
-function hasExactZipMatch(locations: ProgramLocation[], zip: string): boolean {
-  const wanted = digitsZip(zip);
-  if (!wanted) {
-    return false;
-  }
-  return rowsOfType(locations, "ZIP").some((row) => digitsZip(row.location_value) === wanted);
+function countyMatches(locationValue: string, county: string): boolean {
+  const left = normalizeString(locationValue).replace(/ county$/, "");
+  const right = normalizeString(county).replace(/ county$/, "");
+  return left === right;
 }
 
-function hasTextTypeMatch(
+function zipEquals(locationValue: string, zip: string): boolean {
+  const left = digitsZip(locationValue);
+  const right = digitsZip(zip);
+  return Boolean(left && right && left === right);
+}
+
+function hasExactZipMatch(locations: ProgramLocation[], zip: string): boolean {
+  return rowsOfType(locations, "ZIP").some((row) => zipEquals(row.location_value, zip));
+}
+
+function hasCityMatch(locations: ProgramLocation[], city: string): boolean {
+  return rowsOfType(locations, "CITY").some((row) => textMatches(row.location_value, city));
+}
+
+function hasCountyMatch(locations: ProgramLocation[], county: string): boolean {
+  return rowsOfType(locations, "COUNTY").some((row) => countyMatches(row.location_value, county));
+}
+
+function hasTypeConflict(
   locations: ProgramLocation[],
   type: LocationType,
-  value: string | undefined,
+  known: string | undefined,
+  matches: (rowValue: string, known: string) => boolean,
 ): boolean {
-  if (!value) {
+  if (!known) {
     return false;
   }
-  return rowsOfType(locations, type).some((row) => textMatches(row.location_value, value));
+  const rows = rowsOfType(locations, type);
+  if (rows.length === 0) {
+    return false;
+  }
+  return !rows.some((row) => matches(row.location_value, known));
 }
 
+export type LocationClassification =
+  | { status: "mismatch" }
+  | { status: "keep"; bucket: GeographicBucket; localReason?: LocalMatchReason };
+
+/**
+ * Conservative geographic relevance for the directory.
+ * Does not change the eligibility engine.
+ */
 export function classifyDirectoryLocation(
   program: Program,
   locations: ProgramLocation[],
   place: DirectoryPlace,
-): LocationMatchKind {
-  if (place.zip && hasExactZipMatch(locations, place.zip)) {
-    return "zip";
-  }
-  if (hasTextTypeMatch(locations, "CITY", place.city)) {
-    return "city";
-  }
-  if (hasTextTypeMatch(locations, "COUNTY", place.county)) {
-    return "county";
-  }
-  if (
-    hasTextTypeMatch(locations, "ELECTRIC_UTILITY", place.electricUtility) ||
-    hasTextTypeMatch(locations, "GAS_UTILITY", place.gasUtility)
-  ) {
-    return "utility";
-  }
+): LocationClassification {
   if (program.statewide) {
-    return "statewide";
+    return { status: "keep", bucket: "statewide" };
   }
-  return "unresolved";
+
+  if (hasTypeConflict(locations, "ZIP", place.zip, zipEquals)) {
+    return { status: "mismatch" };
+  }
+  if (hasTypeConflict(locations, "CITY", place.city, textMatches)) {
+    return { status: "mismatch" };
+  }
+  if (hasTypeConflict(locations, "COUNTY", place.county, countyMatches)) {
+    return { status: "mismatch" };
+  }
+
+  if (place.zip && hasExactZipMatch(locations, place.zip)) {
+    return { status: "keep", bucket: "local", localReason: "zip" };
+  }
+  if (place.city && hasCityMatch(locations, place.city)) {
+    return { status: "keep", bucket: "local", localReason: "city" };
+  }
+  if (place.county && hasCountyMatch(locations, place.county)) {
+    return { status: "keep", bucket: "local", localReason: "county" };
+  }
+
+  return { status: "keep", bucket: "unresolved" };
 }
 
 /**
- * Keep programs unless structured location data proves they do not apply.
- * UNKNOWN geography (city/county/utility listed, but not resolvable from ZIP)
- * is included, not dropped.
+ * Organize programs by geographic relevance. Known ZIP/city/county mismatches
+ * are omitted. Statewide and unresolved restricted programs stay visible.
  */
 export function applyDirectoryLocation(
   programs: Program[],
@@ -102,7 +135,7 @@ export function applyDirectoryLocation(
   place: DirectoryPlace,
 ): DirectoryLocationResult[] {
   if (!hasResolvedPlace(place)) {
-    return programs.map((program) => ({ program, match: "unresolved" }));
+    return programs.map((program) => ({ program, bucket: "unresolved" }));
   }
 
   const profile = directoryPlaceToProfile(place);
@@ -110,78 +143,73 @@ export function applyDirectoryLocation(
 
   for (const program of programs) {
     const locations = locationsByProgram.get(program.id) ?? [];
-    const geography = evaluateGeography(program, locations, profile);
-    if (geography.status === "FAIL") {
+    const classified = classifyDirectoryLocation(program, locations, place);
+    if (classified.status === "mismatch") {
       continue;
     }
+
+    if (!program.statewide) {
+      const geography = evaluateGeography(program, locations, profile);
+      if (geography.status === "FAIL") {
+        continue;
+      }
+    }
+
     kept.push({
       program,
-      match: classifyDirectoryLocation(program, locations, place),
+      bucket: classified.bucket,
+      localReason: classified.localReason,
     });
   }
 
-  return kept.sort((a, b) => {
-    const rankDelta = LOCATION_MATCH_RANK[a.match] - LOCATION_MATCH_RANK[b.match];
-    if (rankDelta !== 0) {
-      return rankDelta;
-    }
-    return 0;
-  });
+  return kept.sort((a, b) => BUCKET_RANK[a.bucket] - BUCKET_RANK[b.bucket]);
 }
 
 export const LOCATION_SECTION_COPY: Record<
-  LocationMatchKind,
+  GeographicBucket,
   { title: string; description: string }
 > = {
-  zip: {
-    title: "In this ZIP code",
-    description: "These programs list your ZIP code in their published service area.",
-  },
-  city: {
-    title: "City programs",
-    description: "These programs list a city that matches the location we have for you.",
-  },
-  county: {
-    title: "County programs",
-    description: "These programs list a county that matches the location we have for you.",
-  },
-  utility: {
-    title: "Utility or provider programs",
-    description:
-      "These programs list an electric or gas provider that matches the location we have for you.",
+  local: {
+    title: "Programs in your area",
+    description: "Programs specifically matched to your ZIP, city, or county.",
   },
   statewide: {
-    title: "California statewide programs",
-    description: "These programs are offered across California, not only in one city or ZIP.",
+    title: "California programs",
+    description: "Statewide programs you may also qualify for.",
   },
   unresolved: {
-    title: "Other programs that may still apply",
+    title: "Programs that may also be available",
     description:
-      "These programs list city, county, or utility coverage. A ZIP code alone is not enough to confirm them, so they stay in the list until we can match that detail.",
+      "We need more information, such as your utility provider or service area, to determine whether these programs are available to you.",
   },
 };
 
 export const LOCATION_MATCH_LABEL: Partial<Record<LocationMatchKind, string>> = {
-  zip: "In your ZIP",
-  city: "City match",
-  county: "County match",
-  utility: "Provider match",
+  local: "In your area",
+  zip: "In your area",
+  city: "In your area",
+  county: "In your area",
 };
 
-const SECTION_ORDER: LocationMatchKind[] = [
-  "zip",
-  "city",
-  "county",
-  "utility",
-  "statewide",
-  "unresolved",
-];
+const SECTION_ORDER: GeographicBucket[] = ["local", "statewide", "unresolved"];
 
 export function groupDirectoryResults(
   results: DirectoryLocationResult[],
-): Array<{ kind: LocationMatchKind; items: DirectoryLocationResult[] }> {
+): Array<{ kind: GeographicBucket; items: DirectoryLocationResult[] }> {
   return SECTION_ORDER.flatMap((kind) => {
-    const items = results.filter((item) => item.match === kind);
+    const items = results.filter((item) => item.bucket === kind);
     return items.length > 0 ? [{ kind, items }] : [];
   });
+}
+
+export function countDirectoryBuckets(results: DirectoryLocationResult[]): {
+  local: number;
+  statewide: number;
+  unresolved: number;
+} {
+  return {
+    local: results.filter((item) => item.bucket === "local").length,
+    statewide: results.filter((item) => item.bucket === "statewide").length,
+    unresolved: results.filter((item) => item.bucket === "unresolved").length,
+  };
 }

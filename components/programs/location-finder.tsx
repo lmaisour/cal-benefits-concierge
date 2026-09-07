@@ -69,8 +69,8 @@ export function LocationFinder({
           </p>
         ) : (
           <p id="program-zip-help" className="mt-2 text-sm text-muted-foreground">
-            This is not a complete list of every local benefit. Statewide programs
-            still appear, along with any programs that list your ZIP code.
+            We&apos;ll show programs matched to your ZIP, city, or county, plus
+            statewide California programs. This is not a complete list.
           </p>
         )}
       </form>

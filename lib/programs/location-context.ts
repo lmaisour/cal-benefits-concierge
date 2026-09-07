@@ -1,14 +1,12 @@
 import { isValidZip } from "@/lib/questionnaire/validation";
 import type { UserProfile } from "@/lib/eligibility/types";
+import { resolveZipContext } from "@/lib/geo/resolve-zip-context";
 
 /**
  * Consumer place used for directory discovery.
  *
- * This milestone only fills `zip` from the programs page. Later resolvers
- * can attach city, county, utilities, and districts without changing the
- * ranking API:
- *   ZIP -> city
- *   ZIP -> county
+ * This module fills `zip` from the programs page and resolves city/county
+ * from a static California ZIP map. Later resolvers can attach:
  *   address -> electric utility
  *   address -> gas utility
  *   address -> CCA
@@ -16,7 +14,7 @@ import type { UserProfile } from "@/lib/eligibility/types";
  *   address -> air district
  *   address -> special districts
  *
- * Do not infer those fields here.
+ * Do not infer utility or district fields here.
  */
 export type DirectoryPlace = {
   zip?: string;
@@ -52,9 +50,16 @@ export function parseDirectoryZip(raw: string | undefined): ParsedDirectoryZip {
 
 /**
  * ZIP-only resolver. Future jurisdiction resolution belongs here, not in the UI.
+ * ZIP -> city and ZIP -> county are filled by `resolveZipContext`.
+ * Do not infer utility, CCA, water, air, or special districts here.
  */
 export function resolveDirectoryPlaceFromZip(zip: string): DirectoryPlace {
-  return { zip };
+  const resolved = resolveZipContext(zip);
+  return {
+    zip: resolved.zip,
+    city: resolved.city,
+    county: resolved.county,
+  };
 }
 
 export function directoryPlaceToProfile(place: DirectoryPlace): UserProfile {
