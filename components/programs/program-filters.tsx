@@ -35,6 +35,7 @@ export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
         </label>
         <input
           id="program-search"
+          key={query.query}
           name="q"
           type="search"
           defaultValue={query.query}
