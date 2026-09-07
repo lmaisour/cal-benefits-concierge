@@ -225,7 +225,90 @@ describe("applyDirectoryLocation", () => {
       new Map([[mixed.id, rows]]),
       sfPlace,
     );
-    expect(result).toEqual([{ program: mixed, bucket: "local", localReason: "zip" }]);
+    expect(result).toEqual([{ program: mixed, bucket: "unresolved" }]);
+  });
+
+  it("treats ZIP pass + unknown electric utility as unresolved", () => {
+    const mixed = makeProgram({ id: "zip-util-unknown", statewide: false });
+    const rows = [
+      makeLocation({ program_id: mixed.id, location_type: "ZIP", location_value: "94110" }),
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "ELECTRIC_UTILITY",
+        location_value: "PG&E",
+      }),
+    ];
+    expect(classifyDirectoryLocation(mixed, rows, sfPlace)).toEqual({
+      status: "keep",
+      bucket: "unresolved",
+    });
+  });
+
+  it("treats county pass + unknown gas utility as unresolved", () => {
+    const mixed = makeProgram({ id: "county-gas", statewide: false });
+    const rows = [
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "COUNTY",
+        location_value: "San Francisco",
+      }),
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "GAS_UTILITY",
+        location_value: "PG&E",
+      }),
+    ];
+    expect(classifyDirectoryLocation(mixed, rows, sfPlace)).toEqual({
+      status: "keep",
+      bucket: "unresolved",
+    });
+  });
+
+  it("treats ZIP pass + known matching utility as local", () => {
+    const mixed = makeProgram({ id: "zip-util-match", statewide: false });
+    const rows = [
+      makeLocation({ program_id: mixed.id, location_type: "ZIP", location_value: "94110" }),
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "ELECTRIC_UTILITY",
+        location_value: "PG&E",
+      }),
+    ];
+    const place = { ...sfPlace, electricUtility: "PG&E" };
+    expect(classifyDirectoryLocation(mixed, rows, place)).toEqual({
+      status: "keep",
+      bucket: "local",
+      localReason: "zip",
+    });
+  });
+
+  it("treats ZIP pass + known conflicting utility as a mismatch", () => {
+    const mixed = makeProgram({ id: "zip-util-conflict", statewide: false });
+    const rows = [
+      makeLocation({ program_id: mixed.id, location_type: "ZIP", location_value: "94110" }),
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "ELECTRIC_UTILITY",
+        location_value: "PG&E",
+      }),
+    ];
+    const place = { ...sfPlace, electricUtility: "SCE" };
+    expect(classifyDirectoryLocation(mixed, rows, place)).toEqual({ status: "mismatch" });
+    expect(applyDirectoryLocation([mixed], new Map([[mixed.id, rows]]), place)).toEqual([]);
+  });
+
+  it("treats ZIP conflict + unknown utility as a mismatch", () => {
+    const mixed = makeProgram({ id: "zip-conflict-util", statewide: false });
+    const rows = [
+      makeLocation({ program_id: mixed.id, location_type: "ZIP", location_value: "90210" }),
+      makeLocation({
+        program_id: mixed.id,
+        location_type: "ELECTRIC_UTILITY",
+        location_value: "PG&E",
+      }),
+    ];
+    expect(classifyDirectoryLocation(mixed, rows, sfPlace)).toEqual({ status: "mismatch" });
+    expect(applyDirectoryLocation([mixed], new Map([[mixed.id, rows]]), sfPlace)).toEqual([]);
   });
 
   it("omits empty geographic sections and keeps count in sync with cards", () => {
