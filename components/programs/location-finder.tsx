@@ -45,6 +45,7 @@ export function LocationFinder({
             </label>
             <input
               id="program-zip"
+              key={zipDraft}
               name="zip"
               type="text"
               inputMode="numeric"
