@@ -1,12 +1,16 @@
 import { programCategories } from "@/lib/config/categories";
 import { BENEFIT_TYPES } from "@/types/database";
-import type { ProgramSort } from "@/lib/programs/filter-programs";
+import {
+  programsDirectoryHref,
+  type ProgramDirectoryQuery,
+} from "@/lib/programs/filter-programs";
 import {
   BENEFIT_TYPE_LABELS,
   CONSUMER_PROGRAM_STATUSES,
   STATUS_LABELS,
 } from "@/lib/programs/labels";
 import { Button } from "@/components/ui/button";
+import { DirectoryQueryFields } from "@/components/programs/directory-query-fields";
 import { siteConfig } from "@/lib/config/site";
 
 const fieldClass =
@@ -14,25 +18,17 @@ const fieldClass =
 
 const labelClass = "text-sm font-medium text-foreground";
 
-export function ProgramFilters({
-  query,
-  category,
-  benefitType,
-  status,
-  sort,
-}: {
-  query: string;
-  category: string;
-  benefitType: string;
-  status: string;
-  sort: ProgramSort;
-}) {
+export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
   return (
     <form
       method="get"
       action={siteConfig.urls.programs}
       className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.05),0_10px_24px_rgba(28,25,23,0.04)] sm:p-6"
     >
+      <DirectoryQueryFields
+        query={query}
+        omit={["query", "category", "benefitType", "status", "sort"]}
+      />
       <div>
         <label htmlFor="program-search" className={labelClass}>
           Search programs
@@ -41,7 +37,7 @@ export function ProgramFilters({
           id="program-search"
           name="q"
           type="search"
-          defaultValue={query}
+          defaultValue={query.query}
           placeholder="Search by name, administrator, or description"
           className={`${fieldClass} h-12 text-lg`}
         />
@@ -55,7 +51,7 @@ export function ProgramFilters({
           <select
             id="program-category"
             name="category"
-            defaultValue={category}
+            defaultValue={query.category}
             className={fieldClass}
           >
             <option value="">All categories</option>
@@ -73,7 +69,7 @@ export function ProgramFilters({
           <select
             id="program-status"
             name="status"
-            defaultValue={status}
+            defaultValue={query.status}
             className={fieldClass}
           >
             <option value="">All statuses</option>
@@ -91,7 +87,7 @@ export function ProgramFilters({
           <select
             id="program-benefit"
             name="benefit"
-            defaultValue={benefitType}
+            defaultValue={query.benefitType}
             className={fieldClass}
           >
             <option value="">All benefit types</option>
@@ -106,7 +102,7 @@ export function ProgramFilters({
           <label htmlFor="program-sort" className={labelClass}>
             Sort
           </label>
-          <select id="program-sort" name="sort" defaultValue={sort} className={fieldClass}>
+          <select id="program-sort" name="sort" defaultValue={query.sort} className={fieldClass}>
             <option value="verified">Recently verified</option>
             <option value="value">Highest potential savings</option>
             <option value="alpha">Alphabetical</option>
@@ -116,7 +112,7 @@ export function ProgramFilters({
 
       <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
         <a
-          href={siteConfig.urls.programs}
+          href={programsDirectoryHref({ zip: query.zip })}
           className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-base font-semibold text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Clear filters

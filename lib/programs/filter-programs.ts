@@ -2,6 +2,7 @@ import type { BenefitType, ProgramStatus } from "@/types/database";
 import type { Program } from "@/types/program";
 import { isSavingsBenefitType } from "@/types/program";
 import { toNumber } from "@/lib/programs/format";
+import { siteConfig } from "@/lib/config/site";
 
 export type ProgramSort = "value" | "verified" | "alpha";
 
@@ -11,7 +12,43 @@ export type ProgramDirectoryFilters = {
   benefitType?: BenefitType | "";
   status?: ProgramStatus | "";
   sort?: ProgramSort;
+  zip?: string;
 };
+
+export type ProgramDirectoryQuery = {
+  query: string;
+  category: string;
+  benefitType: string;
+  status: string;
+  sort: ProgramSort;
+  zip: string;
+};
+
+export function programsDirectoryHref(
+  query: Partial<ProgramDirectoryQuery>,
+): string {
+  const params = new URLSearchParams();
+  if (query.zip) {
+    params.set("zip", query.zip);
+  }
+  if (query.query) {
+    params.set("q", query.query);
+  }
+  if (query.category) {
+    params.set("category", query.category);
+  }
+  if (query.benefitType) {
+    params.set("benefit", query.benefitType);
+  }
+  if (query.status) {
+    params.set("status", query.status);
+  }
+  if (query.sort && query.sort !== "verified") {
+    params.set("sort", query.sort);
+  }
+  const search = params.toString();
+  return search ? `${siteConfig.urls.programs}?${search}` : siteConfig.urls.programs;
+}
 
 export function filterAndSortPrograms(
   programs: Program[],
