@@ -1,3 +1,4 @@
+import type { DirectoryPlace } from "@/lib/programs/location-context";
 import type { ProgramLocation } from "@/types/program";
 
 function unique(values: string[]): string[] {
@@ -32,10 +33,62 @@ function listAnd(items: string[]): string {
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
 
+function countyKey(value: string): string {
+  return value.trim().toLowerCase().replace(/ county$/, "");
+}
+
+function focusedPlaceLine(
+  locations: ProgramLocation[],
+  place: DirectoryPlace,
+): string | null {
+  if (place.county) {
+    const match = locations.find(
+      (row) =>
+        row.location_type === "COUNTY" &&
+        countyKey(row.location_value) === countyKey(place.county ?? ""),
+    );
+    if (match) {
+      return `Available in ${formatCountyName(match.location_value)}`;
+    }
+  }
+  if (place.city) {
+    const match = locations.find(
+      (row) =>
+        row.location_type === "CITY" &&
+        row.location_value.trim().toLowerCase() === place.city?.trim().toLowerCase(),
+    );
+    if (match) {
+      return `Available in ${match.location_value.trim()}`;
+    }
+  }
+  if (place.zip) {
+    const digits = place.zip.replace(/\D/g, "").slice(0, 5);
+    const match = locations.find((row) => {
+      if (row.location_type !== "ZIP") {
+        return false;
+      }
+      return row.location_value.replace(/\D/g, "").slice(0, 5) === digits;
+    });
+    if (match) {
+      const zip = match.location_value.replace(/\D/g, "").slice(0, 5);
+      return `Available in ZIP ${zip}`;
+    }
+  }
+  return null;
+}
+
 export function formatLocationCoverageLines(
   statewide: boolean,
   locations: ProgramLocation[],
+  options?: { focusPlace?: DirectoryPlace },
 ): string[] {
+  if (options?.focusPlace) {
+    const focused = focusedPlaceLine(locations, options.focusPlace);
+    if (focused) {
+      return [focused];
+    }
+  }
+
   const lines: string[] = [];
 
   if (statewide) {

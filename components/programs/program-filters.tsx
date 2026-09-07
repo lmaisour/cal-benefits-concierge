@@ -41,7 +41,7 @@ export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
     <form
       method="get"
       action={siteConfig.urls.programs}
-      className="rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.05),0_10px_24px_rgba(28,25,23,0.04)] sm:p-6"
+      className="rounded-2xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(28,25,23,0.05),0_10px_24px_rgba(28,25,23,0.04)]"
     >
       <DirectoryQueryFields
         query={query}
@@ -59,16 +59,16 @@ export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
             type="search"
             defaultValue={query.query}
             placeholder="Search by name, administrator, or description"
-            className={`${fieldClass} mt-0 h-12 flex-1 text-lg`}
+            className={`${fieldClass} mt-0 h-10 flex-1`}
           />
           <input type="hidden" name="category" value={query.category} />
-          <Button type="submit" className="h-12 w-full sm:w-auto">
+          <Button type="submit" className="h-10 w-full sm:w-auto">
             Search
           </Button>
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-3">
         <p className={labelClass} id="program-category-label">
           Category
         </p>
@@ -84,7 +84,7 @@ export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
                   href={programsDirectoryHref({ ...query, category: chip.slug })}
                   aria-current={selected ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     selected
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground hover:bg-muted/80",
@@ -105,7 +105,7 @@ export function ProgramFilters({ query }: { query: ProgramDirectoryQuery }) {
       </div>
 
       <details
-        className="mt-5 rounded-xl border border-border bg-background px-4 py-3"
+        className="mt-3 rounded-xl border border-border bg-background px-3 py-2"
         open={moreFiltersOpen || undefined}
       >
         <summary className="cursor-pointer text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">

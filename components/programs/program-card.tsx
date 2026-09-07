@@ -9,6 +9,7 @@ import { siteConfig } from "@/lib/config/site";
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
 import type { GeographicBucket } from "@/lib/programs/directory-location";
 import { LOCATION_MATCH_LABEL } from "@/lib/programs/directory-location";
+import type { DirectoryPlace } from "@/lib/programs/location-context";
 import type { Program, ProgramLocation } from "@/types/program";
 
 function truncateDescription(text: string, max = 150): string {
@@ -24,10 +25,12 @@ export function ProgramCard({
   program,
   locations = [],
   locationMatch,
+  focusPlace,
 }: {
   program: Program;
   locations?: ProgramLocation[];
   locationMatch?: GeographicBucket;
+  focusPlace?: DirectoryPlace;
 }) {
   const value = formatProgramValue(program);
   const verified = formatDate(program.last_verified_at);
@@ -83,6 +86,7 @@ export function ProgramCard({
         statewide={program.statewide}
         locations={locations}
         compact
+        focusPlace={focusPlace}
       />
 
       <p className="mt-auto text-xs text-muted-foreground">

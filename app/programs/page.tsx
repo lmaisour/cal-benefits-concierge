@@ -24,6 +24,7 @@ import {
 import {
   parseDirectoryZip,
   resolveDirectoryPlaceFromZip,
+  type DirectoryPlace,
 } from "@/lib/programs/location-context";
 import { siteConfig } from "@/lib/config/site";
 import { BENEFIT_TYPES, PROGRAM_STATUSES } from "@/types/database";
@@ -65,11 +66,13 @@ function ProgramGrid({
   items,
   locationMap,
   showMatch,
+  focusPlace,
   className = "mt-4",
 }: {
   items: DirectoryLocationResult[];
   locationMap: Map<string, ProgramLocation[]>;
   showMatch: boolean;
+  focusPlace?: DirectoryPlace;
   className?: string;
 }) {
   return (
@@ -80,6 +83,7 @@ function ProgramGrid({
             program={program}
             locations={locationMap.get(program.id) ?? []}
             locationMatch={showMatch ? bucket : undefined}
+            focusPlace={focusPlace}
           />
         </li>
       ))}
@@ -101,7 +105,7 @@ function bucketCountLabel(kind: GeographicBucket, count: number): string {
   if (kind === "statewide") {
     return `${count} California program${count === 1 ? "" : "s"}`;
   }
-  return `${count} program${count === 1 ? "" : "s"} need more location information`;
+  return `${count} program${count === 1 ? "" : "s"} may also be available`;
 }
 
 export default async function ProgramsPage({
@@ -215,13 +219,14 @@ export default async function ProgramsPage({
               query={directoryQuery}
               zipError={parsedZip.error}
               zipDraft={params.zip ?? ""}
+              place={locationActive ? place : undefined}
             />
-            <div className="mt-6">
+            <div className={locationActive ? "mt-4" : "mt-6"}>
               <ProgramFilters query={directoryQuery} />
             </div>
-            <DirectoryQualifyCta />
+            {locationActive ? null : <DirectoryQualifyCta />}
             {locationActive ? (
-              <div className="mt-8">
+              <div className="mt-5">
                 <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
                   {locationResultsHeading(directoryQuery.zip, place.city)}
                 </h2>
@@ -257,30 +262,58 @@ export default async function ProgramsPage({
                     Clear filters
                   </ButtonLink>
                 </div>
+                {locationActive ? <DirectoryQualifyCta quiet /> : null}
               </div>
             ) : locationActive ? (
-              <div className="mt-8 space-y-10">
-                {grouped.map(({ kind, items }) => {
-                  const copy = LOCATION_SECTION_COPY[kind];
-                  return (
-                    <section key={kind} aria-labelledby={`location-group-${kind}`}>
-                      <h3
-                        id={`location-group-${kind}`}
-                        className="font-serif text-xl font-semibold tracking-tight text-foreground"
-                      >
-                        {copy.title}
-                      </h3>
-                      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                        {copy.description}
-                      </p>
-                      <ProgramGrid
-                        items={items}
-                        locationMap={locationMap}
-                        showMatch={kind === "local"}
-                      />
-                    </section>
-                  );
-                })}
+              <div className="mt-6 space-y-8">
+                {grouped
+                  .filter((group) => group.kind === "local")
+                  .map(({ kind, items }) => {
+                    const copy = LOCATION_SECTION_COPY[kind];
+                    return (
+                      <section key={kind} aria-labelledby={`location-group-${kind}`}>
+                        <h3
+                          id={`location-group-${kind}`}
+                          className="font-serif text-xl font-semibold tracking-tight text-foreground"
+                        >
+                          {copy.title}
+                        </h3>
+                        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                          {copy.description}
+                        </p>
+                        <ProgramGrid
+                          items={items}
+                          locationMap={locationMap}
+                          showMatch
+                          focusPlace={place}
+                        />
+                      </section>
+                    );
+                  })}
+                <DirectoryQualifyCta quiet />
+                {grouped
+                  .filter((group) => group.kind !== "local")
+                  .map(({ kind, items }) => {
+                    const copy = LOCATION_SECTION_COPY[kind];
+                    return (
+                      <section key={kind} aria-labelledby={`location-group-${kind}`}>
+                        <h3
+                          id={`location-group-${kind}`}
+                          className="font-serif text-xl font-semibold tracking-tight text-foreground"
+                        >
+                          {copy.title}
+                        </h3>
+                        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                          {copy.description}
+                        </p>
+                        <ProgramGrid
+                          items={items}
+                          locationMap={locationMap}
+                          showMatch={false}
+                        />
+                      </section>
+                    );
+                  })}
               </div>
             ) : (
               <ProgramGrid

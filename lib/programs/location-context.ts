@@ -72,6 +72,17 @@ export function directoryPlaceToProfile(place: DirectoryPlace): UserProfile {
   };
 }
 
+/** Consumer line for a resolved ZIP, e.g. "94110 · San Francisco, CA". */
+export function formatDirectoryPlaceLine(place: DirectoryPlace): string {
+  if (place.zip && place.city) {
+    return `${place.zip} · ${place.city}, CA`;
+  }
+  if (place.zip) {
+    return place.zip;
+  }
+  return "";
+}
+
 export function hasResolvedPlace(place: DirectoryPlace): boolean {
   return Boolean(
     place.zip ||

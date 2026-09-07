@@ -64,4 +64,38 @@ describe("formatLocationCoverageLines", () => {
     ]);
     expect(lines).toEqual(["Available to eligible Ava Community Energy customers"]);
   });
+
+  it("focuses directory cards on the user's matching county", () => {
+    const lines = formatLocationCoverageLines(
+      false,
+      [
+        makeLocation({ program_id: "p", location_type: "COUNTY", location_value: "Alameda" }),
+        makeLocation({
+          program_id: "p",
+          location_type: "COUNTY",
+          location_value: "San Francisco",
+        }),
+        makeLocation({ program_id: "p", location_type: "COUNTY", location_value: "San Mateo" }),
+      ],
+      { focusPlace: { zip: "94110", city: "San Francisco", county: "San Francisco" } },
+    );
+    expect(lines).toEqual(["Available in San Francisco County"]);
+  });
+
+  it("focuses directory cards on a matching city when no county row matches", () => {
+    const lines = formatLocationCoverageLines(
+      false,
+      [makeLocation({ program_id: "p", location_type: "CITY", location_value: "Los Angeles" })],
+      { focusPlace: { zip: "90012", city: "Los Angeles", county: "Los Angeles" } },
+    );
+    expect(lines).toEqual(["Available in Los Angeles"]);
+  });
+
+  it("keeps the full county list on the detail path when place is not focused", () => {
+    const lines = formatLocationCoverageLines(false, [
+      makeLocation({ program_id: "p", location_type: "COUNTY", location_value: "Alameda" }),
+      makeLocation({ program_id: "p", location_type: "COUNTY", location_value: "San Francisco" }),
+    ]);
+    expect(lines).toEqual(["Available in Alameda County and San Francisco County"]);
+  });
 });

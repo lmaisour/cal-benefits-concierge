@@ -6,6 +6,7 @@ import {
   groupDirectoryResults,
 } from "@/lib/programs/directory-location";
 import {
+  formatDirectoryPlaceLine,
   parseDirectoryZip,
   resolveDirectoryPlaceFromZip,
 } from "@/lib/programs/location-context";
@@ -34,6 +35,16 @@ describe("parseDirectoryZip", () => {
       zip: "94110",
       error: null,
     });
+  });
+
+  it("formats a resolved city without hard-coding it", () => {
+    expect(formatDirectoryPlaceLine(resolveDirectoryPlaceFromZip("94110"))).toBe(
+      "94110 · San Francisco, CA",
+    );
+    expect(formatDirectoryPlaceLine(resolveDirectoryPlaceFromZip("90012"))).toBe(
+      "90012 · Los Angeles, CA",
+    );
+    expect(formatDirectoryPlaceLine({ zip: "10001" })).toBe("10001");
   });
 
   it("rejects invalid ZIP input without inventing a place", () => {
