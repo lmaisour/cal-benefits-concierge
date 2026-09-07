@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { DirectoryQualifyCta } from "@/components/programs/directory-qualify-cta";
 import { LocationFinder } from "@/components/programs/location-finder";
 import { ProgramCard } from "@/components/programs/program-card";
 import { ProgramFilters } from "@/components/programs/program-filters";
 import { ButtonLink } from "@/components/ui/button";
 import {
   applyDirectoryLocation,
+  countDirectoryBuckets,
   groupDirectoryResults,
   LOCATION_SECTION_COPY,
   type DirectoryLocationResult,
+  type GeographicBucket,
 } from "@/lib/programs/directory-location";
 import {
   filterAndSortPrograms,
@@ -71,17 +74,34 @@ function ProgramGrid({
 }) {
   return (
     <ul className={cn("grid grid-cols-1 gap-5 md:grid-cols-2", className)}>
-      {items.map(({ program, match }) => (
+      {items.map(({ program, bucket }) => (
         <li key={program.id}>
           <ProgramCard
             program={program}
             locations={locationMap.get(program.id) ?? []}
-            locationMatch={showMatch ? match : undefined}
+            locationMatch={showMatch ? bucket : undefined}
           />
         </li>
       ))}
     </ul>
   );
+}
+
+function locationResultsHeading(zip: string, city?: string): string {
+  if (city) {
+    return `Programs we found for ${zip} · ${city}`;
+  }
+  return `Programs we found for ${zip}`;
+}
+
+function bucketCountLabel(kind: GeographicBucket, count: number): string {
+  if (kind === "local") {
+    return `${count} program${count === 1 ? "" : "s"} in your area`;
+  }
+  if (kind === "statewide") {
+    return `${count} California program${count === 1 ? "" : "s"}`;
+  }
+  return `${count} program${count === 1 ? "" : "s"} need more location information`;
 }
 
 export default async function ProgramsPage({
@@ -123,6 +143,7 @@ export default async function ProgramsPage({
   const located = applyDirectoryLocation(filtered, locationMap, place);
   const locationActive = Boolean(parsedZip.zip);
   const grouped = locationActive ? groupDirectoryResults(located) : [];
+  const bucketCounts = countDirectoryBuckets(located);
   const categoryCount = new Set(programs.map((program) => program.category)).size;
 
   return (
@@ -198,16 +219,24 @@ export default async function ProgramsPage({
             <div className="mt-6">
               <ProgramFilters query={directoryQuery} />
             </div>
+            <DirectoryQualifyCta />
             {locationActive ? (
               <div className="mt-8">
                 <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-                  Programs we found for your area
+                  {locationResultsHeading(directoryQuery.zip, place.city)}
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                  Showing {located.length} of {programs.length} programs for ZIP{" "}
-                  {directoryQuery.zip}. This includes statewide programs and any
-                  programs that list this ZIP code. It is not a complete list of
-                  every benefit available at your address.
+                  {[
+                    bucketCounts.local > 0 ? bucketCountLabel("local", bucketCounts.local) : null,
+                    bucketCounts.statewide > 0
+                      ? bucketCountLabel("statewide", bucketCounts.statewide)
+                      : null,
+                    bucketCounts.unresolved > 0
+                      ? bucketCountLabel("unresolved", bucketCounts.unresolved)
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
               </div>
             ) : (
@@ -250,7 +279,11 @@ export default async function ProgramsPage({
                       <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
                         {copy.description}
                       </p>
-                      <ProgramGrid items={items} locationMap={locationMap} showMatch />
+                      <ProgramGrid
+                        items={items}
+                        locationMap={locationMap}
+                        showMatch={kind === "local"}
+                      />
                     </section>
                   );
                 })}

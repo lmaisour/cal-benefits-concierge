@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { formatCategory, formatDate, formatProgramValue } from "@/lib/programs/format";
 import { siteConfig } from "@/lib/config/site";
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
-import type { LocationMatchKind } from "@/lib/programs/directory-location";
+import type { GeographicBucket } from "@/lib/programs/directory-location";
 import { LOCATION_MATCH_LABEL } from "@/lib/programs/directory-location";
 import type { Program, ProgramLocation } from "@/types/program";
 
@@ -27,7 +27,7 @@ export function ProgramCard({
 }: {
   program: Program;
   locations?: ProgramLocation[];
-  locationMatch?: LocationMatchKind;
+  locationMatch?: GeographicBucket;
 }) {
   const value = formatProgramValue(program);
   const verified = formatDate(program.last_verified_at);
@@ -41,9 +41,9 @@ export function ProgramCard({
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{formatCategory(program.category)}</Badge>
         <StatusBadge status={program.status} />
-        {locationMatch && LOCATION_MATCH_LABEL[locationMatch] ? (
+        {locationMatch === "local" && LOCATION_MATCH_LABEL.local ? (
           <Badge className="border-primary/15 bg-hero text-primary">
-            {LOCATION_MATCH_LABEL[locationMatch]}
+            {LOCATION_MATCH_LABEL.local}
           </Badge>
         ) : null}
       </div>

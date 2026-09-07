@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyDirectoryLocation,
   classifyDirectoryLocation,
-  LOCATION_MATCH_RANK,
+  countDirectoryBuckets,
 } from "@/lib/programs/directory-location";
 import {
   parseDirectoryZip,
@@ -46,9 +46,11 @@ describe("applyDirectoryLocation", () => {
   const statewide = makeProgram({ id: "state-1", name: "Statewide rebate", statewide: true });
   const zipLocal = makeProgram({ id: "zip-1", name: "ZIP rebate", statewide: false });
   const otherZip = makeProgram({ id: "zip-2", name: "Other ZIP rebate", statewide: false });
-  const countyOnly = makeProgram({ id: "county-1", name: "County rebate", statewide: false });
+  const countySf = makeProgram({ id: "county-sf", name: "SF County rebate", statewide: false });
+  const countySd = makeProgram({ id: "county-sd", name: "SD County rebate", statewide: false });
   const utilityOnly = makeProgram({ id: "util-1", name: "Utility rebate", statewide: false });
-  const cityOnly = makeProgram({ id: "city-1", name: "City rebate", statewide: false });
+  const cityLa = makeProgram({ id: "city-la", name: "LA city rebate", statewide: false });
+  const cityOak = makeProgram({ id: "city-oak", name: "Oakland rebate", statewide: false });
 
   const zipRows = [
     makeLocation({ program_id: zipLocal.id, location_type: "ZIP", location_value: "94110" }),
@@ -57,11 +59,18 @@ describe("applyDirectoryLocation", () => {
   const otherZipRows = [
     makeLocation({ program_id: otherZip.id, location_type: "ZIP", location_value: "90210" }),
   ];
-  const countyRows = [
+  const countySfRows = [
     makeLocation({
-      program_id: countyOnly.id,
+      program_id: countySf.id,
       location_type: "COUNTY",
       location_value: "San Francisco",
+    }),
+  ];
+  const countySdRows = [
+    makeLocation({
+      program_id: countySd.id,
+      location_type: "COUNTY",
+      location_value: "San Diego",
     }),
   ];
   const utilityRows = [
@@ -71,125 +80,119 @@ describe("applyDirectoryLocation", () => {
       location_value: "PG&E",
     }),
   ];
-  const cityRows = [
-    makeLocation({ program_id: cityOnly.id, location_type: "CITY", location_value: "Oakland" }),
+  const cityLaRows = [
+    makeLocation({ program_id: cityLa.id, location_type: "CITY", location_value: "Los Angeles" }),
+  ];
+  const cityOakRows = [
+    makeLocation({ program_id: cityOak.id, location_type: "CITY", location_value: "Oakland" }),
   ];
 
   const map = locationsMap([
     [statewide, statewideLocations(statewide.id)],
     [zipLocal, zipRows],
     [otherZip, otherZipRows],
-    [countyOnly, countyRows],
+    [countySf, countySfRows],
+    [countySd, countySdRows],
     [utilityOnly, utilityRows],
-    [cityOnly, cityRows],
+    [cityLa, cityLaRows],
+    [cityOak, cityOakRows],
   ]);
 
+  const sfPlace = resolveDirectoryPlaceFromZip("94110");
+  const oakPlace = resolveDirectoryPlaceFromZip("94612");
+  const laPlace = resolveDirectoryPlaceFromZip("90012");
+
   it("does not filter when no place is resolved", () => {
-    const result = applyDirectoryLocation(
-      [statewide, zipLocal, otherZip, countyOnly],
-      map,
-      {},
-    );
+    const result = applyDirectoryLocation([statewide, zipLocal, otherZip, countySf], map, {});
     expect(result.map((item) => item.program.id)).toEqual([
       statewide.id,
       zipLocal.id,
       otherZip.id,
-      countyOnly.id,
+      countySf.id,
     ]);
   });
 
-  it("keeps statewide programs for any ZIP", () => {
-    const result = applyDirectoryLocation(
-      [statewide, otherZip],
-      map,
-      resolveDirectoryPlaceFromZip("94110"),
-    );
-    expect(result.map((item) => item.program.id)).toContain(statewide.id);
-    expect(result.find((item) => item.program.id === statewide.id)?.match).toBe("statewide");
+  it("keeps statewide programs in the California bucket", () => {
+    const result = applyDirectoryLocation([statewide, otherZip], map, sfPlace);
+    expect(result.find((item) => item.program.id === statewide.id)?.bucket).toBe("statewide");
   });
 
   it("treats an exact ZIP row as a local match", () => {
-    const result = applyDirectoryLocation(
-      [zipLocal],
-      map,
-      resolveDirectoryPlaceFromZip("94110"),
-    );
-    expect(result).toEqual([{ program: zipLocal, match: "zip" }]);
+    const result = applyDirectoryLocation([zipLocal], map, sfPlace);
+    expect(result).toEqual([{ program: zipLocal, bucket: "local", localReason: "zip" }]);
   });
 
   it("excludes a ZIP-restricted program that lists other ZIPs only", () => {
-    const result = applyDirectoryLocation(
-      [otherZip, statewide],
-      map,
-      resolveDirectoryPlaceFromZip("94110"),
-    );
+    const result = applyDirectoryLocation([otherZip, statewide], map, sfPlace);
+    expect(result.map((item) => item.program.id)).toEqual([statewide.id]);
+    expect(classifyDirectoryLocation(otherZip, otherZipRows, sfPlace).status).toBe("mismatch");
+  });
+
+  it("treats a matching county as a local match", () => {
+    const result = applyDirectoryLocation([countySf], map, sfPlace);
+    expect(result).toEqual([{ program: countySf, bucket: "local", localReason: "county" }]);
+  });
+
+  it("excludes a conflicting county", () => {
+    const result = applyDirectoryLocation([countySd, statewide], map, sfPlace);
+    expect(result.map((item) => item.program.id)).toEqual([statewide.id]);
+    expect(classifyDirectoryLocation(countySd, countySdRows, sfPlace).status).toBe("mismatch");
+  });
+
+  it("treats a matching city as a local match", () => {
+    const result = applyDirectoryLocation([cityLa], map, laPlace);
+    expect(result).toEqual([{ program: cityLa, bucket: "local", localReason: "city" }]);
+  });
+
+  it("excludes a conflicting city", () => {
+    const result = applyDirectoryLocation([cityOak, statewide], map, sfPlace);
     expect(result.map((item) => item.program.id)).toEqual([statewide.id]);
   });
 
-  it("does not exclude county-only programs from ZIP alone", () => {
-    const result = applyDirectoryLocation(
-      [countyOnly],
-      map,
-      resolveDirectoryPlaceFromZip("94110"),
-    );
-    expect(result).toEqual([{ program: countyOnly, match: "unresolved" }]);
+  it("keeps utility-only programs as unresolved because provider is unknown", () => {
+    const result = applyDirectoryLocation([utilityOnly], map, sfPlace);
+    expect(result).toEqual([{ program: utilityOnly, bucket: "unresolved" }]);
   });
 
-  it("does not exclude utility-only programs from ZIP alone", () => {
-    const result = applyDirectoryLocation(
-      [utilityOnly],
-      map,
-      resolveDirectoryPlaceFromZip("94110"),
-    );
-    expect(result).toEqual([{ program: utilityOnly, match: "unresolved" }]);
+  it("does not infer utility from ZIP", () => {
+    expect(sfPlace.electricUtility).toBeUndefined();
+    expect(oakPlace.gasUtility).toBeUndefined();
+    expect(classifyDirectoryLocation(utilityOnly, utilityRows, sfPlace)).toEqual({
+      status: "keep",
+      bucket: "unresolved",
+    });
   });
 
-  it("does not infer city or county from ZIP", () => {
-    expect(
-      classifyDirectoryLocation(cityOnly, cityRows, resolveDirectoryPlaceFromZip("94612")),
-    ).toBe("unresolved");
-    expect(
-      classifyDirectoryLocation(countyOnly, countyRows, resolveDirectoryPlaceFromZip("94110")),
-    ).toBe("unresolved");
-  });
-
-  it("ranks local ZIP matches before statewide and unresolved programs", () => {
+  it("orders local matches before statewide and unresolved programs", () => {
     const result = applyDirectoryLocation(
-      [statewide, countyOnly, zipLocal, utilityOnly],
+      [statewide, countySf, zipLocal, utilityOnly],
       map,
-      resolveDirectoryPlaceFromZip("94110"),
+      sfPlace,
     );
-    expect(result.map((item) => item.match)).toEqual([
-      "zip",
+    expect(result.map((item) => item.bucket)).toEqual([
+      "local",
+      "local",
       "statewide",
       "unresolved",
-      "unresolved",
-    ]);
-    expect(LOCATION_MATCH_RANK.zip).toBeLessThan(LOCATION_MATCH_RANK.statewide);
-    expect(LOCATION_MATCH_RANK.statewide).toBeLessThan(LOCATION_MATCH_RANK.unresolved);
-  });
-
-  it("uses city, county, and utility ranks only when those values are already known", () => {
-    const ranked = applyDirectoryLocation(
-      [statewide, cityOnly, countyOnly, utilityOnly, zipLocal],
-      map,
-      {
-        zip: "94110",
-        city: "Oakland",
-        county: "San Francisco",
-        electricUtility: "PG&E",
-      },
-    );
-    expect(ranked.map((item) => item.match)).toEqual([
-      "zip",
-      "city",
-      "county",
-      "utility",
-      "statewide",
     ]);
   });
 
-  it("does not exclude a ZIP match when utility coverage is listed but unknown", () => {
+  it("never puts a mismatch into a results bucket", () => {
+    const result = applyDirectoryLocation(
+      [otherZip, countySd, cityOak, statewide, zipLocal],
+      map,
+      sfPlace,
+    );
+    expect(result.map((item) => item.program.id).sort()).toEqual(
+      [statewide.id, zipLocal.id].sort(),
+    );
+    const counts = countDirectoryBuckets(result);
+    expect(counts.local).toBe(1);
+    expect(counts.statewide).toBe(1);
+    expect(counts.unresolved).toBe(0);
+  });
+
+  it("keeps a ZIP match even when utility coverage is also listed", () => {
     const mixed = makeProgram({ id: "zip-util", statewide: false });
     const rows = [
       makeLocation({ program_id: mixed.id, location_type: "ZIP", location_value: "94110" }),
@@ -202,8 +205,8 @@ describe("applyDirectoryLocation", () => {
     const result = applyDirectoryLocation(
       [mixed],
       new Map([[mixed.id, rows]]),
-      resolveDirectoryPlaceFromZip("94110"),
+      sfPlace,
     );
-    expect(result).toEqual([{ program: mixed, match: "zip" }]);
+    expect(result).toEqual([{ program: mixed, bucket: "local", localReason: "zip" }]);
   });
 });
