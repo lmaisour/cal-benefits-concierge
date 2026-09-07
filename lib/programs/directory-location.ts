@@ -52,32 +52,85 @@ function zipEquals(locationValue: string, zip: string): boolean {
   return Boolean(left && right && left === right);
 }
 
-function hasExactZipMatch(locations: ProgramLocation[], zip: string): boolean {
-  return rowsOfType(locations, "ZIP").some((row) => zipEquals(row.location_value, zip));
+const RESTRICTIVE_LOCATION_TYPES: readonly LocationType[] = [
+  "ZIP",
+  "CITY",
+  "COUNTY",
+  "ELECTRIC_UTILITY",
+  "GAS_UTILITY",
+];
+
+const LOCAL_TYPES: readonly LocationType[] = ["ZIP", "CITY", "COUNTY"];
+
+type RestrictiveStatus = "PASS" | "FAIL" | "UNKNOWN";
+
+function knownPlaceValue(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
 }
 
-function hasCityMatch(locations: ProgramLocation[], city: string): boolean {
-  return rowsOfType(locations, "CITY").some((row) => textMatches(row.location_value, city));
+function placeValueForType(place: DirectoryPlace, type: LocationType): string | undefined {
+  switch (type) {
+    case "ZIP":
+      return knownPlaceValue(place.zip);
+    case "CITY":
+      return knownPlaceValue(place.city);
+    case "COUNTY":
+      return knownPlaceValue(place.county);
+    case "ELECTRIC_UTILITY":
+      return knownPlaceValue(place.electricUtility);
+    case "GAS_UTILITY":
+      return knownPlaceValue(place.gasUtility);
+    default:
+      return undefined;
+  }
 }
 
-function hasCountyMatch(locations: ProgramLocation[], county: string): boolean {
-  return rowsOfType(locations, "COUNTY").some((row) => countyMatches(row.location_value, county));
+function rowMatchesType(type: LocationType, placeValue: string, rowValue: string): boolean {
+  if (type === "ZIP") {
+    return zipEquals(rowValue, placeValue);
+  }
+  if (type === "COUNTY") {
+    return countyMatches(rowValue, placeValue);
+  }
+  return textMatches(rowValue, placeValue);
 }
 
-function hasTypeConflict(
+function localReasonForType(type: LocationType): LocalMatchReason | undefined {
+  if (type === "ZIP") {
+    return "zip";
+  }
+  if (type === "CITY") {
+    return "city";
+  }
+  if (type === "COUNTY") {
+    return "county";
+  }
+  return undefined;
+}
+
+/**
+ * Same-type rows are OR alternatives. A missing user value is UNKNOWN,
+ * not a match. Different restrictive types are combined by the caller.
+ */
+function evaluateRestrictiveType(
   locations: ProgramLocation[],
   type: LocationType,
-  known: string | undefined,
-  matches: (rowValue: string, known: string) => boolean,
-): boolean {
-  if (!known) {
-    return false;
-  }
+  place: DirectoryPlace,
+): RestrictiveStatus | null {
   const rows = rowsOfType(locations, type);
   if (rows.length === 0) {
-    return false;
+    return null;
   }
-  return !rows.some((row) => matches(row.location_value, known));
+
+  const known = placeValueForType(place, type);
+  if (!known) {
+    return "UNKNOWN";
+  }
+
+  return rows.some((row) => rowMatchesType(type, known, row.location_value))
+    ? "PASS"
+    : "FAIL";
 }
 
 export type LocationClassification =
@@ -86,7 +139,9 @@ export type LocationClassification =
 
 /**
  * Conservative geographic relevance for the directory.
- * Does not change the eligibility engine.
+ * Independent of the eligibility evaluator. Same-type rows are OR;
+ * different restrictive types are AND. A ZIP/city/county match does
+ * not override an unresolved utility (or other) restriction.
  */
 export function classifyDirectoryLocation(
   program: Program,
@@ -97,31 +152,36 @@ export function classifyDirectoryLocation(
     return { status: "keep", bucket: "statewide" };
   }
 
-  if (hasTypeConflict(locations, "ZIP", place.zip, zipEquals)) {
-    return { status: "mismatch" };
-  }
-  if (hasTypeConflict(locations, "CITY", place.city, textMatches)) {
-    return { status: "mismatch" };
-  }
-  if (hasTypeConflict(locations, "COUNTY", place.county, countyMatches)) {
-    return { status: "mismatch" };
+  const statuses: RestrictiveStatus[] = [];
+  let localReason: LocalMatchReason | undefined;
+
+  for (const type of RESTRICTIVE_LOCATION_TYPES) {
+    const status = evaluateRestrictiveType(locations, type, place);
+    if (status === null) {
+      continue;
+    }
+    if (status === "FAIL") {
+      return { status: "mismatch" };
+    }
+    statuses.push(status);
+    if (status === "PASS" && LOCAL_TYPES.includes(type) && !localReason) {
+      localReason = localReasonForType(type);
+    }
   }
 
-  if (place.zip && hasExactZipMatch(locations, place.zip)) {
-    return { status: "keep", bucket: "local", localReason: "zip" };
+  if (statuses.some((status) => status === "UNKNOWN")) {
+    return { status: "keep", bucket: "unresolved" };
   }
-  if (place.city && hasCityMatch(locations, place.city)) {
-    return { status: "keep", bucket: "local", localReason: "city" };
-  }
-  if (place.county && hasCountyMatch(locations, place.county)) {
-    return { status: "keep", bucket: "local", localReason: "county" };
+
+  if (statuses.length > 0 && statuses.every((status) => status === "PASS") && localReason) {
+    return { status: "keep", bucket: "local", localReason };
   }
 
   return { status: "keep", bucket: "unresolved" };
 }
 
 /**
- * Organize programs by geographic relevance. Known ZIP/city/county mismatches
+ * Organize programs by geographic relevance. Known geographic mismatches
  * are omitted. Statewide and unresolved restricted programs stay visible.
  */
 export function applyDirectoryLocation(
