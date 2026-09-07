@@ -227,16 +227,10 @@ export default async function ProgramsPage({
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
                   {[
-                    bucketCounts.local > 0 ? bucketCountLabel("local", bucketCounts.local) : null,
-                    bucketCounts.statewide > 0
-                      ? bucketCountLabel("statewide", bucketCounts.statewide)
-                      : null,
-                    bucketCounts.unresolved > 0
-                      ? bucketCountLabel("unresolved", bucketCounts.unresolved)
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
+                    bucketCountLabel("local", bucketCounts.local),
+                    bucketCountLabel("statewide", bucketCounts.statewide),
+                    bucketCountLabel("unresolved", bucketCounts.unresolved),
+                  ].join(" · ")}
                 </p>
               </div>
             ) : (
