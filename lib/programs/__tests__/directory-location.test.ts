@@ -3,6 +3,7 @@ import {
   applyDirectoryLocation,
   classifyDirectoryLocation,
   countDirectoryBuckets,
+  groupDirectoryResults,
 } from "@/lib/programs/directory-location";
 import {
   parseDirectoryZip,
@@ -133,6 +134,23 @@ describe("applyDirectoryLocation", () => {
     expect(result).toEqual([{ program: countySf, bucket: "local", localReason: "county" }]);
   });
 
+  it("treats a county row with a County suffix as a local match", () => {
+    const program = makeProgram({ id: "sf-suffix", statewide: false });
+    const rows = [
+      makeLocation({
+        program_id: program.id,
+        location_type: "COUNTY",
+        location_value: "San Francisco County",
+      }),
+    ];
+    const result = applyDirectoryLocation(
+      [program],
+      new Map([[program.id, rows]]),
+      sfPlace,
+    );
+    expect(result).toEqual([{ program, bucket: "local", localReason: "county" }]);
+  });
+
   it("excludes a conflicting county", () => {
     const result = applyDirectoryLocation([countySd, statewide], map, sfPlace);
     expect(result.map((item) => item.program.id)).toEqual([statewide.id]);
@@ -208,5 +226,18 @@ describe("applyDirectoryLocation", () => {
       sfPlace,
     );
     expect(result).toEqual([{ program: mixed, bucket: "local", localReason: "zip" }]);
+  });
+
+  it("omits empty geographic sections and keeps count in sync with cards", () => {
+    const result = applyDirectoryLocation([countySf, statewide], map, sfPlace);
+    const grouped = groupDirectoryResults(result);
+    const counts = countDirectoryBuckets(result);
+    expect(grouped.map((group) => group.kind)).toEqual(["local", "statewide"]);
+    expect(grouped.find((group) => group.kind === "local")?.items).toHaveLength(counts.local);
+    expect(grouped.find((group) => group.kind === "statewide")?.items).toHaveLength(
+      counts.statewide,
+    );
+    expect(grouped.find((group) => group.kind === "unresolved")).toBeUndefined();
+    expect(counts.unresolved).toBe(0);
   });
 });

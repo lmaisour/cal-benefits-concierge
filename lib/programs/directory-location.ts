@@ -1,10 +1,5 @@
-import { evaluateGeography } from "@/lib/eligibility/evaluate-geography";
 import { normalizeString } from "@/lib/eligibility/values";
-import {
-  directoryPlaceToProfile,
-  hasResolvedPlace,
-  type DirectoryPlace,
-} from "@/lib/programs/location-context";
+import { hasResolvedPlace, type DirectoryPlace } from "@/lib/programs/location-context";
 import type { LocationType, Program, ProgramLocation } from "@/types/program";
 
 export type GeographicBucket = "local" | "statewide" | "unresolved";
@@ -138,7 +133,6 @@ export function applyDirectoryLocation(
     return programs.map((program) => ({ program, bucket: "unresolved" }));
   }
 
-  const profile = directoryPlaceToProfile(place);
   const kept: DirectoryLocationResult[] = [];
 
   for (const program of programs) {
@@ -146,13 +140,6 @@ export function applyDirectoryLocation(
     const classified = classifyDirectoryLocation(program, locations, place);
     if (classified.status === "mismatch") {
       continue;
-    }
-
-    if (!program.statewide) {
-      const geography = evaluateGeography(program, locations, profile);
-      if (geography.status === "FAIL") {
-        continue;
-      }
     }
 
     kept.push({
