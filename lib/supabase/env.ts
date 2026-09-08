@@ -37,3 +37,7 @@ export function isSupabaseConfigured(): boolean {
 export function getSupabaseSecretKey(): string | null {
   return readRequired("SUPABASE_SECRET_KEY") ?? null;
 }
+
+export function getAdminPassword(): string | null {
+  return readRequired("ADMIN_PASSWORD") ?? null;
+}

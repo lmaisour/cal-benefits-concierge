@@ -22,6 +22,7 @@ const completedLikely = {
   property_type: "single_family" as const,
   household_income: 42000,
   homeowner: false,
+  owned_zev_before: false,
   first_ev: true,
   vehicle_price: 32000,
   vehicle_condition: "new" as const,
