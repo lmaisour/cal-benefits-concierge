@@ -13,18 +13,16 @@ const PROPERTY_TYPES = [
   "other",
 ] as const;
 const VEHICLE_CONDITIONS = ["new", "used"] as const;
+const HOME_IMPROVEMENT_INTERESTS = ["home-upgrades", "solar", "home-repairs"];
 
 const BOOLEAN_FIELDS = [
-  "homeowner",
   "owned_home",
   "has_children",
   "veteran",
   "disability",
   "owns_vehicle",
-  "first_ev",
   "owned_zev_before",
   "willing_to_retire_vehicle",
-  "home_improvement_interest",
 ] as const;
 
 const STRING_FIELDS = [
@@ -78,6 +76,7 @@ function readOptionalString(value: unknown): string | undefined {
  * Runtime sanitizer for questionnaire JSON. Unknown fields are ignored.
  * Required match fields (ZIP, household size, housing status, property type)
  * must be present and valid. Invalid optional fields are dropped, not coerced.
+ * Derived eligibility fields are recomputed from sanitized authoritative answers.
  */
 export function validateUserProfile(input: unknown): ProfileValidationResult {
   if (!isPlainObject(input)) {
@@ -112,6 +111,7 @@ export function validateUserProfile(input: unknown): ProfileValidationResult {
     return { ok: false, error: "Housing status is required." };
   }
   profile.housing_status = input.housing_status as UserProfile["housing_status"];
+  profile.homeowner = profile.housing_status === "owner";
 
   if (
     typeof input.property_type !== "string" ||
@@ -172,6 +172,10 @@ export function validateUserProfile(input: unknown): ProfileValidationResult {
     }
   }
 
+  if (typeof profile.owned_zev_before === "boolean") {
+    profile.first_ev = !profile.owned_zev_before;
+  }
+
   if (input.interests !== undefined) {
     if (Array.isArray(input.interests)) {
       const interests: string[] = [];
@@ -188,6 +192,14 @@ export function validateUserProfile(input: unknown): ProfileValidationResult {
         profile.interests = interests;
       }
     }
+  }
+
+  if (
+    profile.interests?.some((interest) =>
+      HOME_IMPROVEMENT_INTERESTS.includes(interest),
+    )
+  ) {
+    profile.home_improvement_interest = true;
   }
 
   return { ok: true, profile };
