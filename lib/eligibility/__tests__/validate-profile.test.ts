@@ -97,7 +97,7 @@ describe("validateUserProfile", () => {
     if (result.ok) {
       expect(result.profile.veteran).toBeUndefined();
       expect(result.profile.disability).toBeUndefined();
-      expect(result.profile.homeowner).toBeUndefined();
+      expect(result.profile.homeowner).toBe(true);
     }
   });
 
@@ -158,6 +158,62 @@ describe("validateUserProfile", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.profile.interests).toEqual(["vehicles", "home-upgrades"]);
+    }
+  });
+
+  it("derives homeowner from housing status instead of trusting input", () => {
+    const renter = validateUserProfile({
+      ...validProfile,
+      housing_status: "renter",
+      homeowner: true,
+    });
+    expect(renter.ok).toBe(true);
+    if (renter.ok) expect(renter.profile.homeowner).toBe(false);
+
+    const owner = validateUserProfile({ ...validProfile, homeowner: false });
+    expect(owner.ok).toBe(true);
+    if (owner.ok) expect(owner.profile.homeowner).toBe(true);
+  });
+
+  it("derives first_ev from owned_zev_before instead of trusting input", () => {
+    const first = validateUserProfile({
+      ...validProfile,
+      owned_zev_before: false,
+      first_ev: false,
+    });
+    expect(first.ok).toBe(true);
+    if (first.ok) expect(first.profile.first_ev).toBe(true);
+
+    const notFirst = validateUserProfile({
+      ...validProfile,
+      owned_zev_before: true,
+      first_ev: true,
+    });
+    expect(notFirst.ok).toBe(true);
+    if (notFirst.ok) expect(notFirst.profile.first_ev).toBe(false);
+  });
+
+  it("ignores incoming first_ev when owned_zev_before is unknown", () => {
+    const result = validateUserProfile({ ...validProfile, first_ev: true });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.profile.first_ev).toBeUndefined();
+  });
+
+  it("derives home improvement interest only from sanitized interests", () => {
+    for (const interest of ["home-upgrades", "solar", "home-repairs"]) {
+      const result = validateUserProfile({ ...validProfile, interests: [interest] });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.profile.home_improvement_interest).toBe(true);
+    }
+
+    const unrelated = validateUserProfile({
+      ...validProfile,
+      interests: ["vehicles"],
+      home_improvement_interest: true,
+    });
+    expect(unrelated.ok).toBe(true);
+    if (unrelated.ok) {
+      expect(unrelated.profile.home_improvement_interest).toBeUndefined();
     }
   });
 });
