@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isMissingRelationError } from "@/lib/supabase/missing-relation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ProgramWritePayload } from "@/lib/admin/validate-program";
 import type { AdminRelatedProgram } from "@/lib/admin/form-values";
@@ -9,7 +10,10 @@ import type {
   ProgramSourceInsert,
 } from "@/types/database";
 import type {
+  HomepageFeature,
   Program,
+  ProgramContent,
+  ProgramFaq,
   ProgramLocation,
   ProgramRule,
   ProgramSource,
@@ -23,6 +27,9 @@ export type AdminProgramDetail = {
   locations: ProgramLocation[];
   sources: ProgramSource[];
   related: AdminRelatedProgram[];
+  content: ProgramContent | null;
+  faqs: ProgramFaq[];
+  homepageFeature: HomepageFeature | null;
 };
 
 export async function listAllPrograms(): Promise<Program[]> {
@@ -55,8 +62,15 @@ export async function getAdminProgramById(
     return null;
   }
 
-  const [rulesResult, locationsResult, sourcesResult, relationshipsResult] =
-    await Promise.all([
+  const [
+    rulesResult,
+    locationsResult,
+    sourcesResult,
+    relationshipsResult,
+    contentResult,
+    faqsResult,
+    featureResult,
+  ] = await Promise.all([
       supabase
         .from("program_rules")
         .select("*")
@@ -76,6 +90,14 @@ export async function getAdminProgramById(
         .from("program_relationships")
         .select("*")
         .or(`program_a_id.eq.${id},program_b_id.eq.${id}`),
+      supabase.from("program_content").select("*").eq("program_id", id).maybeSingle(),
+      supabase
+        .from("program_faqs")
+        .select("*")
+        .eq("program_id", id)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase.from("homepage_features").select("*").eq("program_id", id).maybeSingle(),
     ]);
 
   if (rulesResult.error) {
@@ -92,6 +114,17 @@ export async function getAdminProgramById(
   if (relationshipsResult.error) {
     throw new Error(
       `Failed to load relationships: ${relationshipsResult.error.message}`,
+    );
+  }
+  if (contentResult.error && !isMissingRelationError(contentResult.error)) {
+    throw new Error(`Failed to load program content: ${contentResult.error.message}`);
+  }
+  if (faqsResult.error && !isMissingRelationError(faqsResult.error)) {
+    throw new Error(`Failed to load FAQs: ${faqsResult.error.message}`);
+  }
+  if (featureResult.error && !isMissingRelationError(featureResult.error)) {
+    throw new Error(
+      `Failed to load homepage feature: ${featureResult.error.message}`,
     );
   }
 
@@ -134,6 +167,9 @@ export async function getAdminProgramById(
     locations: locationsResult.data,
     sources: sourcesResult.data,
     related,
+    content: contentResult.error ? null : contentResult.data,
+    faqs: faqsResult.error ? [] : faqsResult.data,
+    homepageFeature: featureResult.error ? null : featureResult.data,
   };
 }
 

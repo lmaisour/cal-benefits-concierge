@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProgramDetailView } from "@/components/programs/program-detail";
+import { editorialMetaDescription, editorialSeoTitle } from "@/lib/content/editorial";
 import { siteConfig } from "@/lib/config/site";
 import { getProgramBySlug } from "@/lib/programs/get-program-by-slug";
+import { absoluteUrl } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +19,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (!detail) {
       return { title: "Program not found" };
     }
-    const description =
-      detail.program.short_description ??
-      detail.program.benefit_summary ??
-      siteConfig.description;
+    const title = editorialSeoTitle(detail.program, detail.content);
+    const description = editorialMetaDescription(detail.program, detail.content);
+    const path = `${siteConfig.urls.programs}/${detail.program.slug}`;
     return {
-      title: `${detail.program.name}: Eligibility & Benefits`,
+      title,
       description,
       alternates: {
-        canonical: `${siteConfig.urls.programs}/${detail.program.slug}`,
+        canonical: path,
+      },
+      openGraph: {
+        title,
+        description,
+        url: absoluteUrl(path),
+        type: "website",
+        siteName: siteConfig.name,
       },
     };
   } catch {
@@ -54,5 +62,13 @@ export default async function ProgramDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  return <ProgramDetailView detail={detail} />;
+  const title = editorialSeoTitle(detail.program, detail.content);
+  const description = editorialMetaDescription(detail.program, detail.content);
+  return (
+    <ProgramDetailView
+      detail={detail}
+      seoTitle={title}
+      seoDescription={description}
+    />
+  );
 }

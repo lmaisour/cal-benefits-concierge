@@ -261,7 +261,7 @@ export function ProgramForm({
             value="true"
             defaultChecked={values.featured}
           />
-          Featured
+          Catalog featured (directory flag, not homepage)
         </label>
         <label className="inline-flex items-center gap-2">
           <input

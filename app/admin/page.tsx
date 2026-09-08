@@ -53,6 +53,12 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ButtonLink href="/admin/guides" variant="secondary" size="sm">
+            Guides
+          </ButtonLink>
+          <ButtonLink href="/admin/homepage" variant="secondary" size="sm">
+            Homepage
+          </ButtonLink>
           <ButtonLink href="/admin/programs" variant="secondary" size="sm">
             All programs
           </ButtonLink>

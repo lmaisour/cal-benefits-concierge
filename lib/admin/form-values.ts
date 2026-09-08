@@ -1,6 +1,8 @@
+import { emptyContentFormValues, type ProgramContentFormValues } from "@/lib/admin/validate-content";
+import { emptyGuideFormValues, type GuideFormValues } from "@/lib/admin/validate-guide";
 import { programNeedsReview } from "@/lib/admin/needs-review";
 import { emptyProgramFormValues, type ProgramFormValues } from "@/lib/admin/validate-program";
-import type { Program, ProgramRelationship } from "@/types/program";
+import type { Guide, Program, ProgramContent, ProgramRelationship } from "@/types/program";
 
 export type AdminRelatedProgram = {
   program: Pick<Program, "id" | "name" | "slug">;
@@ -36,6 +38,41 @@ export function programToFormValues(program: Program): ProgramFormValues {
     confidence: program.confidence ?? "",
     featured: program.featured,
     active: program.active,
+  };
+}
+
+export function contentToFormValues(
+  content: ProgramContent | null,
+): ProgramContentFormValues {
+  if (!content) {
+    return emptyContentFormValues();
+  }
+  return {
+    seo_title: content.seo_title ?? "",
+    meta_description: content.meta_description ?? "",
+    overview: content.overview ?? "",
+    benefit_explanation: content.benefit_explanation ?? "",
+    how_to_apply: content.how_to_apply ?? "",
+    documents_needed: content.documents_needed ?? "",
+    important_notes: content.important_notes ?? "",
+  };
+}
+
+export function guideToFormValues(
+  guide: Guide,
+  relatedProgramIds: string[],
+): GuideFormValues {
+  return {
+    ...emptyGuideFormValues(),
+    title: guide.title,
+    slug: guide.slug,
+    seo_title: guide.seo_title ?? "",
+    meta_description: guide.meta_description ?? "",
+    excerpt: guide.excerpt ?? "",
+    body: guide.body,
+    published: guide.published,
+    published_at: dateInput(guide.published_at),
+    related_program_ids: relatedProgramIds,
   };
 }
 

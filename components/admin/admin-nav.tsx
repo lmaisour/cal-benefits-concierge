@@ -6,6 +6,8 @@ const links = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/programs", label: "Programs" },
   { href: "/admin/programs/new", label: "Add program" },
+  { href: "/admin/guides", label: "Guides" },
+  { href: "/admin/homepage", label: "Homepage" },
 ];
 
 export function AdminNav() {

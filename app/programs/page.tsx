@@ -38,6 +38,7 @@ export const metadata: Metadata = {
   title: "Browse California benefit programs",
   description:
     "Enter your ZIP code to find California state and local rebates, credits, discounts, and assistance programs. Confirm details on each official program site.",
+  alternates: { canonical: "/programs" },
 };
 
 function isBenefitType(value: string): value is BenefitType {

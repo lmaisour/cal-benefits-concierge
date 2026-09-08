@@ -23,7 +23,45 @@ import {
   updateRule,
   updateSource,
 } from "@/lib/admin/queries";
+import {
+  deleteFaq,
+  insertFaq,
+  updateFaq,
+  upsertProgramContent,
+} from "@/lib/admin/content-queries";
+import {
+  createGuide,
+  guideSlugIsTaken,
+  replaceGuidePrograms,
+  updateGuide,
+} from "@/lib/admin/guide-queries";
+import { featureProgramOnHomepage } from "@/lib/admin/homepage-feature-eligibility";
+import {
+  deleteHomepageFeature,
+  getProgramStatusForHomepageFeature,
+  upsertHomepageFeature,
+} from "@/lib/admin/homepage-queries";
+import { saveNewGuide } from "@/lib/admin/save-new-guide";
 import { saveNewProgram } from "@/lib/admin/save-new-program";
+import {
+  contentFormFromData,
+  validateContentForm,
+  type ProgramContentFormValues,
+} from "@/lib/admin/validate-content";
+import {
+  faqFormFromData,
+  validateFaqForm,
+  type FaqFormValues,
+} from "@/lib/admin/validate-faq";
+import {
+  guideFormFromData,
+  validateGuideForm,
+  type GuideFormValues,
+} from "@/lib/admin/validate-guide";
+import {
+  homepageFeatureFormFromData,
+  validateHomepageFeatureForm,
+} from "@/lib/admin/validate-homepage-feature";
 import {
   programFormFromData,
   validateProgramForm,
@@ -47,6 +85,33 @@ export type ProgramActionState = {
 };
 
 export type RelatedActionState = {
+  ok: boolean;
+  formError?: string;
+  errors?: FieldErrors;
+};
+
+export type ContentActionState = {
+  ok: boolean;
+  formError?: string;
+  errors?: FieldErrors;
+  values?: ProgramContentFormValues;
+};
+
+export type FaqActionState = {
+  ok: boolean;
+  formError?: string;
+  errors?: FieldErrors;
+  values?: FaqFormValues;
+};
+
+export type GuideActionState = {
+  ok: boolean;
+  formError?: string;
+  errors?: FieldErrors;
+  values?: GuideFormValues;
+};
+
+export type HomepageFeatureActionState = {
   ok: boolean;
   formError?: string;
   errors?: FieldErrors;
@@ -297,13 +362,267 @@ export async function deleteSourceAction(
   revalidateAdminProgram(programId);
 }
 
+export async function updateProgramContentAction(
+  programId: string,
+  programSlug: string,
+  _prev: ContentActionState,
+  formData: FormData,
+): Promise<ContentActionState> {
+  await requireAdminSession();
+  const values = contentFormFromData(formData);
+  const parsed = validateContentForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors, values };
+  }
+  try {
+    await upsertProgramContent(programId, parsed.data);
+    revalidateAdminAndPublic(programSlug, programId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError: error instanceof Error ? error.message : "Could not save content.",
+      values,
+    };
+  }
+}
+
+export async function addFaqAction(
+  programId: string,
+  programSlug: string,
+  _prev: FaqActionState,
+  formData: FormData,
+): Promise<FaqActionState> {
+  await requireAdminSession();
+  const values = faqFormFromData(formData);
+  const parsed = validateFaqForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors, values };
+  }
+  try {
+    await insertFaq(programId, parsed.data);
+    revalidateAdminAndPublic(programSlug, programId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError: error instanceof Error ? error.message : "Could not add FAQ.",
+      values,
+    };
+  }
+}
+
+export async function updateFaqAction(
+  programId: string,
+  programSlug: string,
+  faqId: string,
+  _prev: FaqActionState,
+  formData: FormData,
+): Promise<FaqActionState> {
+  await requireAdminSession();
+  const values = faqFormFromData(formData);
+  const parsed = validateFaqForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors, values };
+  }
+  try {
+    await updateFaq(faqId, programId, parsed.data);
+    revalidateAdminAndPublic(programSlug, programId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError: error instanceof Error ? error.message : "Could not save FAQ.",
+      values,
+    };
+  }
+}
+
+export async function deleteFaqAction(
+  programId: string,
+  programSlug: string,
+  faqId: string,
+): Promise<void> {
+  await requireAdminSession();
+  await deleteFaq(faqId, programId);
+  revalidateAdminAndPublic(programSlug, programId);
+}
+
+export async function updateHomepageFeatureAction(
+  programId: string,
+  _prev: HomepageFeatureActionState,
+  formData: FormData,
+): Promise<HomepageFeatureActionState> {
+  await requireAdminSession();
+  const values = homepageFeatureFormFromData(formData);
+  values.program_id = programId;
+  const parsed = validateHomepageFeatureForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    if (parsed.data.featured) {
+      const featured = await featureProgramOnHomepage(
+        parsed.data.program_id,
+        parsed.data.sort_order,
+        {
+          loadProgram: getProgramStatusForHomepageFeature,
+          upsertHomepageFeature,
+        },
+      );
+      if (!featured.ok) {
+        return { ok: false, formError: featured.formError };
+      }
+    } else {
+      await deleteHomepageFeature(programId);
+    }
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath(`/admin/programs/${programId}`);
+    revalidatePath("/admin/homepage");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError:
+        error instanceof Error ? error.message : "Could not update homepage feature.",
+    };
+  }
+}
+
+export async function addHomepageFeatureAction(
+  _prev: HomepageFeatureActionState,
+  formData: FormData,
+): Promise<HomepageFeatureActionState> {
+  await requireAdminSession();
+  const values = homepageFeatureFormFromData(formData);
+  values.featured = true;
+  const parsed = validateHomepageFeatureForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    if (parsed.data.featured) {
+      const featured = await featureProgramOnHomepage(
+        parsed.data.program_id,
+        parsed.data.sort_order,
+        {
+          loadProgram: getProgramStatusForHomepageFeature,
+          upsertHomepageFeature,
+        },
+      );
+      if (!featured.ok) {
+        return { ok: false, formError: featured.formError };
+      }
+    }
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/admin/homepage");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError:
+        error instanceof Error ? error.message : "Could not feature program.",
+    };
+  }
+}
+
+export async function removeHomepageFeatureAction(programId: string): Promise<void> {
+  await requireAdminSession();
+  await deleteHomepageFeature(programId);
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/homepage");
+  revalidatePath(`/admin/programs/${programId}`);
+}
+
+export async function createGuideAction(
+  _prev: GuideActionState,
+  formData: FormData,
+): Promise<GuideActionState> {
+  await requireAdminSession();
+  const values = guideFormFromData(formData);
+  const parsed = validateGuideForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors, values };
+  }
+
+  const saved = await saveNewGuide(parsed.data, parsed.relatedProgramIds, {
+    slugIsTaken: guideSlugIsTaken,
+    createGuide: async (payload) => {
+      const created = await createGuide(payload);
+      return { id: created.id, slug: created.slug };
+    },
+    replaceGuidePrograms,
+  });
+  if (!saved.ok) {
+    return {
+      ok: false,
+      errors: saved.errors,
+      formError: saved.formError,
+      values,
+    };
+  }
+
+  revalidateGuides(saved.guide.slug);
+  redirect(`/admin/guides/${saved.guide.id}`);
+}
+
+export async function updateGuideAction(
+  guideId: string,
+  _prev: GuideActionState,
+  formData: FormData,
+): Promise<GuideActionState> {
+  await requireAdminSession();
+  const values = guideFormFromData(formData);
+  const parsed = validateGuideForm(values);
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors, values };
+  }
+
+  try {
+    if (await guideSlugIsTaken(parsed.data.slug, guideId)) {
+      return {
+        ok: false,
+        errors: { slug: "That slug is already in use." },
+        values,
+      };
+    }
+    const updated = await updateGuide(guideId, parsed.data);
+    await replaceGuidePrograms(guideId, parsed.relatedProgramIds);
+    revalidateGuides(updated.slug, guideId);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      formError: error instanceof Error ? error.message : "Could not save guide.",
+      values,
+    };
+  }
+}
+
 function revalidateAdminAndPublic(slug: string, programId?: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/programs");
+  revalidatePath("/admin/homepage");
   revalidatePath("/programs");
   revalidatePath(`/programs/${slug}`);
+  revalidatePath("/");
   if (programId) {
     revalidatePath(`/admin/programs/${programId}`);
+  }
+}
+
+function revalidateGuides(slug?: string, guideId?: string) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/guides");
+  revalidatePath("/guides");
+  if (slug) {
+    revalidatePath(`/guides/${slug}`);
+  }
+  if (guideId) {
+    revalidatePath(`/admin/guides/${guideId}`);
   }
 }
 

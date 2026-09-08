@@ -24,6 +24,12 @@ export function SiteFooter() {
           >
             {siteConfig.hero.secondaryCta}
           </Link>
+          <Link
+            href={siteConfig.urls.guides}
+            className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Guides
+          </Link>
         </nav>
       </div>
       <div className="border-t border-border">

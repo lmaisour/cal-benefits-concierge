@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Your program matches",
   description:
     "See California benefit programs that may apply based on the household details you provided.",
+  robots: { index: false, follow: false },
 };
 
 export default function ResultsRoutePage() {
