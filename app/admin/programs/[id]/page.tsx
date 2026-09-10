@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FaqEditor } from "@/components/admin/faq-editor";
+import { ContentBriefForm } from "@/components/admin/content-brief-form";
+import { ContentEvidenceEditor } from "@/components/admin/content-evidence-editor";
 import { HomepageFeatureForm } from "@/components/admin/homepage-feature-form";
 import { ProgramContentForm } from "@/components/admin/program-content-form";
 import { ProgramForm } from "@/components/admin/program-form";
 import { RelatedRecords } from "@/components/admin/related-records";
 import { requireAdminSession } from "@/lib/admin/auth";
-import { contentToFormValues, programToFormValues } from "@/lib/admin/form-values";
+import {
+  contentBriefToFormValues,
+  contentToFormValues,
+  programToFormValues,
+} from "@/lib/admin/form-values";
 import { getAdminProgramById } from "@/lib/admin/queries";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +94,16 @@ export default async function EditProgramPage({ params }: PageProps) {
           programSlug={detail.program.slug}
           faqs={detail.faqs}
         />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <ContentBriefForm
+          owner="program"
+          ownerId={detail.program.id}
+          initialValues={contentBriefToFormValues(detail.contentBrief)}
+        />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <ContentEvidenceEditor programId={detail.program.id} evidence={detail.evidence} />
       </div>
       <div className="mt-12 border-t border-border pt-10">
         <RelatedRecords

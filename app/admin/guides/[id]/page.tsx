@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ContentBriefForm } from "@/components/admin/content-brief-form";
 import { GuideForm } from "@/components/admin/guide-form";
 import { requireAdminSession } from "@/lib/admin/auth";
-import { guideToFormValues } from "@/lib/admin/form-values";
+import { contentBriefToFormValues, guideToFormValues } from "@/lib/admin/form-values";
 import { getAdminGuideById, listProgramOptions } from "@/lib/admin/guide-queries";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,13 @@ export default async function EditGuidePage({ params }: PageProps) {
             detail.relatedPrograms.map((program) => program.id),
           )}
           programOptions={programOptions}
+        />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <ContentBriefForm
+          owner="guide"
+          ownerId={detail.guide.id}
+          initialValues={contentBriefToFormValues(detail.contentBrief)}
         />
       </div>
     </section>
