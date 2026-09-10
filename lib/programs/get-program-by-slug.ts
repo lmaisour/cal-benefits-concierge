@@ -1,8 +1,13 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { listPublishedGuidesForProgram } from "@/lib/guides/public-queries";
+import { isMissingRelationError } from "@/lib/supabase/missing-relation";
+import type { PublicGuideListItem } from "@/lib/guides/public-queries";
 import type {
   Program,
+  ProgramContent,
+  ProgramFaq,
   ProgramLocation,
   ProgramRelationship,
   ProgramRule,
@@ -20,6 +25,9 @@ export type ProgramDetail = {
   locations: ProgramLocation[];
   sources: ProgramSource[];
   related: RelatedProgram[];
+  content: ProgramContent | null;
+  faqs: ProgramFaq[];
+  relatedGuides: PublicGuideListItem[];
 };
 
 export async function getProgramBySlug(
@@ -43,8 +51,14 @@ export async function getProgramBySlug(
     return null;
   }
 
-  const [rulesResult, locationsResult, sourcesResult, relationshipsResult] =
-    await Promise.all([
+  const [
+    rulesResult,
+    locationsResult,
+    sourcesResult,
+    relationshipsResult,
+    contentResult,
+    faqsResult,
+  ] = await Promise.all([
       supabase
         .from("program_rules")
         .select("*")
@@ -64,6 +78,17 @@ export async function getProgramBySlug(
         .from("program_relationships")
         .select("*")
         .or(`program_a_id.eq.${program.id},program_b_id.eq.${program.id}`),
+      supabase
+        .from("program_content")
+        .select("*")
+        .eq("program_id", program.id)
+        .maybeSingle(),
+      supabase
+        .from("program_faqs")
+        .select("*")
+        .eq("program_id", program.id)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true }),
     ]);
 
   if (rulesResult.error) {
@@ -83,6 +108,12 @@ export async function getProgramBySlug(
     throw new Error(
       `Failed to load program relationships: ${relationshipsResult.error.message}`,
     );
+  }
+  if (contentResult.error && !isMissingRelationError(contentResult.error)) {
+    throw new Error(`Failed to load program content: ${contentResult.error.message}`);
+  }
+  if (faqsResult.error && !isMissingRelationError(faqsResult.error)) {
+    throw new Error(`Failed to load program FAQs: ${faqsResult.error.message}`);
   }
 
   const relationships = relationshipsResult.data;
@@ -120,11 +151,16 @@ export async function getProgramBySlug(
     }
   }
 
+  const relatedGuides = await listPublishedGuidesForProgram(program.id);
+
   return {
     program,
     rules: rulesResult.data,
     locations: locationsResult.data,
     sources: sourcesResult.data,
     related,
+    content: contentResult.error ? null : contentResult.data,
+    faqs: faqsResult.error ? [] : faqsResult.data,
+    relatedGuides,
   };
 }

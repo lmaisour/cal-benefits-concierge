@@ -10,10 +10,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { ButtonLink } from "@/components/ui/button";
+import { TrackButtonLink } from "@/components/analytics/track-link";
+import { ProgramCard } from "@/components/programs/program-card";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { programCategories } from "@/lib/config/categories";
 import { siteConfig } from "@/lib/config/site";
+import type { Program } from "@/types/program";
 
 const categoryIcons: Record<string, LucideIcon> = {
   vehicles: Car,
@@ -26,7 +28,7 @@ const categoryIcons: Record<string, LucideIcon> = {
   other: Sprout,
 };
 
-export function HomePage() {
+export function HomePage({ featuredPrograms }: { featuredPrograms: Program[] }) {
   return (
     <>
       <section className="border-b border-border bg-hero">
@@ -41,22 +43,64 @@ export function HomePage() {
             {siteConfig.hero.subheadline}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ButtonLink href={siteConfig.urls.check} size="lg">
+            <TrackButtonLink
+              href={siteConfig.urls.check}
+              size="lg"
+              event="homepage_check_clicked"
+            >
               {siteConfig.hero.primaryCta}
-            </ButtonLink>
-            <ButtonLink
+            </TrackButtonLink>
+            <TrackButtonLink
               href={siteConfig.urls.programs}
               variant="secondary"
               size="lg"
+              event="browse_programs_clicked"
             >
               {siteConfig.hero.secondaryCta}
-            </ButtonLink>
+            </TrackButtonLink>
           </div>
           <p className="mt-8 max-w-xl text-sm text-muted-foreground">
             {siteConfig.trustStatement}
           </p>
         </div>
       </section>
+
+      {featuredPrograms.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+          <h2 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl">
+            {siteConfig.featured.heading}
+          </h2>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            {siteConfig.featured.supporting}
+          </p>
+          <ul className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {featuredPrograms.map((program) => (
+              <li key={program.id}>
+                <ProgramCard
+                  program={program}
+                  trackEvent="featured_program_clicked"
+                  trackProps={{ program_slug: program.slug }}
+                />
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <TrackButtonLink
+              href={siteConfig.urls.check}
+              event="homepage_check_clicked"
+            >
+              {siteConfig.hero.primaryCta}
+            </TrackButtonLink>
+            <TrackButtonLink
+              href={siteConfig.urls.programs}
+              variant="secondary"
+              event="browse_programs_clicked"
+            >
+              {siteConfig.hero.secondaryCta}
+            </TrackButtonLink>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <h2 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl">

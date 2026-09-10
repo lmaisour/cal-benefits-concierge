@@ -203,6 +203,71 @@ export type ProgramRelationshipInsert = Pick<
     Omit<ProgramRelationshipRow, "program_a_id" | "program_b_id" | "relationship_type">
   >;
 
+export type ProgramContentRow = {
+  program_id: string;
+  seo_title: string | null;
+  meta_description: string | null;
+  overview: string | null;
+  benefit_explanation: string | null;
+  how_to_apply: string | null;
+  documents_needed: string | null;
+  important_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProgramContentInsert = Pick<ProgramContentRow, "program_id"> &
+  Partial<Omit<ProgramContentRow, "program_id">>;
+
+export type ProgramFaqRow = {
+  id: string;
+  program_id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProgramFaqInsert = Pick<ProgramFaqRow, "program_id" | "question" | "answer"> &
+  Partial<Omit<ProgramFaqRow, "program_id" | "question" | "answer">>;
+
+export type GuideRow = {
+  id: string;
+  title: string;
+  slug: string;
+  seo_title: string | null;
+  meta_description: string | null;
+  excerpt: string | null;
+  body: string;
+  published: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GuideInsert = Pick<GuideRow, "title" | "slug"> &
+  Partial<Omit<GuideRow, "title" | "slug">>;
+
+export type GuideProgramRow = {
+  guide_id: string;
+  program_id: string;
+  created_at: string;
+};
+
+export type GuideProgramInsert = Pick<GuideProgramRow, "guide_id" | "program_id"> &
+  Partial<Omit<GuideProgramRow, "guide_id" | "program_id">>;
+
+export type HomepageFeatureRow = {
+  program_id: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type HomepageFeatureInsert = Pick<HomepageFeatureRow, "program_id"> &
+  Partial<Omit<HomepageFeatureRow, "program_id">>;
+
 export type Database = {
   public: {
     Tables: {
@@ -234,6 +299,36 @@ export type Database = {
         Row: ProgramRelationshipRow;
         Insert: ProgramRelationshipInsert;
         Update: Partial<ProgramRelationshipRow>;
+        Relationships: [];
+      };
+      program_content: {
+        Row: ProgramContentRow;
+        Insert: ProgramContentInsert;
+        Update: Partial<ProgramContentRow>;
+        Relationships: [];
+      };
+      program_faqs: {
+        Row: ProgramFaqRow;
+        Insert: ProgramFaqInsert;
+        Update: Partial<ProgramFaqRow>;
+        Relationships: [];
+      };
+      guides: {
+        Row: GuideRow;
+        Insert: GuideInsert;
+        Update: Partial<GuideRow>;
+        Relationships: [];
+      };
+      guide_programs: {
+        Row: GuideProgramRow;
+        Insert: GuideProgramInsert;
+        Update: Partial<GuideProgramRow>;
+        Relationships: [];
+      };
+      homepage_features: {
+        Row: HomepageFeatureRow;
+        Insert: HomepageFeatureInsert;
+        Update: Partial<HomepageFeatureRow>;
         Relationships: [];
       };
     };

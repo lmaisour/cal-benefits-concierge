@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/config/site";
 const navItems = [
   { href: siteConfig.urls.check, label: "Check benefits" },
   { href: siteConfig.urls.programs, label: "Browse programs" },
+  { href: siteConfig.urls.guides, label: "Guides" },
 ];
 
 export function SiteHeader() {

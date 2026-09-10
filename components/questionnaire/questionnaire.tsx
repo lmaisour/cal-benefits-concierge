@@ -51,6 +51,7 @@ import {
   vehiclePriceError,
   zipError,
 } from "@/lib/questionnaire/validation";
+import { track } from "@/lib/analytics/track";
 import { CompletionScreen } from "@/components/questionnaire/completion-screen";
 import { MultiSelectQuestion } from "@/components/questionnaire/multi-select-question";
 import { NumberQuestion } from "@/components/questionnaire/number-question";
@@ -97,6 +98,7 @@ const YES_NO_UNSURE = [
 
 export function Questionnaire() {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const startedRef = useRef(false);
   const helperId = useId();
   const errorId = useId();
 
@@ -138,6 +140,14 @@ export function Questionnaire() {
   useEffect(() => {
     headingRef.current?.focus();
   }, [stepId, completed]);
+
+  useEffect(() => {
+    if (startedRef.current || completed) {
+      return;
+    }
+    startedRef.current = true;
+    track("questionnaire_started");
+  }, [completed]);
 
   function persist(next: {
     profile?: UserProfile;
@@ -211,9 +221,11 @@ export function Questionnaire() {
 
   function advance(nextProfile: UserProfile, nextSkipped = skipped) {
     setError(null);
+    track("question_answered", { step_id: stepId });
     const next = getNextStepId(nextProfile, stepId);
     if (next === "complete") {
       persist({ profile: nextProfile, completed: true, skipped: nextSkipped });
+      track("questionnaire_completed");
       return;
     }
     persist({ profile: nextProfile, stepId: next, skipped: nextSkipped });

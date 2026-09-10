@@ -11,6 +11,7 @@ import {
 } from "@/lib/questionnaire/storage";
 import { ResultCard } from "@/components/results/result-card";
 import { ResultsLoading } from "@/components/results/results-loading";
+import { TrackView } from "@/components/analytics/track-view";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config/site";
 
@@ -113,11 +114,14 @@ export function ResultsPage() {
   }
 
   return (
-    <ResultsContent
-      data={loadState.data}
-      filter={filter}
-      onFilterChange={setFilter}
-    />
+    <>
+      <TrackView event="results_viewed" />
+      <ResultsContent
+        data={loadState.data}
+        filter={filter}
+        onFilterChange={setFilter}
+      />
+    </>
   );
 }
 
@@ -143,7 +147,7 @@ function NeedsQuestionnaire() {
       </p>
       <div className="mt-8">
         <ButtonLink href={siteConfig.urls.check} size="lg">
-          Check my benefits
+          Check what you qualify for
         </ButtonLink>
       </div>
     </section>

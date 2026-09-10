@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { FaqEditor } from "@/components/admin/faq-editor";
+import { HomepageFeatureForm } from "@/components/admin/homepage-feature-form";
+import { ProgramContentForm } from "@/components/admin/program-content-form";
 import { ProgramForm } from "@/components/admin/program-form";
 import { RelatedRecords } from "@/components/admin/related-records";
 import { requireAdminSession } from "@/lib/admin/auth";
-import { programToFormValues } from "@/lib/admin/form-values";
+import { contentToFormValues, programToFormValues } from "@/lib/admin/form-values";
 import { getAdminProgramById } from "@/lib/admin/queries";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +65,28 @@ export default async function EditProgramPage({ params }: PageProps) {
             externalId: detail.program.external_id,
             unmodeledSummary: detail.program.unmodeled_required_criteria_summary,
           }}
+        />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <HomepageFeatureForm
+          programId={detail.program.id}
+          status={detail.program.status}
+          active={detail.program.active}
+          feature={detail.homepageFeature}
+        />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <ProgramContentForm
+          programId={detail.program.id}
+          programSlug={detail.program.slug}
+          initialValues={contentToFormValues(detail.content)}
+        />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <FaqEditor
+          programId={detail.program.id}
+          programSlug={detail.program.slug}
+          faqs={detail.faqs}
         />
       </div>
       <div className="mt-12 border-t border-border pt-10">

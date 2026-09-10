@@ -4,12 +4,14 @@ import { StatusBadge } from "@/components/programs/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TrackLink } from "@/components/analytics/track-link";
 import { formatCategory, formatDate, formatProgramValue } from "@/lib/programs/format";
 import { siteConfig } from "@/lib/config/site";
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
 import type { GeographicBucket } from "@/lib/programs/directory-location";
 import { LOCATION_MATCH_LABEL } from "@/lib/programs/directory-location";
 import type { DirectoryPlace } from "@/lib/programs/location-context";
+import type { AnalyticsEvent, AnalyticsProps } from "@/lib/analytics/events";
 import type { Program, ProgramLocation } from "@/types/program";
 
 function truncateDescription(text: string, max = 150): string {
@@ -26,11 +28,15 @@ export function ProgramCard({
   locations = [],
   locationMatch,
   focusPlace,
+  trackEvent,
+  trackProps,
 }: {
   program: Program;
   locations?: ProgramLocation[];
   locationMatch?: GeographicBucket;
   focusPlace?: DirectoryPlace;
+  trackEvent?: AnalyticsEvent;
+  trackProps?: AnalyticsProps;
 }) {
   const value = formatProgramValue(program);
   const verified = formatDate(program.last_verified_at);
@@ -53,12 +59,23 @@ export function ProgramCard({
 
       <div>
         <h2 className="font-serif text-xl font-semibold tracking-tight text-foreground">
-          <Link
-            href={href}
-            className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {program.name}
-          </Link>
+          {trackEvent ? (
+            <TrackLink
+              href={href}
+              event={trackEvent}
+              eventProps={trackProps}
+              className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {program.name}
+            </TrackLink>
+          ) : (
+            <Link
+              href={href}
+              className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {program.name}
+            </Link>
+          )}
         </h2>
         {program.administrator ? (
           <p className="mt-1 text-sm text-muted-foreground">{program.administrator}</p>
@@ -93,9 +110,20 @@ export function ProgramCard({
         {verified ? `Last verified ${verified}` : "Verification date not recorded"}
       </p>
 
-      <ButtonLink href={href} variant="secondary" size="sm" className="w-full sm:w-auto">
-        View program
-      </ButtonLink>
+      {trackEvent ? (
+        <TrackLink
+          href={href}
+          event={trackEvent}
+          eventProps={trackProps}
+          className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted sm:w-auto"
+        >
+          View program
+        </TrackLink>
+      ) : (
+        <ButtonLink href={href} variant="secondary" size="sm" className="w-full sm:w-auto">
+          View program
+        </ButtonLink>
+      )}
     </Card>
   );
 }

@@ -1,16 +1,21 @@
 export const siteConfig = {
-  name: "California Benefits Finder",
-  shortName: "Benefits Finder",
-  tagline:
-    "Find rebates, credits, discounts and benefits you may qualify for.",
+  name: "Benefits Concierge",
+  shortName: "Benefits Concierge",
+  tagline: "Find California benefits you may qualify for.",
   description:
-    "Answer a few questions and discover California rebates, credits, discounts, and assistance programs based on your household and location.",
+    "Find California benefits you may qualify for. Answer a few questions to discover rebates, credits, discounts, and assistance programs based on your household and location.",
+  origin: "https://benefitsconcierge.org",
   hero: {
-    headline: "Find California benefits you're already eligible for.",
+    headline: "Find California benefits you may qualify for.",
     subheadline:
       "Answer a few questions and discover rebates, credits, discounts and assistance programs based on your household and location.",
-    primaryCta: "Check my benefits",
+    primaryCta: "Check what you qualify for",
     secondaryCta: "Browse all programs",
+  },
+  featured: {
+    heading: "Programs worth knowing about",
+    supporting:
+      "From clean vehicles and home upgrades to free trees and transit discounts, California has programs many residents don't know they qualify for.",
   },
   trustStatement:
     "We link directly to official government and program sources.",
@@ -21,6 +26,7 @@ export const siteConfig = {
     check: "/check",
     results: "/results",
     programs: "/programs",
+    guides: "/guides",
     admin: "/admin",
   },
 } as const;
