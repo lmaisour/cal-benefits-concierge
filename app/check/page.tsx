@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     "Answer a few questions about your household. We’ll use your answers to find California programs you may qualify for.",
   alternates: { canonical: "/check" },
+  robots: { index: false, follow: true },
 };
 
 export default function CheckPage() {
