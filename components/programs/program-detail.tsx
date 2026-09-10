@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { TrackButtonLink } from "@/components/analytics/track-link";
 import { TrackView } from "@/components/analytics/track-view";
+import { ProgramAtAGlance } from "@/components/programs/at-a-glance";
 import { LocationCoverage } from "@/components/programs/location-coverage";
 import { SectionCard } from "@/components/programs/section-card";
 import { StatusBadge } from "@/components/programs/status-badge";
@@ -31,11 +32,7 @@ import {
   isRepayableBenefit,
   statusLabel,
 } from "@/lib/programs/labels";
-import {
-  breadcrumbJsonLd,
-  faqPageJsonLd,
-  webPageJsonLd,
-} from "@/lib/seo/json-ld";
+import { latestIsoDateTime, programPageJsonLd } from "@/lib/seo/json-ld";
 
 function preapprovalLabel(value: boolean | null): string {
   if (value === true) {
@@ -92,19 +89,18 @@ export function ProgramDetailView({
   }
 
   const programPath = `${siteConfig.urls.programs}/${program.slug}`;
-  const jsonLd = [
-    webPageJsonLd({
-      name: seoTitle,
-      description: seoDescription,
-      path: programPath,
-    }),
-    breadcrumbJsonLd([
+  const jsonLd = programPageJsonLd({
+    name: seoTitle,
+    description: seoDescription,
+    path: programPath,
+    dateModified: latestIsoDateTime(program.updated_at, content?.updated_at),
+    breadcrumbs: [
       { name: "Home", path: siteConfig.urls.home },
       { name: "Programs", path: siteConfig.urls.programs },
       { name: program.name, path: programPath },
-    ]),
-    faqPageJsonLd(faqs),
-  ].filter((item): item is NonNullable<typeof item> => item !== null);
+    ],
+    faqs,
+  });
 
   return (
     <article className="pb-16">
@@ -206,6 +202,7 @@ export function ProgramDetailView({
       </div>
 
       <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
+        <ProgramAtAGlance program={program} rules={rules} locations={locations} />
         {program.has_unmodeled_required_criteria ? (
           <aside className="rounded-2xl border border-primary/15 bg-hero px-5 py-4">
             <p className="font-medium text-foreground">
