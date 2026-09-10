@@ -2,6 +2,10 @@ import "server-only";
 
 import { isMissingRelationError } from "@/lib/supabase/missing-relation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  getContentBriefForProgram,
+  listContentEvidenceForProgram,
+} from "@/lib/admin/research-queries";
 import type { ProgramWritePayload } from "@/lib/admin/validate-program";
 import type { AdminRelatedProgram } from "@/lib/admin/form-values";
 import type {
@@ -10,6 +14,8 @@ import type {
   ProgramSourceInsert,
 } from "@/types/database";
 import type {
+  ContentBrief,
+  ContentEvidence,
   HomepageFeature,
   Program,
   ProgramContent,
@@ -30,6 +36,8 @@ export type AdminProgramDetail = {
   content: ProgramContent | null;
   faqs: ProgramFaq[];
   homepageFeature: HomepageFeature | null;
+  contentBrief: ContentBrief | null;
+  evidence: ContentEvidence[];
 };
 
 export async function listAllPrograms(): Promise<Program[]> {
@@ -70,6 +78,8 @@ export async function getAdminProgramById(
     contentResult,
     faqsResult,
     featureResult,
+    contentBrief,
+    evidence,
   ] = await Promise.all([
       supabase
         .from("program_rules")
@@ -98,6 +108,8 @@ export async function getAdminProgramById(
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
       supabase.from("homepage_features").select("*").eq("program_id", id).maybeSingle(),
+      getContentBriefForProgram(id),
+      listContentEvidenceForProgram(id),
     ]);
 
   if (rulesResult.error) {
@@ -170,6 +182,8 @@ export async function getAdminProgramById(
     content: contentResult.error ? null : contentResult.data,
     faqs: faqsResult.error ? [] : faqsResult.data,
     homepageFeature: featureResult.error ? null : featureResult.data,
+    contentBrief,
+    evidence,
   };
 }
 

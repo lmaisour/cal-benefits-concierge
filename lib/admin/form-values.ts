@@ -1,8 +1,20 @@
 import { emptyContentFormValues, type ProgramContentFormValues } from "@/lib/admin/validate-content";
+import {
+  emptyContentBriefFormValues,
+  type ContentBriefFormValues,
+} from "@/lib/admin/validate-content-brief";
 import { emptyGuideFormValues, type GuideFormValues } from "@/lib/admin/validate-guide";
 import { programNeedsReview } from "@/lib/admin/needs-review";
 import { emptyProgramFormValues, type ProgramFormValues } from "@/lib/admin/validate-program";
-import type { Guide, Program, ProgramContent, ProgramRelationship } from "@/types/program";
+import { DEFAULT_SEO_PROVIDER } from "@/types/database";
+import type {
+  ContentBrief,
+  ContentEvidence,
+  Guide,
+  Program,
+  ProgramContent,
+  ProgramRelationship,
+} from "@/types/program";
 
 export type AdminRelatedProgram = {
   program: Pick<Program, "id" | "name" | "slug">;
@@ -55,6 +67,53 @@ export function contentToFormValues(
     how_to_apply: content.how_to_apply ?? "",
     documents_needed: content.documents_needed ?? "",
     important_notes: content.important_notes ?? "",
+  };
+}
+
+export function contentBriefToFormValues(
+  brief: ContentBrief | null,
+): ContentBriefFormValues {
+  if (!brief) {
+    return emptyContentBriefFormValues();
+  }
+  return {
+    primary_keyword: brief.primary_keyword ?? "",
+    secondary_keywords: brief.secondary_keywords.join(", "),
+    search_intent: brief.search_intent ?? "",
+    questions_to_answer: brief.questions_to_answer.join("\n"),
+    topics_to_cover: brief.topics_to_cover.join("\n"),
+    suggested_title: brief.suggested_title ?? "",
+    suggested_meta_description: brief.suggested_meta_description ?? "",
+    competitor_notes: brief.competitor_notes ?? "",
+    research_notes: brief.research_notes ?? "",
+    seo_provider: brief.seo_provider || DEFAULT_SEO_PROVIDER,
+    provider_document_id: brief.provider_document_id ?? "",
+    provider_score: brief.provider_score === null ? "" : String(brief.provider_score),
+    researched_at: dateInput(brief.researched_at),
+  };
+}
+
+export function contentEvidenceToFormValues(evidence: ContentEvidence): {
+  content_section: string;
+  claim: string;
+  source_url: string;
+  source_title: string;
+  source_publisher: string;
+  source_date: string;
+  verified_at: string;
+  confidence: string;
+  notes: string;
+} {
+  return {
+    content_section: evidence.content_section,
+    claim: evidence.claim,
+    source_url: evidence.source_url,
+    source_title: evidence.source_title ?? "",
+    source_publisher: evidence.source_publisher ?? "",
+    source_date: dateInput(evidence.source_date),
+    verified_at: dateInput(evidence.verified_at),
+    confidence: evidence.confidence,
+    notes: evidence.notes ?? "",
   };
 }
 

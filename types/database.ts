@@ -268,6 +268,64 @@ export type HomepageFeatureRow = {
 export type HomepageFeatureInsert = Pick<HomepageFeatureRow, "program_id"> &
   Partial<Omit<HomepageFeatureRow, "program_id">>;
 
+export const CONTENT_BRIEF_TYPES = ["PROGRAM", "GUIDE"] as const;
+
+export type ContentBriefType = (typeof CONTENT_BRIEF_TYPES)[number];
+
+export const DEFAULT_SEO_PROVIDER = "manual";
+
+export type ContentBriefRow = {
+  id: string;
+  content_type: ContentBriefType;
+  program_id: string | null;
+  guide_id: string | null;
+  primary_keyword: string | null;
+  secondary_keywords: string[];
+  search_intent: string | null;
+  questions_to_answer: string[];
+  topics_to_cover: string[];
+  suggested_title: string | null;
+  suggested_meta_description: string | null;
+  competitor_notes: string | null;
+  research_notes: string | null;
+  seo_provider: string;
+  provider_document_id: string | null;
+  provider_score: number | null;
+  researched_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContentBriefInsert = Pick<ContentBriefRow, "content_type"> &
+  Partial<Omit<ContentBriefRow, "content_type">>;
+
+export type ContentEvidenceRow = {
+  id: string;
+  program_id: string;
+  content_section: string;
+  claim: string;
+  source_url: string;
+  source_title: string | null;
+  source_publisher: string | null;
+  source_date: string | null;
+  verified_at: string | null;
+  confidence: Confidence;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContentEvidenceInsert = Pick<
+  ContentEvidenceRow,
+  "program_id" | "content_section" | "claim" | "source_url" | "confidence"
+> &
+  Partial<
+    Omit<
+      ContentEvidenceRow,
+      "program_id" | "content_section" | "claim" | "source_url" | "confidence"
+    >
+  >;
+
 export type Database = {
   public: {
     Tables: {
@@ -329,6 +387,18 @@ export type Database = {
         Row: HomepageFeatureRow;
         Insert: HomepageFeatureInsert;
         Update: Partial<HomepageFeatureRow>;
+        Relationships: [];
+      };
+      content_briefs: {
+        Row: ContentBriefRow;
+        Insert: ContentBriefInsert;
+        Update: Partial<ContentBriefRow>;
+        Relationships: [];
+      };
+      content_evidence: {
+        Row: ContentEvidenceRow;
+        Insert: ContentEvidenceInsert;
+        Update: Partial<ContentEvidenceRow>;
         Relationships: [];
       };
     };

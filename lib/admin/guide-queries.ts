@@ -2,12 +2,14 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isMissingRelationError } from "@/lib/supabase/missing-relation";
+import { getContentBriefForGuide } from "@/lib/admin/research-queries";
 import type { GuideWritePayload } from "@/lib/admin/validate-guide";
-import type { Guide, Program } from "@/types/program";
+import type { ContentBrief, Guide, Program } from "@/types/program";
 
 export type AdminGuideDetail = {
   guide: Guide;
   relatedPrograms: Pick<Program, "id" | "name" | "slug" | "status" | "active">[];
+  contentBrief: ContentBrief | null;
 };
 
 export async function listAllGuides(): Promise<Guide[]> {
@@ -42,13 +44,15 @@ export async function getAdminGuideById(id: string): Promise<AdminGuideDetail | 
     return null;
   }
 
+  const contentBrief = await getContentBriefForGuide(id);
+
   const { data: links, error: linkError } = await supabase
     .from("guide_programs")
     .select("program_id")
     .eq("guide_id", id);
   if (linkError) {
     if (isMissingRelationError(linkError)) {
-      return { guide, relatedPrograms: [] };
+      return { guide, relatedPrograms: [], contentBrief };
     }
     throw new Error(`Failed to load guide programs: ${linkError.message}`);
   }
@@ -67,7 +71,7 @@ export async function getAdminGuideById(id: string): Promise<AdminGuideDetail | 
     relatedPrograms = data;
   }
 
-  return { guide, relatedPrograms };
+  return { guide, relatedPrograms, contentBrief };
 }
 
 export async function guideSlugIsTaken(

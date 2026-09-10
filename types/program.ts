@@ -1,6 +1,9 @@
 import type {
   BenefitType,
   Confidence,
+  ContentBriefRow,
+  ContentBriefType,
+  ContentEvidenceRow,
   GuideProgramRow,
   GuideRow,
   HomepageFeatureRow,
@@ -22,6 +25,7 @@ import type {
 export type {
   BenefitType,
   Confidence,
+  ContentBriefType,
   LocationType,
   ProgramStatus,
   RelationshipType,
@@ -40,6 +44,8 @@ export type ProgramFaq = ProgramFaqRow;
 export type Guide = GuideRow;
 export type GuideProgram = GuideProgramRow;
 export type HomepageFeature = HomepageFeatureRow;
+export type ContentBrief = ContentBriefRow;
+export type ContentEvidence = ContentEvidenceRow;
 
 export const SAVINGS_BENEFIT_TYPES: readonly BenefitType[] = [
   "CASH",
