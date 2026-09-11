@@ -64,6 +64,26 @@ describe("programSummaryFacts", () => {
     expect(facts.find((fact) => fact.label === "Income")?.value).toBe("Income limits apply");
     expect(facts.find((fact) => fact.label === "Housing")?.value).toBe("Homeowners");
     expect(facts.find((fact) => fact.label === "Utility")?.value).toBe("LADWP");
+    expect(facts.find((fact) => fact.label === "Service area")?.value).toBe(
+      "Available in Los Angeles County",
+    );
+  });
+
+  it("uses a utility row instead of repeating a utility-only service area", () => {
+    const program = makeProgram({ statewide: false, administrator: "SoCalGas" });
+    const facts = programSummaryFacts({
+      program,
+      rules: [],
+      locations: [
+        makeLocation({
+          program_id: program.id,
+          location_type: "GAS_UTILITY",
+          location_value: "SoCalGas",
+        }),
+      ],
+    });
+    expect(facts.find((fact) => fact.label === "Utility")?.value).toBe("SoCalGas");
+    expect(facts.find((fact) => fact.label === "Service area")).toBeUndefined();
   });
 
   it("omits unknown income, housing, utility, and unconfirmed service area", () => {

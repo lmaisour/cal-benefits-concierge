@@ -15,6 +15,24 @@ function isUnconfirmedServiceArea(value: string | undefined): boolean {
   return !value || value === "Service area needs to be confirmed";
 }
 
+function geographicServiceArea(
+  serviceArea: string | undefined,
+  utility: string | undefined,
+): string | undefined {
+  if (!serviceArea || isUnconfirmedServiceArea(serviceArea)) {
+    return undefined;
+  }
+  const parts = serviceArea.split("; ").filter(Boolean);
+  const kept = parts.filter((part) => {
+    if (!utility) {
+      return true;
+    }
+    const match = /^Available to eligible (.+) customers$/i.exec(part);
+    return !(match && match[1].toLowerCase() === utility.toLowerCase());
+  });
+  return kept.length > 0 ? kept.join("; ") : undefined;
+}
+
 export function programSummaryFacts(input: {
   program: Program;
   rules: ProgramRule[];
@@ -26,21 +44,17 @@ export function programSummaryFacts(input: {
 
   const who = valueByLabel(glance, WHO_THIS_IS_FOR_LABEL);
   const status = valueByLabel(glance, "Current status");
-  const serviceArea = valueByLabel(glance, "Service area");
   const location = valueByLabel(eligibility, "Location");
   const eligibilityIncome = valueByLabel(eligibility, "Income");
   const glanceIncome = valueByLabel(glance, "Income");
   const housing = valueByLabel(eligibility, "Housing") ?? valueByLabel(glance, "Homeownership");
   const utility = valueByLabel(eligibility, "Utility");
+  const serviceArea = geographicServiceArea(valueByLabel(glance, "Service area"), utility);
   const administrator = valueByLabel(glance, "Administrator");
   const lastVerified = valueByLabel(glance, "Last verified");
 
   const hasAudienceFact = Boolean(
-    (serviceArea && !isUnconfirmedServiceArea(serviceArea)) ||
-      location ||
-      eligibilityIncome ||
-      glanceIncome ||
-      housing,
+    serviceArea || location || eligibilityIncome || glanceIncome || housing || utility,
   );
   if (who && !hasAudienceFact) {
     facts.push({ label: WHO_THIS_IS_FOR_LABEL, value: who });
@@ -50,7 +64,7 @@ export function programSummaryFacts(input: {
     facts.push({ label: "Status", value: status });
   }
 
-  if (serviceArea && !isUnconfirmedServiceArea(serviceArea)) {
+  if (serviceArea) {
     facts.push({ label: "Service area", value: serviceArea });
   } else if (location) {
     facts.push({ label: "Service area", value: location });
