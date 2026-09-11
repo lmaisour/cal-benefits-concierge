@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { AnalyticsScripts } from "@/components/analytics/analytics-scripts";
 import { SiteShell } from "@/components/layout/site-shell";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { siteConfig } from "@/lib/config/site";
+import { siteIdentityJsonLd } from "@/lib/seo/json-ld";
 import { CANONICAL_ORIGIN } from "@/lib/seo/site-url";
 import "./globals.css";
 
@@ -45,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sourceSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
+        <JsonLdScript data={siteIdentityJsonLd()} />
         <AnalyticsScripts />
         <SiteShell>{children}</SiteShell>
       </body>

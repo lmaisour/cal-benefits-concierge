@@ -19,50 +19,33 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  try {
-    const detail = await getPublishedGuideBySlug(slug);
-    if (!detail) {
-      return { title: "Guide not found" };
-    }
-    const title = detail.guide.seo_title ?? detail.guide.title;
-    const description =
-      detail.guide.meta_description ??
-      detail.guide.excerpt ??
-      siteConfig.description;
-    const path = `${siteConfig.urls.guides}/${detail.guide.slug}`;
-    return {
+  const detail = await getPublishedGuideBySlug(slug);
+  if (!detail) {
+    notFound();
+  }
+  const title = detail.guide.seo_title ?? detail.guide.title;
+  const description =
+    detail.guide.meta_description ??
+    detail.guide.excerpt ??
+    siteConfig.description;
+  const path = `${siteConfig.urls.guides}/${detail.guide.slug}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
       title,
       description,
-      alternates: { canonical: path },
-      openGraph: {
-        title,
-        description,
-        url: absoluteUrl(path),
-        type: "article",
-        siteName: siteConfig.name,
-      },
-    };
-  } catch {
-    return { title: "Guide" };
-  }
+      url: absoluteUrl(path),
+      type: "article",
+      siteName: siteConfig.name,
+    },
+  };
 }
 
 export default async function GuidePage({ params }: PageProps) {
   const { slug } = await params;
-  let detail;
-  try {
-    detail = await getPublishedGuideBySlug(slug);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not load this guide.";
-    return (
-      <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <div className="rounded-2xl border border-border bg-card p-6" role="alert">
-          <h1 className="font-serif text-2xl font-semibold">Guide could not be loaded</h1>
-          <p className="mt-3 text-muted-foreground">{message}</p>
-        </div>
-      </section>
-    );
-  }
+  const detail = await getPublishedGuideBySlug(slug);
 
   if (!detail) {
     notFound();
