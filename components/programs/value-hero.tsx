@@ -1,7 +1,14 @@
 import { programValueHeroDisplay } from "@/lib/programs/value-hero";
+import { cn } from "@/lib/utils/cn";
 import type { Program } from "@/types/program";
 
-export function ProgramValueHero({ program }: { program: Program }) {
+export function ProgramValueHero({
+  program,
+  className,
+}: {
+  program: Program;
+  className?: string;
+}) {
   const display = programValueHeroDisplay(program);
   if (!display) {
     return null;
@@ -10,7 +17,7 @@ export function ProgramValueHero({ program }: { program: Program }) {
   return (
     <section
       aria-labelledby="program-value-hero-heading"
-      className="rounded-2xl border border-border bg-card px-5 py-5 shadow-[0_1px_2px_rgba(28,25,23,0.05)] sm:px-6"
+      className={cn("min-w-0 pb-2", className)}
     >
       <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
         {display.kicker}

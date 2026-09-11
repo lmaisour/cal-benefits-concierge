@@ -6,6 +6,7 @@ import { ProgramFactTable } from "@/components/programs/fact-table";
 import { ProgramDetailView } from "@/components/programs/program-detail";
 import { ProgramProcessTimeline } from "@/components/programs/process-timeline";
 import { ProgramPurchaseTiming } from "@/components/programs/purchase-timing";
+import { ProgramSummary } from "@/components/programs/program-summary";
 import { ProgramValueHero } from "@/components/programs/value-hero";
 import {
   makeLocation,
@@ -160,14 +161,18 @@ describe("program detail visual composition", () => {
 
     expect(html).toContain("Potential rebate");
     expect(html).toContain("$1,500–$3,500");
+    expect(html).toContain("Program summary");
     expect(html).toContain("Current program period ends");
     expect(html).toContain("September 1, 2031");
-    expect(html).toContain("Key eligibility facts");
     expect(html).toContain("Income limits apply");
     expect(html).toContain("Los Angeles County");
     expect(html).toContain("Apply before you buy");
     expect(html).toContain("Purchasing before approval may make you ineligible.");
-    expect(html).toContain("At a glance");
+    expect(html).toContain('lg:grid-cols-[minmax(0,65fr)_minmax(18rem,35fr)]');
+    expect(html).toContain("lg:sticky");
+    expect(html).not.toContain("At a glance");
+    expect(html).not.toContain("Key eligibility facts");
+    expect(html.match(/<dt[^>]*>Income<\/dt>/g) ?? []).toHaveLength(1);
     expect(html).not.toContain("How the process works");
     expect(html).not.toContain("Application deadline");
   });
@@ -206,6 +211,9 @@ describe("program detail visual composition", () => {
     expect(html).not.toContain("Purchase timing requirement is unclear");
     expect(html).not.toContain("Purchase before approval appears allowed");
     expect(html).toContain("Preapproval required");
+    expect(html).toContain("Program summary");
+    expect(html).not.toContain("At a glance");
+    expect(html).not.toContain("Key eligibility facts");
   });
 });
 
@@ -303,5 +311,45 @@ describe("visual primitive shells", () => {
     expect(html).toContain("$800");
     expect(html).not.toContain("Yard trees");
     expect(html).not.toContain("Street trees");
+  });
+
+  it("renders deadline, facts, and purchase warning together in the summary panel", () => {
+    const now = new Date(Date.UTC(2026, 8, 11, 16, 0, 0));
+    const program = makeProgram({
+      purchase_before_approval_allowed: false,
+      effective_end: "2026-10-31",
+      statewide: false,
+    });
+    const html = renderToStaticMarkup(
+      createElement(ProgramSummary, {
+        program,
+        now,
+        rules: [
+          makeRule({
+            program_id: program.id,
+            field: "household_income",
+            operator: "less_than_or_equal",
+            value: 80000,
+            explanation: "Household income must be at or below the sample threshold.",
+          }),
+        ],
+        locations: [
+          makeLocation({
+            program_id: program.id,
+            location_type: "CITY",
+            location_value: "Los Angeles",
+          }),
+        ],
+      }),
+    );
+    expect(html).toContain("Program summary");
+    expect(html).toContain("Current program period ends");
+    expect(html).toContain("October 31, 2026");
+    expect(html).toContain("50 days remaining");
+    expect(html).toContain("Income limits apply");
+    expect(html).toContain("Apply before you buy");
+    expect(html).not.toContain("At a glance");
+    expect(html).not.toContain("Key eligibility facts");
+    expect(html.match(/<dt[^>]*>Income<\/dt>/g) ?? []).toHaveLength(1);
   });
 });
