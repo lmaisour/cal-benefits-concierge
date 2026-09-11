@@ -58,6 +58,7 @@ export function ResultsPage() {
   );
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [filter, setFilter] = useState("all");
+  const [focusProgramId, setFocusProgramId] = useState<string | null>(null);
   const hasLoadedRef = useRef(false);
 
   const requestMatches = useCallback(
@@ -143,7 +144,9 @@ export function ResultsPage() {
         data={loadState.data}
         filter={filter}
         onFilterChange={setFilter}
+        focusProgramId={focusProgramId}
         onFollowupSubmit={(programId, answers) => {
+          setFocusProgramId(programId);
           writeFollowupProgramAnswers(programId, answers);
         }}
       />
@@ -208,11 +211,13 @@ function ResultsContent({
   filter,
   onFilterChange,
   onFollowupSubmit,
+  focusProgramId,
 }: {
   data: MatchResponse;
   filter: string;
   onFilterChange: (value: string) => void;
   onFollowupSubmit: (programId: string, answers: Record<string, string>) => void;
+  focusProgramId: string | null;
 }) {
   const allMatches = [
     ...data.likelyEligible,
@@ -247,6 +252,14 @@ function ResultsContent({
     visible.notEligible.length;
   const totalCount =
     data.counts.likely + data.counts.possible + data.counts.notEligible;
+
+  useEffect(() => {
+    if (!focusProgramId) {
+      return;
+    }
+    const card = document.getElementById(`result-${focusProgramId}`);
+    card?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [data, focusProgramId]);
 
   if (totalCount === 0) {
     return (
@@ -334,7 +347,7 @@ function ResultsContent({
           </p>
           <ul className="mt-5 space-y-4">
             {visible.likelyEligible.map((match) => (
-              <li key={match.id}>
+              <li key={match.id} id={`result-${match.id}`}>
                 <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
               </li>
             ))}
@@ -353,7 +366,7 @@ function ResultsContent({
           </p>
           <ul className="mt-5 space-y-4">
             {visible.possiblyEligible.map((match) => (
-              <li key={match.id}>
+              <li key={match.id} id={`result-${match.id}`}>
                 <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
               </li>
             ))}
@@ -372,7 +385,7 @@ function ResultsContent({
           </p>
           <ul className="mt-5 space-y-4">
             {visible.notEligible.map((match) => (
-              <li key={match.id}>
+              <li key={match.id} id={`result-${match.id}`}>
                 <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
               </li>
             ))}
