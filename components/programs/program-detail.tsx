@@ -3,9 +3,13 @@ import Link from "next/link";
 import { TrackButtonLink } from "@/components/analytics/track-link";
 import { TrackView } from "@/components/analytics/track-view";
 import { ProgramAtAGlance } from "@/components/programs/at-a-glance";
+import { ProgramDeadlineCard } from "@/components/programs/deadline-card";
+import { ProgramEligibilityFacts } from "@/components/programs/eligibility-facts";
 import { LocationCoverage } from "@/components/programs/location-coverage";
+import { ProgramPurchaseTiming } from "@/components/programs/purchase-timing";
 import { SectionCard } from "@/components/programs/section-card";
 import { StatusBadge } from "@/components/programs/status-badge";
+import { ProgramValueHero } from "@/components/programs/value-hero";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { Badge } from "@/components/ui/badge";
 import { isCurrentlyAvailable } from "@/lib/content/currently-available";
@@ -23,6 +27,7 @@ import {
   formatUsd,
   toNumber,
 } from "@/lib/programs/format";
+import { programDeadlineDisplay } from "@/lib/programs/deadline-display";
 import type { ProgramDetail } from "@/lib/programs/get-program-by-slug";
 import {
   CONFIDENCE_LABELS,
@@ -44,25 +49,6 @@ function preapprovalLabel(value: boolean | null): string {
   return "Preapproval requirement is not clearly stated";
 }
 
-function purchaseNote(value: boolean | null): { tone: "warning" | "note"; text: string } {
-  if (value === false) {
-    return {
-      tone: "warning",
-      text: "Do not purchase before approval unless the program administrator confirms otherwise.",
-    };
-  }
-  if (value === true) {
-    return {
-      tone: "note",
-      text: "Purchase before approval appears allowed, but confirm current rules with the administrator.",
-    };
-  }
-  return {
-    tone: "note",
-    text: "Purchase timing requirement is unclear. Confirm with the program administrator.",
-  };
-}
-
 export function ProgramDetailView({
   detail,
   seoTitle,
@@ -77,10 +63,10 @@ export function ProgramDetailView({
   const value = formatProgramValue(program);
   const min = toNumber(program.benefit_min);
   const max = toNumber(program.benefit_max);
-  const purchase = purchaseNote(program.purchase_before_approval_allowed);
   const overview = editorialOverview(program, content);
   const benefitCopy = editorialBenefit(program, content);
   const currentlyAvailable = isCurrentlyAvailable(program);
+  const deadline = programDeadlineDisplay(program);
   const groupedRules = new Map<number, typeof rules>();
   for (const rule of rules) {
     const list = groupedRules.get(rule.rule_group) ?? [];
@@ -150,21 +136,6 @@ export function ProgramDetailView({
             </p>
           ) : null}
 
-          {value.kind === "savings" ? (
-            <p className="mt-6 font-serif text-3xl font-semibold text-foreground">{value.text}</p>
-          ) : null}
-          {value.kind === "financing" ? (
-            <div className="mt-6 rounded-2xl border border-border bg-card px-4 py-3">
-              <p className="font-serif text-2xl font-semibold text-foreground">{value.text}</p>
-              <p className="mt-1 text-sm font-medium text-muted-foreground">{REPAYABLE_NOTICE}</p>
-            </div>
-          ) : null}
-          {value.kind === "none" && program.benefit_summary ? (
-            <p className="mt-6 font-serif text-2xl font-semibold text-foreground">
-              {program.benefit_summary}
-            </p>
-          ) : null}
-
           {program.short_description ? (
             <p className="mt-4 max-w-3xl text-lg leading-relaxed text-muted-foreground">
               {program.short_description}
@@ -202,7 +173,11 @@ export function ProgramDetailView({
       </div>
 
       <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
+        <ProgramValueHero program={program} />
+        <ProgramDeadlineCard program={program} />
         <ProgramAtAGlance program={program} rules={rules} locations={locations} />
+        <ProgramEligibilityFacts program={program} rules={rules} locations={locations} />
+        <ProgramPurchaseTiming program={program} />
         {program.has_unmodeled_required_criteria ? (
           <aside className="rounded-2xl border border-primary/15 bg-hero px-5 py-4">
             <p className="font-medium text-foreground">
@@ -329,15 +304,8 @@ export function ProgramDetailView({
           {content?.important_notes ? (
             <p className="whitespace-pre-line">{content.important_notes}</p>
           ) : null}
-          {purchase.tone === "warning" ? (
-            <p className="mt-4 rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 font-medium text-foreground">
-              {purchase.text}
-            </p>
-          ) : (
-            <p className={content?.important_notes ? "mt-4" : undefined}>{purchase.text}</p>
-          )}
-          {program.effective_start || program.effective_end ? (
-            <p className="mt-3 text-muted-foreground">
+          {!deadline && (program.effective_start || program.effective_end) ? (
+            <p className={content?.important_notes ? "mt-3 text-muted-foreground" : "text-muted-foreground"}>
               Effective dates: {formatDate(program.effective_start) ?? "not stated"}
               {" – "}
               {formatDate(program.effective_end) ?? "no listed end date"}

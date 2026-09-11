@@ -1,4 +1,5 @@
 import { isCurrentlyAvailable } from "@/lib/content/currently-available";
+import { conciseBenefitPhrase } from "@/lib/programs/benefit-phrase";
 import { formatLocationCoverageLines } from "@/lib/programs/format-location-coverage";
 import {
   formatDate,
@@ -31,37 +32,6 @@ const SEEKING_BY_BENEFIT: Record<BenefitType, string> = {
   FINANCING: "financing",
   OTHER: "this benefit",
 };
-
-const MAX_BENEFIT_PHRASE_CHARS = 48;
-const MAX_BENEFIT_PHRASE_WORDS = 8;
-
-function conciseBenefitPhrase(summary: string | null | undefined): string | null {
-  if (!summary) {
-    return null;
-  }
-  let text = summary.trim();
-  if (!text || /[\n\r]/.test(text)) {
-    return null;
-  }
-  text = text.replace(/[.]+$/g, "").trim();
-  if (!text || /[.!?;:]/.test(text)) {
-    return null;
-  }
-  const words = text.split(/\s+/).filter(Boolean);
-  if (words.length === 0 || words.length > MAX_BENEFIT_PHRASE_WORDS) {
-    return null;
-  }
-  if (text.length > MAX_BENEFIT_PHRASE_CHARS) {
-    return null;
-  }
-  if (/^(this|the program|applicants?|eligible|you)\b/i.test(text)) {
-    return null;
-  }
-  if (/^[A-Z][a-z]/.test(text)) {
-    return text[0].toLowerCase() + text.slice(1);
-  }
-  return text;
-}
 
 function seekingPhrase(program: Program): string {
   return conciseBenefitPhrase(program.benefit_summary) ?? SEEKING_BY_BENEFIT[program.benefit_type];
@@ -362,4 +332,21 @@ export function atAGlanceItems(input: {
   }
 
   return items;
+}
+
+export function hasModeledIncomeRequirement(rules: ProgramRule[]): boolean {
+  return requiredIncomeRules(rules).length > 0;
+}
+
+export function modeledHousingFact(
+  rules: ProgramRule[],
+): "Homeowners" | "Renters" | null {
+  const kind = housingAudience(rules);
+  if (kind === "homeowners") {
+    return "Homeowners";
+  }
+  if (kind === "renters") {
+    return "Renters";
+  }
+  return null;
 }
