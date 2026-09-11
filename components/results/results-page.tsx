@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ConsumerProgramMatch, MatchResponse } from "@/lib/eligibility/consumer-match";
 import { validateUserProfile } from "@/lib/eligibility/validate-profile";
 import {
@@ -9,6 +9,13 @@ import {
   parseQuestionnaireSnapshot,
   subscribeQuestionnaire,
 } from "@/lib/questionnaire/storage";
+import {
+  getFollowupServerSnapshot,
+  getFollowupSnapshot,
+  parseFollowupSnapshot,
+  subscribeFollowup,
+  writeFollowupProgramAnswers,
+} from "@/lib/followup/storage";
 import { ResultCard } from "@/components/results/result-card";
 import { ResultsLoading } from "@/components/results/results-loading";
 import { TrackView } from "@/components/analytics/track-view";
@@ -44,35 +51,47 @@ export function ResultsPage() {
     getQuestionnaireSnapshot,
     getQuestionnaireServerSnapshot,
   );
+  const followupSnapshot = useSyncExternalStore(
+    subscribeFollowup,
+    getFollowupSnapshot,
+    getFollowupServerSnapshot,
+  );
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [filter, setFilter] = useState("all");
+  const hasLoadedRef = useRef(false);
 
-  const requestMatches = useCallback(async (profile: unknown) => {
-    setLoadState({ status: "loading" });
-    try {
-      const response = await fetch("/api/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile }),
-      });
-      if (response.status === 400) {
-        setLoadState({ status: "needs-questionnaire" });
-        return;
+  const requestMatches = useCallback(
+    async (profile: unknown, followupAnswers: Record<string, Record<string, string>>, silent = false) => {
+      if (!silent) {
+        setLoadState({ status: "loading" });
       }
-      if (!response.ok) {
+      try {
+        const response = await fetch("/api/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile, followupAnswers }),
+        });
+        if (response.status === 400) {
+          setLoadState({ status: "needs-questionnaire" });
+          return;
+        }
+        if (!response.ok) {
+          setLoadState({ status: "error" });
+          return;
+        }
+        const data: unknown = await response.json();
+        if (!isMatchResponse(data)) {
+          setLoadState({ status: "error" });
+          return;
+        }
+        setLoadState({ status: "ready", data });
+        hasLoadedRef.current = true;
+      } catch {
         setLoadState({ status: "error" });
-        return;
       }
-      const data: unknown = await response.json();
-      if (!isMatchResponse(data)) {
-        setLoadState({ status: "error" });
-        return;
-      }
-      setLoadState({ status: "ready", data });
-    } catch {
-      setLoadState({ status: "error" });
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -84,10 +103,11 @@ export function ResultsPage() {
         setLoadState({ status: "needs-questionnaire" });
         return;
       }
-      void requestMatches(result.profile);
+      const followup = parseFollowupSnapshot(getFollowupSnapshot());
+      void requestMatches(result.profile, followup.byProgram, hasLoadedRef.current);
     });
     return () => cancelAnimationFrame(frame);
-  }, [snapshot, requestMatches]);
+  }, [snapshot, followupSnapshot, requestMatches]);
 
   if (loadState.status === "loading") {
     return <ResultsLoading />;
@@ -106,7 +126,10 @@ export function ResultsPage() {
             ? validateUserProfile(current.profile)
             : null;
           if (result?.ok) {
-            void requestMatches(result.profile);
+            void requestMatches(
+              result.profile,
+              parseFollowupSnapshot(getFollowupSnapshot()).byProgram,
+            );
           }
         }}
       />
@@ -120,6 +143,9 @@ export function ResultsPage() {
         data={loadState.data}
         filter={filter}
         onFilterChange={setFilter}
+        onFollowupSubmit={(programId, answers) => {
+          writeFollowupProgramAnswers(programId, answers);
+        }}
       />
     </>
   );
@@ -131,7 +157,9 @@ function isMatchResponse(value: unknown): value is MatchResponse {
   }
   const record = value as MatchResponse;
   return (
-    Array.isArray(record.likelyEligible) && Array.isArray(record.possiblyEligible)
+    Array.isArray(record.likelyEligible) &&
+    Array.isArray(record.possiblyEligible) &&
+    Array.isArray(record.notEligible)
   );
 }
 
@@ -179,12 +207,18 @@ function ResultsContent({
   data,
   filter,
   onFilterChange,
+  onFollowupSubmit,
 }: {
   data: MatchResponse;
   filter: string;
   onFilterChange: (value: string) => void;
+  onFollowupSubmit: (programId: string, answers: Record<string, string>) => void;
 }) {
-  const allMatches = [...data.likelyEligible, ...data.possiblyEligible];
+  const allMatches = [
+    ...data.likelyEligible,
+    ...data.possiblyEligible,
+    ...data.notEligible,
+  ];
   const availableFilters = CATEGORY_FILTERS.filter((item) => {
     if (item.slugs === null) {
       return true;
@@ -202,13 +236,17 @@ function ResultsContent({
     return {
       likelyEligible: data.likelyEligible.filter(matchesCategory),
       possiblyEligible: data.possiblyEligible.filter(matchesCategory),
+      notEligible: data.notEligible.filter(matchesCategory),
       counts: data.counts,
     };
   }, [data, filter]);
 
   const visibleCount =
-    visible.likelyEligible.length + visible.possiblyEligible.length;
-  const totalCount = data.counts.likely + data.counts.possible;
+    visible.likelyEligible.length +
+    visible.possiblyEligible.length +
+    visible.notEligible.length;
+  const totalCount =
+    data.counts.likely + data.counts.possible + data.counts.notEligible;
 
   if (totalCount === 0) {
     return (
@@ -242,6 +280,13 @@ function ResultsContent({
         <span className="text-muted-foreground"> · </span>
         {data.counts.possible} possible{" "}
         {data.counts.possible === 1 ? "match" : "matches"}
+        {data.counts.notEligible > 0 ? (
+          <>
+            <span className="text-muted-foreground"> · </span>
+            {data.counts.notEligible} that{" "}
+            {data.counts.notEligible === 1 ? "does" : "do"} not appear to qualify
+          </>
+        ) : null}
       </p>
       <p className="mt-2 text-base text-muted-foreground">
         Based on the information you provided and published program rules.
@@ -290,7 +335,7 @@ function ResultsContent({
           <ul className="mt-5 space-y-4">
             {visible.likelyEligible.map((match) => (
               <li key={match.id}>
-                <ResultCard match={match} />
+                <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
               </li>
             ))}
           </ul>
@@ -309,7 +354,26 @@ function ResultsContent({
           <ul className="mt-5 space-y-4">
             {visible.possiblyEligible.map((match) => (
               <li key={match.id}>
-                <ResultCard match={match} />
+                <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {visible.notEligible.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="font-serif text-2xl font-semibold text-foreground">
+            Does not appear to qualify
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Based on the follow-up answers you provided, this program’s published
+            rules do not appear to be met.
+          </p>
+          <ul className="mt-5 space-y-4">
+            {visible.notEligible.map((match) => (
+              <li key={match.id}>
+                <ResultCard match={match} onFollowupSubmit={onFollowupSubmit} />
               </li>
             ))}
           </ul>

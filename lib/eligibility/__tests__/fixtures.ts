@@ -2,6 +2,8 @@ import type { UserProfile } from "@/lib/eligibility/types";
 import type {
   BenefitType,
   Program,
+  ProgramFollowupQuestion,
+  ProgramFollowupRule,
   ProgramLocation,
   ProgramRule,
   ProgramStatus,
@@ -9,6 +11,8 @@ import type {
 
 let ruleId = 1;
 let locationId = 1;
+let followupQuestionId = 1;
+let followupRuleId = 1;
 
 export function makeProgram(overrides: Partial<Program> = {}): Program {
   return {
@@ -71,6 +75,50 @@ export function makeLocation(
   return {
     id: `loc-${locationId}`,
     created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+export function makeFollowupQuestion(
+  overrides: Partial<ProgramFollowupQuestion> &
+    Pick<ProgramFollowupQuestion, "program_id" | "question_key" | "question">,
+): ProgramFollowupQuestion {
+  followupQuestionId += 1;
+  return {
+    id: `followup-q-${followupQuestionId}`,
+    help_text: null,
+    answer_type: "single_choice",
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+      { value: "not_sure", label: "Not sure", unknown: true },
+    ],
+    sort_order: 10,
+    required: true,
+    display_when_field: null,
+    display_when_operator: null,
+    display_when_value: null,
+    active: true,
+    cta_label: null,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+export function makeFollowupRule(
+  overrides: Partial<ProgramFollowupRule> &
+    Pick<ProgramFollowupRule, "program_id" | "question_id">,
+): ProgramFollowupRule {
+  followupRuleId += 1;
+  return {
+    id: `followup-r-${followupRuleId}`,
+    operator: "equals",
+    expected_value: "yes",
+    required: true,
+    explanation: null,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }

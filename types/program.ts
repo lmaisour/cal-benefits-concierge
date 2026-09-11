@@ -10,6 +10,8 @@ import type {
   LocationType,
   ProgramContentRow,
   ProgramFaqRow,
+  ProgramFollowupQuestionRow,
+  ProgramFollowupRuleRow,
   ProgramLocationRow,
   ProgramRelationshipRow,
   ProgramRow,
@@ -36,6 +38,8 @@ export type {
 
 export type Program = ProgramRow;
 export type ProgramRule = ProgramRuleRow;
+export type ProgramFollowupQuestion = ProgramFollowupQuestionRow;
+export type ProgramFollowupRule = ProgramFollowupRuleRow;
 export type ProgramLocation = ProgramLocationRow;
 export type ProgramSource = ProgramSourceRow;
 export type ProgramRelationship = ProgramRelationshipRow;

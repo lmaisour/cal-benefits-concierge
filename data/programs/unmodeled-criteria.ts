@@ -214,7 +214,7 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
   "LADWP-WATER-CONSERVATION":
     "You must be an LADWP water customer, receive project pre-approval before removing turf, and meet SoCal Water$mart landscape rules.",
   "LADWP-WATER-LEAP":
-    "You must be an LADWP customer in a qualifying disadvantaged-community single-family home with 500 to 3,000 square feet of green front lawn, and be the owner or have written owner permission.",
+    "You must live in a qualifying disadvantaged community. Address-based DAC eligibility is not confirmed here.",
   "LA-HOME-CITY-PLANTS":
     "You must be able to plant and water the trees on eligible City of Los Angeles private property, or qualify for the separate street-tree pathway.",
   "LA-VEH-METRO-LIFE":

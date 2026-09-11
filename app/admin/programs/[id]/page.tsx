@@ -6,6 +6,7 @@ import { ContentEvidenceEditor } from "@/components/admin/content-evidence-edito
 import { HomepageFeatureForm } from "@/components/admin/homepage-feature-form";
 import { ProgramContentForm } from "@/components/admin/program-content-form";
 import { ProgramForm } from "@/components/admin/program-form";
+import { FollowupRecords } from "@/components/admin/followup-records";
 import { RelatedRecords } from "@/components/admin/related-records";
 import { requireAdminSession } from "@/lib/admin/auth";
 import {
@@ -104,6 +105,13 @@ export default async function EditProgramPage({ params }: PageProps) {
       </div>
       <div className="mt-12 border-t border-border pt-10">
         <ContentEvidenceEditor programId={detail.program.id} evidence={detail.evidence} />
+      </div>
+      <div className="mt-12 border-t border-border pt-10">
+        <FollowupRecords
+          programId={detail.program.id}
+          questions={detail.followupQuestions}
+          rules={detail.followupRules}
+        />
       </div>
       <div className="mt-12 border-t border-border pt-10">
         <RelatedRecords

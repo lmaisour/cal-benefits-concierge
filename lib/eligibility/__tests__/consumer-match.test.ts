@@ -30,7 +30,7 @@ describe("toMatchResponse", () => {
     const consumer = toMatchResponse(result);
     expect(consumer.likelyEligible).toHaveLength(0);
     expect(consumer.possiblyEligible).toHaveLength(0);
-    expect(consumer.counts).toEqual({ likely: 0, possible: 0 });
+    expect(consumer.counts).toEqual({ likely: 0, possible: 0, notEligible: 0 });
   });
 
   it("does not repeat the same housing-status reason twice", () => {

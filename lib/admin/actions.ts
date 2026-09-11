@@ -24,6 +24,14 @@ import {
   updateSource,
 } from "@/lib/admin/queries";
 import {
+  deleteFollowupQuestion,
+  deleteFollowupRule,
+  insertFollowupQuestion,
+  insertFollowupRule,
+  updateFollowupQuestion,
+  updateFollowupRule,
+} from "@/lib/admin/followup-queries";
+import {
   deleteFaq,
   insertFaq,
   updateFaq,
@@ -68,6 +76,12 @@ import {
   type FieldErrors,
   type ProgramFormValues,
 } from "@/lib/admin/validate-program";
+import {
+  followupQuestionFormFromData,
+  followupRuleFormFromData,
+  validateFollowupQuestionForm,
+  validateFollowupRuleForm,
+} from "@/lib/admin/validate-followup";
 import {
   locationFormFromData,
   ruleFormFromData,
@@ -630,6 +644,102 @@ function revalidateAdminProgram(programId: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/programs");
   revalidatePath(`/admin/programs/${programId}`);
+}
+
+export async function addFollowupQuestionAction(
+  programId: string,
+  _prev: RelatedActionState,
+  formData: FormData,
+): Promise<RelatedActionState> {
+  await requireAdminSession();
+  const parsed = validateFollowupQuestionForm(followupQuestionFormFromData(formData));
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    await insertFollowupQuestion({ ...parsed.data, program_id: programId });
+    revalidateAdminProgram(programId);
+    return { ok: true };
+  } catch (error) {
+    return relatedError(error);
+  }
+}
+
+export async function updateFollowupQuestionAction(
+  programId: string,
+  questionId: string,
+  _prev: RelatedActionState,
+  formData: FormData,
+): Promise<RelatedActionState> {
+  await requireAdminSession();
+  const parsed = validateFollowupQuestionForm(followupQuestionFormFromData(formData));
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    await updateFollowupQuestion(questionId, programId, parsed.data);
+    revalidateAdminProgram(programId);
+    return { ok: true };
+  } catch (error) {
+    return relatedError(error);
+  }
+}
+
+export async function deleteFollowupQuestionAction(
+  programId: string,
+  questionId: string,
+): Promise<void> {
+  await requireAdminSession();
+  await deleteFollowupQuestion(questionId, programId);
+  revalidateAdminProgram(programId);
+}
+
+export async function addFollowupRuleAction(
+  programId: string,
+  _prev: RelatedActionState,
+  formData: FormData,
+): Promise<RelatedActionState> {
+  await requireAdminSession();
+  const parsed = validateFollowupRuleForm(followupRuleFormFromData(formData));
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    await insertFollowupRule({ ...parsed.data, program_id: programId });
+    revalidateAdminProgram(programId);
+    return { ok: true };
+  } catch (error) {
+    return relatedError(error);
+  }
+}
+
+export async function updateFollowupRuleAction(
+  programId: string,
+  ruleId: string,
+  _prev: RelatedActionState,
+  formData: FormData,
+): Promise<RelatedActionState> {
+  await requireAdminSession();
+  const parsed = validateFollowupRuleForm(followupRuleFormFromData(formData));
+  if (!parsed.ok) {
+    return { ok: false, errors: parsed.errors };
+  }
+  try {
+    await updateFollowupRule(ruleId, programId, parsed.data);
+    revalidateAdminProgram(programId);
+    return { ok: true };
+  } catch (error) {
+    return relatedError(error);
+  }
+}
+
+export async function deleteFollowupRuleAction(
+  programId: string,
+  ruleId: string,
+): Promise<void> {
+  await requireAdminSession();
+  await deleteFollowupRule(ruleId, programId);
+  revalidateAdminProgram(programId);
 }
 
 function relatedError(error: unknown): RelatedActionState {

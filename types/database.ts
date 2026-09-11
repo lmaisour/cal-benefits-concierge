@@ -55,6 +55,10 @@ export const RULE_OPERATORS = [
 
 export type RuleOperator = (typeof RULE_OPERATORS)[number];
 
+export const FOLLOWUP_ANSWER_TYPES = ["single_choice"] as const;
+
+export type FollowupAnswerType = (typeof FOLLOWUP_ANSWER_TYPES)[number];
+
 export const RULE_GROUP_OPERATORS = ["AND", "OR"] as const;
 
 export type RuleGroupOperator = (typeof RULE_GROUP_OPERATORS)[number];
@@ -138,6 +142,37 @@ export type ProgramRuleRow = {
   created_at: string;
 };
 
+export type ProgramFollowupQuestionRow = {
+  id: string;
+  program_id: string;
+  question_key: string;
+  question: string;
+  help_text: string | null;
+  answer_type: FollowupAnswerType;
+  options: Json;
+  sort_order: number;
+  required: boolean;
+  display_when_field: string | null;
+  display_when_operator: RuleOperator | null;
+  display_when_value: Json | null;
+  active: boolean;
+  cta_label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProgramFollowupRuleRow = {
+  id: string;
+  program_id: string;
+  question_id: string;
+  operator: RuleOperator;
+  expected_value: Json | null;
+  required: boolean;
+  explanation: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ProgramLocationRow = {
   id: string;
   program_id: string;
@@ -182,6 +217,18 @@ export type ProgramRuleInsert = Pick<
   "program_id" | "field" | "operator"
 > &
   Partial<Omit<ProgramRuleRow, "program_id" | "field" | "operator">>;
+
+export type ProgramFollowupQuestionInsert = Pick<
+  ProgramFollowupQuestionRow,
+  "program_id" | "question_key" | "question"
+> &
+  Partial<Omit<ProgramFollowupQuestionRow, "program_id" | "question_key" | "question">>;
+
+export type ProgramFollowupRuleInsert = Pick<
+  ProgramFollowupRuleRow,
+  "program_id" | "question_id" | "operator"
+> &
+  Partial<Omit<ProgramFollowupRuleRow, "program_id" | "question_id" | "operator">>;
 
 export type ProgramLocationInsert = Pick<
   ProgramLocationRow,
@@ -339,6 +386,18 @@ export type Database = {
         Row: ProgramRuleRow;
         Insert: ProgramRuleInsert;
         Update: Partial<ProgramRuleRow>;
+        Relationships: [];
+      };
+      program_followup_questions: {
+        Row: ProgramFollowupQuestionRow;
+        Insert: ProgramFollowupQuestionInsert;
+        Update: Partial<ProgramFollowupQuestionRow>;
+        Relationships: [];
+      };
+      program_followup_rules: {
+        Row: ProgramFollowupRuleRow;
+        Insert: ProgramFollowupRuleInsert;
+        Update: Partial<ProgramFollowupRuleRow>;
         Relationships: [];
       };
       program_locations: {

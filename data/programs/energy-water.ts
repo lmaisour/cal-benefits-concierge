@@ -649,7 +649,7 @@ const drafts: Draft[] = [
       short_description:
         "Free front-yard landscape design and construction for qualifying single-family homes in disadvantaged communities.",
       description:
-        "LEAP provides free landscape design and construction to replace a qualifying front lawn with California Friendly landscaping, plus related rain-capture and irrigation measures. Applicants must be LADWP customers living in a single-family home in a Department of Water Resources disadvantaged community, have 500 to 3,000 square feet of green front lawn (parkway may count), and be the owner of record or have written owner permission. Applications are due October 31, 2026. High demand may place applicants on a waitlist, but the official page is still accepting applications. LADWP water-customer and DAC geography cannot be stored as electric-utility or ZIP rows, so those required conditions stay unmodeled.",
+        "LEAP provides free landscape design and construction to replace a qualifying front lawn with California Friendly landscaping, plus related rain-capture and irrigation measures. Applicants must be LADWP customers living in a single-family home in a Department of Water Resources disadvantaged community, have 500 to 3,000 square feet of green front lawn (parkway may count), and be the owner of record or have written owner permission. Applications are due October 31, 2026. High demand may place applicants on a waitlist, but the official page is still accepting applications. Water service, lawn size, and owner permission are asked as program-specific follow-up questions. Disadvantaged-community geography stays unmodeled until address-based resolution is available.",
       benefit_summary: "Free landscape design and construction if you qualify",
       benefit_type: "FREE_SERVICE",
       benefit_min: null,
@@ -680,6 +680,15 @@ const drafts: Draft[] = [
       ),
     ],
     locations: [loc("LADWP-WATER-LEAP", "STATE", "CA")],
+    rules: [
+      rule(
+        "LADWP-WATER-LEAP",
+        "property_type",
+        "equals",
+        "single_family",
+        "LEAP is published for qualifying single-family homes.",
+      ),
+    ],
   },
   {
     program: program({

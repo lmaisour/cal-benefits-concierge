@@ -52,6 +52,9 @@ import {
   zipError,
 } from "@/lib/questionnaire/validation";
 import { track } from "@/lib/analytics/track";
+import {
+  clearFollowupState,
+} from "@/lib/followup/storage";
 import { CompletionScreen } from "@/components/questionnaire/completion-screen";
 import { MultiSelectQuestion } from "@/components/questionnaire/multi-select-question";
 import { NumberQuestion } from "@/components/questionnaire/number-question";
@@ -203,6 +206,7 @@ export function Questionnaire() {
       otherGas: "",
     });
     clearQuestionnaireState();
+    clearFollowupState();
     setError(null);
   }
 

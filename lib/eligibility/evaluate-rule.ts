@@ -33,7 +33,11 @@ export function evaluateRule(
   profile: UserProfile,
 ): RuleEvaluation {
   try {
-    const status = evaluateRuleStatus(rule, profile);
+    const status = evaluateOperator(
+      rule.operator,
+      getProfileValue(profile, rule.field),
+      rule.value,
+    );
     return {
       rule,
       status,
@@ -48,13 +52,17 @@ export function evaluateRule(
   }
 }
 
-function evaluateRuleStatus(
-  rule: ProgramRule,
-  profile: UserProfile,
+/**
+ * Shared operator semantics for core program rules and program-specific
+ * follow-up rules. Missing actual values are UNKNOWN except for
+ * `exists` / `not_exists`.
+ */
+export function evaluateOperator(
+  operator: string,
+  actualValue: unknown,
+  expectedValue: unknown = null,
 ): RuleResultStatus {
-  const operator = rule.operator as string;
-  const profileValue = getProfileValue(profile, rule.field);
-  const missing = isMissing(profileValue);
+  const missing = isMissing(actualValue);
 
   switch (operator as RuleOperator) {
     case "exists":
@@ -62,24 +70,24 @@ function evaluateRuleStatus(
     case "not_exists":
       return missing ? "PASS" : "FAIL";
     case "is_true":
-      return evaluateBoolean(profileValue, true, missing);
+      return evaluateBoolean(actualValue, true, missing);
     case "is_false":
-      return evaluateBoolean(profileValue, false, missing);
+      return evaluateBoolean(actualValue, false, missing);
     case "equals":
-      return evaluateEquals(profileValue, rule.value, missing);
+      return evaluateEquals(actualValue, expectedValue, missing);
     case "not_equals":
-      return invertComparable(evaluateEquals(profileValue, rule.value, missing));
+      return invertComparable(evaluateEquals(actualValue, expectedValue, missing));
     case "greater_than":
     case "greater_than_or_equal":
     case "less_than":
     case "less_than_or_equal":
-      return evaluateComparison(operator, profileValue, rule.value, missing);
+      return evaluateComparison(operator, actualValue, expectedValue, missing);
     case "in":
-      return evaluateMembership(profileValue, rule.value, missing, false);
+      return evaluateMembership(actualValue, expectedValue, missing, false);
     case "not_in":
-      return evaluateMembership(profileValue, rule.value, missing, true);
+      return evaluateMembership(actualValue, expectedValue, missing, true);
     case "contains":
-      return evaluateContains(profileValue, rule.value, missing);
+      return evaluateContains(actualValue, expectedValue, missing);
     default:
       return "UNKNOWN";
   }
