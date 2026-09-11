@@ -1,6 +1,8 @@
 import type {
   LocationType,
   Program,
+  ProgramFollowupQuestion,
+  ProgramFollowupRule,
   ProgramLocation,
   ProgramRule,
   RuleGroupOperator,
@@ -89,6 +91,28 @@ export type RuleEvaluation = {
   explanation: string;
 };
 
+export type FollowupOption = {
+  value: string;
+  label: string;
+  unknown?: boolean;
+};
+
+export type FollowupAnswersByProgram = Record<string, Record<string, unknown>>;
+
+export type FollowupEvaluationInput = {
+  questions: ProgramFollowupQuestion[];
+  rules: ProgramFollowupRule[];
+  answers: Record<string, unknown>;
+};
+
+export type FollowupRuleEvaluation = {
+  rule: ProgramFollowupRule;
+  question: ProgramFollowupQuestion;
+  status: RuleResultStatus;
+  explanation: string;
+  applicable: boolean;
+};
+
 export type ProgramEligibilityStatus =
   | "LIKELY_ELIGIBLE"
   | "POSSIBLY_ELIGIBLE"
@@ -125,6 +149,16 @@ export type ProgramEvaluation = {
   geography: GeographyEvaluation;
   hasUnmodeledRequiredCriteria: boolean;
   unmodeledRequiredCriteriaSummary: string | null;
+  followupResults: FollowupRuleEvaluation[];
+  failedRequiredFollowupRules: FollowupRuleEvaluation[];
+  unknownRequiredFollowupRules: FollowupRuleEvaluation[];
+  passedRequiredFollowupRules: FollowupRuleEvaluation[];
+};
+
+export type FollowupMatchInput = {
+  questions: ProgramFollowupQuestion[];
+  rules: ProgramFollowupRule[];
+  answersByProgramId: FollowupAnswersByProgram;
 };
 
 export type MatchProgramsResult = {
@@ -133,4 +167,11 @@ export type MatchProgramsResult = {
   notEligible: ProgramEvaluation[];
 };
 
-export type { Program, ProgramLocation, ProgramRule, RuleGroupOperator };
+export type {
+  Program,
+  ProgramFollowupQuestion,
+  ProgramFollowupRule,
+  ProgramLocation,
+  ProgramRule,
+  RuleGroupOperator,
+};

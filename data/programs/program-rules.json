@@ -892,5 +892,15 @@
     "group_operator": "AND",
     "required": true,
     "explanation": "The published path is for single-family homeowners."
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "field": "property_type",
+    "operator": "equals",
+    "value": "single_family",
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "LEAP is published for qualifying single-family homes."
   }
 ]

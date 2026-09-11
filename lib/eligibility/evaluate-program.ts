@@ -1,6 +1,9 @@
 import { evaluateGeography } from "@/lib/eligibility/evaluate-geography";
+import { evaluateFollowupRules } from "@/lib/eligibility/evaluate-followup";
 import { evaluateRule } from "@/lib/eligibility/evaluate-rule";
 import type {
+  FollowupEvaluationInput,
+  FollowupRuleEvaluation,
   ProgramEvaluation,
   ProgramEligibilityStatus,
   RuleEvaluation,
@@ -42,6 +45,7 @@ export function evaluateProgram(
   rules: ProgramRule[],
   locations: ProgramLocation[],
   profile: UserProfile,
+  followup?: FollowupEvaluationInput,
 ): ProgramEvaluation {
   const programRules = rules.filter((rule) => rule.program_id === program.id);
   const ruleResults = programRules.map((rule) => evaluateRule(rule, profile));
@@ -53,9 +57,16 @@ export function evaluateProgram(
 
   const requiredGroups = foldGroups(requiredResults, true);
   const geography = evaluateGeography(program, locations, profile);
+  const followupResults = evaluateFollowupForProgram(program.id, profile, followup);
+  const requiredFollowup = followupResults.filter((result) => result.rule.required);
 
   const groupStatuses = requiredGroups.map((group) => group.status);
-  const combined = andStatuses([...groupStatuses, geography.status]);
+  const followupStatuses = requiredFollowup.map((result) => result.status);
+  const combined = andStatuses([
+    ...groupStatuses,
+    geography.status,
+    ...followupStatuses,
+  ]);
   const status = programStatusFromRequired(
     combined,
     program.has_unmodeled_required_criteria,
@@ -75,7 +86,32 @@ export function evaluateProgram(
     geography,
     hasUnmodeledRequiredCriteria: program.has_unmodeled_required_criteria,
     unmodeledRequiredCriteriaSummary: program.unmodeled_required_criteria_summary,
+    followupResults,
+    failedRequiredFollowupRules: requiredFollowup.filter((result) => result.status === "FAIL"),
+    unknownRequiredFollowupRules: requiredFollowup.filter(
+      (result) => result.status === "UNKNOWN",
+    ),
+    passedRequiredFollowupRules: requiredFollowup.filter((result) => result.status === "PASS"),
   };
+}
+
+function evaluateFollowupForProgram(
+  programId: string,
+  profile: UserProfile,
+  followup?: FollowupEvaluationInput,
+): FollowupRuleEvaluation[] {
+  if (!followup) {
+    return [];
+  }
+  const questions = followup.questions.filter((question) => question.program_id === programId);
+  const rules = followup.rules.filter((rule) => rule.program_id === programId);
+  if (questions.length === 0 && rules.length === 0) {
+    return [];
+  }
+  return evaluateFollowupRules(
+    { questions, rules, answers: followup.answers },
+    profile,
+  );
 }
 
 export function foldGroupStatus(

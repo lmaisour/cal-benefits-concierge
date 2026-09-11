@@ -6,6 +6,10 @@ import {
   getContentBriefForProgram,
   listContentEvidenceForProgram,
 } from "@/lib/admin/research-queries";
+import {
+  listFollowupQuestionsForProgram,
+  listFollowupRulesForProgram,
+} from "@/lib/admin/followup-queries";
 import type { ProgramWritePayload } from "@/lib/admin/validate-program";
 import type { AdminRelatedProgram } from "@/lib/admin/form-values";
 import type {
@@ -20,6 +24,8 @@ import type {
   Program,
   ProgramContent,
   ProgramFaq,
+  ProgramFollowupQuestion,
+  ProgramFollowupRule,
   ProgramLocation,
   ProgramRule,
   ProgramSource,
@@ -38,6 +44,8 @@ export type AdminProgramDetail = {
   homepageFeature: HomepageFeature | null;
   contentBrief: ContentBrief | null;
   evidence: ContentEvidence[];
+  followupQuestions: ProgramFollowupQuestion[];
+  followupRules: ProgramFollowupRule[];
 };
 
 export async function listAllPrograms(): Promise<Program[]> {
@@ -80,6 +88,8 @@ export async function getAdminProgramById(
     featureResult,
     contentBrief,
     evidence,
+    followupQuestions,
+    followupRules,
   ] = await Promise.all([
       supabase
         .from("program_rules")
@@ -110,6 +120,8 @@ export async function getAdminProgramById(
       supabase.from("homepage_features").select("*").eq("program_id", id).maybeSingle(),
       getContentBriefForProgram(id),
       listContentEvidenceForProgram(id),
+      listFollowupQuestionsForProgram(id),
+      listFollowupRulesForProgram(id),
     ]);
 
   if (rulesResult.error) {
@@ -184,6 +196,8 @@ export async function getAdminProgramById(
     homepageFeature: featureResult.error ? null : featureResult.data,
     contentBrief,
     evidence,
+    followupQuestions,
+    followupRules,
   };
 }
 
