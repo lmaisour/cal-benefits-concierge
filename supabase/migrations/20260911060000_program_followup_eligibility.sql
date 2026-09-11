@@ -20,6 +20,8 @@ CREATE TABLE public.program_followup_questions (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT program_followup_questions_program_key_unique
     UNIQUE (program_id, question_key),
+  CONSTRAINT program_followup_questions_id_program_unique
+    UNIQUE (id, program_id),
   CONSTRAINT program_followup_questions_key_format CHECK (
     question_key ~ '^[a-z][a-z0-9_]*$'
   ),
@@ -53,13 +55,17 @@ CREATE TABLE public.program_followup_questions (
 CREATE TABLE public.program_followup_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   program_id UUID NOT NULL REFERENCES public.programs(id) ON DELETE CASCADE,
-  question_id UUID NOT NULL REFERENCES public.program_followup_questions(id) ON DELETE CASCADE,
+  question_id UUID NOT NULL,
   operator TEXT NOT NULL,
   expected_value JSONB,
   required BOOLEAN NOT NULL DEFAULT TRUE,
   explanation TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT program_followup_rules_question_program_fk
+    FOREIGN KEY (question_id, program_id)
+    REFERENCES public.program_followup_questions (id, program_id)
+    ON DELETE CASCADE,
   CONSTRAINT program_followup_rules_operator_check CHECK (
     operator IN (
       'equals', 'not_equals',

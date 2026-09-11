@@ -11,6 +11,9 @@ import {
   type RuleOperator,
 } from "@/types/database";
 
+export const FOLLOWUP_QUESTION_SCOPE_ERROR =
+  "Select a question that belongs to this program.";
+
 export type FollowupQuestionFormValues = {
   question_key: string;
   question: string;
@@ -42,6 +45,19 @@ export type FollowupRuleValidationResult =
   | { ok: true; data: Omit<ProgramFollowupRuleInsert, "program_id"> }
   | { ok: false; errors: FieldErrors };
 
+export type FollowupOptionObject = {
+  value: string;
+  label: string;
+  unknown?: boolean;
+};
+
+export function isFollowupQuestionOnProgram(
+  question: { program_id: string } | null | undefined,
+  programId: string,
+): boolean {
+  return question != null && question.program_id === programId;
+}
+
 export function validateFollowupQuestionForm(
   values: FollowupQuestionFormValues,
 ): FollowupQuestionValidationResult {
@@ -62,11 +78,17 @@ export function validateFollowupQuestionForm(
     errors.answer_type = "Select a valid answer type.";
   }
 
-  const options = parseRuleJsonValue(values.options || "[]");
-  if (options.ok === false) {
-    errors.options = options.error;
-  } else if (!Array.isArray(options.value)) {
-    errors.options = "Options must be a JSON array.";
+  const parsedOptions = parseRuleJsonValue(values.options || "[]");
+  let options: Json = [];
+  if (parsedOptions.ok === false) {
+    errors.options = parsedOptions.error;
+  } else if (values.answer_type === "single_choice" || !errors.answer_type) {
+    const validated = validateSingleChoiceOptions(parsedOptions.value);
+    if (validated.ok === false) {
+      errors.options = validated.error;
+    } else {
+      options = validated.value as Json;
+    }
   }
 
   const sortOrder = parseNonNegativeInt(values.sort_order);
@@ -102,7 +124,7 @@ export function validateFollowupQuestionForm(
       question,
       help_text: emptyToNull(values.help_text),
       answer_type: values.answer_type as FollowupAnswerType,
-      options: (options.ok ? options.value : []) as Json,
+      options,
       sort_order: sortOrder.ok ? sortOrder.value : 0,
       required: values.required,
       display_when_field: displayField,
@@ -112,6 +134,50 @@ export function validateFollowupQuestionForm(
       cta_label: emptyToNull(values.cta_label),
     },
   };
+}
+
+export function validateSingleChoiceOptions(
+  raw: Json | null,
+): { ok: true; value: FollowupOptionObject[] } | { ok: false; error: string } {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return { ok: false, error: "Add at least one option with a value and label." };
+  }
+
+  const options: FollowupOptionObject[] = [];
+  const seen = new Set<string>();
+
+  for (const [index, item] of raw.entries()) {
+    const position = index + 1;
+    if (!isPlainObject(item)) {
+      return { ok: false, error: `Option ${position} must be an object with value and label.` };
+    }
+    if (typeof item.value !== "string" || item.value.trim() === "") {
+      return { ok: false, error: `Option ${position} needs a nonblank string value.` };
+    }
+    if (typeof item.label !== "string" || item.label.trim() === "") {
+      return { ok: false, error: `Option ${position} needs a nonblank string label.` };
+    }
+    if (item.unknown !== undefined && typeof item.unknown !== "boolean") {
+      return { ok: false, error: `Option ${position} unknown must be a boolean when set.` };
+    }
+
+    const value = item.value.trim();
+    if (seen.has(value)) {
+      return { ok: false, error: "Option values must be unique." };
+    }
+    seen.add(value);
+
+    const option: FollowupOptionObject = {
+      value,
+      label: item.label.trim(),
+    };
+    if (item.unknown === true || item.unknown === false) {
+      option.unknown = item.unknown;
+    }
+    options.push(option);
+  }
+
+  return { ok: true, value: options };
 }
 
 export function validateFollowupRuleForm(
@@ -186,6 +252,10 @@ function isFollowupAnswerType(value: string): value is FollowupAnswerType {
 
 function isRuleOperator(value: string): value is RuleOperator {
   return (RULE_OPERATORS as readonly string[]).includes(value);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function emptyToNull(value: string): string | null {

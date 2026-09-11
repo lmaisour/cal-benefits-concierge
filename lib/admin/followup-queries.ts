@@ -8,6 +8,24 @@ import type {
 } from "@/types/database";
 import type { ProgramFollowupQuestion, ProgramFollowupRule } from "@/types/program";
 
+export async function getFollowupQuestionById(
+  questionId: string,
+): Promise<Pick<ProgramFollowupQuestion, "id" | "program_id"> | null> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("program_followup_questions")
+    .select("id, program_id")
+    .eq("id", questionId)
+    .maybeSingle();
+  if (error) {
+    if (isMissingRelationError(error)) {
+      return null;
+    }
+    throw new Error(`Failed to load follow-up question: ${error.message}`);
+  }
+  return data;
+}
+
 export async function listFollowupQuestionsForProgram(
   programId: string,
 ): Promise<ProgramFollowupQuestion[]> {
