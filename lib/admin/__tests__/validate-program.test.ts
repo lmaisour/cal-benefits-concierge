@@ -80,6 +80,47 @@ describe("validateProgramForm", () => {
     }
   });
 
+  it("accepts consumer presentation fields and normalizes tags", () => {
+    const result = validateProgramForm({
+      ...validValues(),
+      consumer_headline: "Free rides for 90 days",
+      administrator_display_name: "LA Metro",
+      audience_tags: "Low income\nTransit\nLow income\n",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.consumer_headline).toBe("Free rides for 90 days");
+      expect(result.data.administrator_display_name).toBe("LA Metro");
+      expect(result.data.audience_tags).toEqual(["Low income", "Transit"]);
+    }
+  });
+
+  it("rejects oversized headlines, display names, and tags", () => {
+    const headline = validateProgramForm({
+      ...validValues(),
+      consumer_headline: "x".repeat(81),
+    });
+    expect(headline.ok).toBe(false);
+    if (!headline.ok) {
+      expect(headline.errors.consumer_headline).toMatch(/80/);
+    }
+
+    const displayName = validateProgramForm({
+      ...validValues(),
+      administrator_display_name: "x".repeat(61),
+    });
+    expect(displayName.ok).toBe(false);
+
+    const tags = validateProgramForm({
+      ...validValues(),
+      audience_tags: "One\nTwo\nThree\nFour\nFive\nSix\nSeven",
+    });
+    expect(tags.ok).toBe(false);
+    if (!tags.ok) {
+      expect(tags.errors.audience_tags).toMatch(/6/);
+    }
+  });
+
   it("accepts a nullable application deadline without changing effective_end", () => {
     const result = validateProgramForm({
       ...validValues(),

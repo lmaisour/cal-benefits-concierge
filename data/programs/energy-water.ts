@@ -644,13 +644,16 @@ const drafts: Draft[] = [
       name: "LADWP Landscape Efficiency Assistance Program (LEAP)",
       slug: "ladwp-landscape-efficiency-assistance",
       administrator: "Los Angeles Department of Water and Power",
+      consumer_headline: "Free front-yard landscaping",
+      administrator_display_name: "LADWP",
+      audience_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
       category: "water",
       subcategory: "landscaping",
       short_description:
         "Qualifying LADWP water customers may receive free front-yard lawn replacement and drought-tolerant landscaping.",
       description:
         "LEAP is a free LADWP landscape design and construction service, not a cash rebate. LADWP says qualifying single-family sites with LADWP water service in a DWR-defined disadvantaged community may receive front-yard lawn replacement and related drought-tolerant improvements. Front yards need 500 to 3,000 square feet of living grass (parkway may count). Owners or renters with written owner permission may apply. Applications are due October 31, 2026; high demand may create a waitlist. Water service, lawn size, and owner permission are asked as follow-up questions. DAC geography stays unmodeled until address-based resolution exists. Prior or current front-yard SoCalWaterSmart turf-rebate participation is a published restriction and is not deterministically matched here.",
-      benefit_summary: "Free lawn replacement if you may qualify",
+      benefit_summary: "Free front-yard landscaping",
       benefit_type: "FREE_SERVICE",
       benefit_min: null,
       benefit_max: null,
@@ -729,6 +732,9 @@ const drafts: Draft[] = [
       name: "City Plants Free Trees",
       slug: "city-plants-free-trees",
       administrator: "City Plants",
+      consumer_headline: "Get up to 7 free trees",
+      administrator_display_name: "City Plants",
+      audience_tags: ["Los Angeles", "Free trees"],
       category: "home-energy",
       subcategory: "shade",
       short_description:

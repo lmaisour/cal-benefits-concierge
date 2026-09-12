@@ -1,4 +1,11 @@
 import {
+  ADMINISTRATOR_DISPLAY_NAME_MAX,
+  AUDIENCE_TAG_MAX_COUNT,
+  AUDIENCE_TAG_MAX_LENGTH,
+  CONSUMER_HEADLINE_MAX,
+  parseAudienceTagsInput,
+} from "@/lib/programs/presentation";
+import {
   BENEFIT_TYPES,
   CONFIDENCE_LEVELS,
   PROGRAM_STATUSES,
@@ -14,6 +21,9 @@ export type ProgramFormValues = {
   name: string;
   slug: string;
   administrator: string;
+  consumer_headline: string;
+  administrator_display_name: string;
+  audience_tags: string;
   category: string;
   subcategory: string;
   short_description: string;
@@ -43,6 +53,9 @@ export type ProgramWritePayload = Pick<
   | "name"
   | "slug"
   | "administrator"
+  | "consumer_headline"
+  | "administrator_display_name"
+  | "audience_tags"
   | "category"
   | "subcategory"
   | "short_description"
@@ -80,6 +93,9 @@ export function emptyProgramFormValues(): ProgramFormValues {
     name: "",
     slug: "",
     administrator: "",
+    consumer_headline: "",
+    administrator_display_name: "",
+    audience_tags: "",
     category: "",
     subcategory: "",
     short_description: "",
@@ -110,6 +126,9 @@ export function programFormFromData(formData: FormData): ProgramFormValues {
     name: readString(formData, "name"),
     slug: readString(formData, "slug"),
     administrator: readString(formData, "administrator"),
+    consumer_headline: readString(formData, "consumer_headline"),
+    administrator_display_name: readString(formData, "administrator_display_name"),
+    audience_tags: readString(formData, "audience_tags"),
     category: readString(formData, "category"),
     subcategory: readString(formData, "subcategory"),
     short_description: readString(formData, "short_description"),
@@ -236,6 +255,27 @@ export function validateProgramForm(
     errors.confidence = confidence.error;
   }
 
+  const consumerHeadline = emptyToNull(values.consumer_headline);
+  if (consumerHeadline && consumerHeadline.length > CONSUMER_HEADLINE_MAX) {
+    errors.consumer_headline = `Keep the consumer headline to ${CONSUMER_HEADLINE_MAX} characters or fewer.`;
+  }
+
+  const administratorDisplayName = emptyToNull(values.administrator_display_name);
+  if (
+    administratorDisplayName &&
+    administratorDisplayName.length > ADMINISTRATOR_DISPLAY_NAME_MAX
+  ) {
+    errors.administrator_display_name = `Keep the display name to ${ADMINISTRATOR_DISPLAY_NAME_MAX} characters or fewer.`;
+  }
+
+  const audienceTags = parseAudienceTagsInput(values.audience_tags);
+  if (audienceTags.length > AUDIENCE_TAG_MAX_COUNT) {
+    errors.audience_tags = `Use at most ${AUDIENCE_TAG_MAX_COUNT} audience tags.`;
+  }
+  if (audienceTags.some((tag) => tag.length > AUDIENCE_TAG_MAX_LENGTH)) {
+    errors.audience_tags = `Each tag must be ${AUDIENCE_TAG_MAX_LENGTH} characters or fewer.`;
+  }
+
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
@@ -246,6 +286,9 @@ export function validateProgramForm(
       name,
       slug,
       administrator: emptyToNull(values.administrator),
+      consumer_headline: consumerHeadline,
+      administrator_display_name: administratorDisplayName,
+      audience_tags: audienceTags.length > 0 ? audienceTags : null,
       category,
       subcategory: emptyToNull(values.subcategory),
       short_description: emptyToNull(values.short_description),

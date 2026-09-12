@@ -38,6 +38,9 @@ function leapDetail(): ProgramDetail {
     name: leapCatalog.name,
     slug: leapCatalog.slug,
     administrator: leapCatalog.administrator,
+    consumer_headline: leapCatalog.consumer_headline,
+    administrator_display_name: leapCatalog.administrator_display_name,
+    audience_tags: leapCatalog.audience_tags,
     category: leapCatalog.category,
     subcategory: leapCatalog.subcategory,
     short_description: leapCatalog.short_description,
@@ -138,7 +141,14 @@ function renderLeapPage(): string {
 describe("LEAP program page content", () => {
   it("renders gold-standard sections, deadline, warning, FAQs, and official sources", () => {
     const html = renderLeapPage();
+    expect(html).toContain("<h1");
+    expect(html).toContain("Free front-yard landscaping");
     expect(html).toContain(leapStructuredPatch.name);
+    expect(html).toContain("by LADWP");
+    expect(html).toContain("Single-family home");
+    expect(html).toContain("LADWP water");
+    expect(html).toContain("Homeowner or renter");
+    expect(html).not.toContain("Low income");
     expect(html).toContain(LEAP_PAGE_HEADING);
     expect(html).toContain("Application deadline: October 31, 2026");
     expect(html).toMatch(/application deadline/i);

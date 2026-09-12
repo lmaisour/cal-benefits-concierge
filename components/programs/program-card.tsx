@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { LocationCoverage } from "@/components/programs/location-coverage";
+import { ProgramIdentity } from "@/components/programs/program-identity";
 import { StatusBadge } from "@/components/programs/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TrackLink } from "@/components/analytics/track-link";
 import { formatCategory, formatDate, formatProgramValue } from "@/lib/programs/format";
+import { programPresentation } from "@/lib/programs/presentation";
 import { siteConfig } from "@/lib/config/site";
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
 import type { GeographicBucket } from "@/lib/programs/directory-location";
@@ -39,14 +41,38 @@ export function ProgramCard({
   trackProps?: AnalyticsProps;
 }) {
   const value = formatProgramValue(program);
+  const display = programPresentation(program);
   const verified = formatDate(program.last_verified_at);
   const href = `${siteConfig.urls.programs}/${program.slug}`;
   const description = program.short_description
     ? truncateDescription(program.short_description)
     : null;
+  const titleLinkClass =
+    "rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <Card className="flex h-full flex-col gap-4 p-6 transition-shadow hover:shadow-[0_2px_6px_rgba(28,25,23,0.06),0_14px_28px_rgba(28,25,23,0.06)]">
+      <ProgramIdentity
+        program={program}
+        headingLevel={2}
+        title={
+          trackEvent ? (
+            <TrackLink
+              href={href}
+              event={trackEvent}
+              eventProps={trackProps}
+              className={titleLinkClass}
+            >
+              {display.primaryTitle}
+            </TrackLink>
+          ) : (
+            <Link href={href} className={titleLinkClass}>
+              {display.primaryTitle}
+            </Link>
+          )
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{formatCategory(program.category)}</Badge>
         <StatusBadge status={program.status} />
@@ -54,31 +80,6 @@ export function ProgramCard({
           <Badge className="border-primary/15 bg-hero text-primary">
             {LOCATION_MATCH_LABEL.local}
           </Badge>
-        ) : null}
-      </div>
-
-      <div>
-        <h2 className="font-serif text-xl font-semibold tracking-tight text-foreground">
-          {trackEvent ? (
-            <TrackLink
-              href={href}
-              event={trackEvent}
-              eventProps={trackProps}
-              className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {program.name}
-            </TrackLink>
-          ) : (
-            <Link
-              href={href}
-              className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {program.name}
-            </Link>
-          )}
-        </h2>
-        {program.administrator ? (
-          <p className="mt-1 text-sm text-muted-foreground">{program.administrator}</p>
         ) : null}
       </div>
 
@@ -95,7 +96,7 @@ export function ProgramCard({
           <p className="mt-1 text-sm font-medium text-muted-foreground">{REPAYABLE_NOTICE}</p>
         </div>
       ) : null}
-      {value.kind === "none" && program.benefit_summary ? (
+      {value.kind === "none" && !display.showOfficialSubtitle && program.benefit_summary ? (
         <p className="text-base font-semibold text-foreground">{program.benefit_summary}</p>
       ) : null}
 

@@ -6,6 +6,8 @@ import type { ConsumerCriterion, ConsumerProgramMatch } from "@/lib/eligibility/
 import { REPAYABLE_NOTICE } from "@/lib/eligibility/consumer-match";
 import { formatCategory, formatDate } from "@/lib/programs/format";
 import { benefitTypeLabel, statusLabel } from "@/lib/programs/labels";
+import { ProgramIdentity } from "@/components/programs/program-identity";
+import { programPresentation } from "@/lib/programs/presentation";
 import { OptionsQuestion } from "@/components/questionnaire/options-question";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -19,6 +21,13 @@ export function ResultCard({
   match: ConsumerProgramMatch;
   onFollowupSubmit?: (programId: string, answers: Record<string, string>) => void;
 }) {
+  const display = programPresentation({
+    name: match.name,
+    administrator: match.administrator,
+    consumerHeadline: match.consumerHeadline,
+    administratorDisplayName: match.administratorDisplayName,
+    audienceTags: match.audienceTags,
+  });
   const verified = formatDate(match.lastVerifiedAt);
   const followup = match.followup;
   const showYouMayQualify =
@@ -34,6 +43,25 @@ export function ResultCard({
 
   return (
     <Card className="flex flex-col gap-4">
+      <ProgramIdentity
+        program={{
+          name: match.name,
+          administrator: match.administrator,
+          consumerHeadline: match.consumerHeadline,
+          administratorDisplayName: match.administratorDisplayName,
+          audienceTags: match.audienceTags,
+        }}
+        headingLevel={3}
+        title={
+          <Link
+            href={`${siteConfig.urls.programs}/${match.slug}`}
+            className="hover:underline"
+          >
+            {display.primaryTitle}
+          </Link>
+        }
+      />
+
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           className={
@@ -52,20 +80,6 @@ export function ResultCard({
         {match.isSample ? <Badge>Sample</Badge> : null}
       </div>
 
-      <div>
-        <h3 className="font-serif text-xl font-semibold text-foreground">
-          <Link
-            href={`${siteConfig.urls.programs}/${match.slug}`}
-            className="hover:underline"
-          >
-            {match.name}
-          </Link>
-        </h3>
-        {match.administrator ? (
-          <p className="mt-1 text-sm text-muted-foreground">{match.administrator}</p>
-        ) : null}
-      </div>
-
       {match.isSample ? (
         <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
           Sample record for testing. Application links are placeholders, not live
@@ -73,7 +87,7 @@ export function ResultCard({
         </p>
       ) : null}
 
-      {match.benefitSummary ? (
+      {match.benefitSummary && !display.showOfficialSubtitle ? (
         <p className="text-sm text-foreground">{match.benefitSummary}</p>
       ) : null}
 

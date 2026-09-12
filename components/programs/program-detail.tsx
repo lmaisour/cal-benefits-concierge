@@ -3,6 +3,7 @@ import Link from "next/link";
 import { TrackButtonLink } from "@/components/analytics/track-link";
 import { TrackView } from "@/components/analytics/track-view";
 import { LocationCoverage } from "@/components/programs/location-coverage";
+import { ProgramIdentity } from "@/components/programs/program-identity";
 import { ProgramArticleSection } from "@/components/programs/program-article-section";
 import { ProgramSummary } from "@/components/programs/program-summary";
 import { SectionCard } from "@/components/programs/section-card";
@@ -119,12 +120,7 @@ export function ProgramDetailView({
             {program.statewide ? <Badge>Statewide</Badge> : null}
           </div>
 
-          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {program.name}
-          </h1>
-          {program.administrator ? (
-            <p className="mt-2 text-lg text-muted-foreground">{program.administrator}</p>
-          ) : null}
+          <ProgramIdentity program={program} headingLevel={1} className="mt-4" />
 
           {!currentlyAvailable ? (
             <p className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 font-medium text-amber-950">

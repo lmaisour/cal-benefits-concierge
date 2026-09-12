@@ -4,7 +4,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { catalogSummary, programCatalog, writeCatalogJson } from "@/data/programs/index";
 import { validateCatalog } from "@/lib/programs/import/validate-catalog";
 import type { ProgramCatalog } from "@/lib/programs/import/types";
-import type { Database, ProgramInsert } from "@/types/database";
+import {
+  catalogProgramUpdateFields,
+  catalogProgramWriteFields,
+} from "@/lib/programs/import/program-row";
+import type { Database } from "@/types/database";
 
 loadEnvLocal();
 
@@ -70,36 +74,8 @@ async function upsertPrograms(
   const unchanged = 0;
 
   for (const program of catalog.programs) {
-    const row: ProgramInsert = {
-      external_id: program.external_id,
-      name: program.name,
-      slug: program.slug,
-      administrator: program.administrator,
-      category: program.category,
-      subcategory: program.subcategory,
-      short_description: program.short_description,
-      description: program.description,
-      benefit_summary: program.benefit_summary,
-      benefit_type: program.benefit_type,
-      benefit_min: program.benefit_min,
-      benefit_max: program.benefit_max,
-      benefit_period: program.benefit_period,
-      status: program.status,
-      official_url: program.official_url,
-      application_url: program.application_url,
-      statewide: program.statewide,
-      preapproval_required: program.preapproval_required,
-      purchase_before_approval_allowed: program.purchase_before_approval_allowed,
-      effective_start: program.effective_start,
-      effective_end: program.effective_end,
-      application_deadline: program.application_deadline,
-      last_verified_at: program.last_verified_at,
-      confidence: program.confidence,
-      featured: program.featured,
-      active: program.active,
-      has_unmodeled_required_criteria: program.has_unmodeled_required_criteria,
-      unmodeled_required_criteria_summary: program.unmodeled_required_criteria_summary,
-    };
+    const insertRow = catalogProgramWriteFields(program);
+    const updateRow = catalogProgramUpdateFields(program);
 
     const { data: existing, error: lookupError } = await supabase
       .from("programs")
@@ -111,7 +87,7 @@ async function upsertPrograms(
     }
 
     if (existing?.id) {
-      const { error } = await supabase.from("programs").update(row).eq("id", existing.id);
+      const { error } = await supabase.from("programs").update(updateRow).eq("id", existing.id);
       if (error) {
         throw new Error(`Update failed for ${program.external_id}: ${error.message}`);
       }
@@ -122,7 +98,7 @@ async function upsertPrograms(
 
     const { data: created, error } = await supabase
       .from("programs")
-      .insert(row)
+      .insert(insertRow)
       .select("id")
       .single();
     if (error || !created) {
@@ -317,7 +293,7 @@ async function countRows(
 async function assertProgramImportColumns(supabase: SupabaseClient<Database>) {
   const { error } = await supabase
     .from("programs")
-    .select("external_id, has_unmodeled_required_criteria, unmodeled_required_criteria_summary")
+    .select("external_id, has_unmodeled_required_criteria, unmodeled_required_criteria_summary, consumer_headline, administrator_display_name, audience_tags")
     .limit(1);
   if (!error) {
     return;
@@ -333,6 +309,15 @@ async function assertProgramImportColumns(supabase: SupabaseClient<Database>) {
   ) {
     throw new Error(
       "programs unmodeled-criteria columns do not exist yet. Run supabase/migrations/20260906210000_add_unmodeled_required_criteria.sql in the Supabase SQL editor, then rerun npm run import:programs.",
+    );
+  }
+  if (
+    error.message.includes("consumer_headline") ||
+    error.message.includes("administrator_display_name") ||
+    error.message.includes("audience_tags")
+  ) {
+    throw new Error(
+      "programs consumer presentation columns do not exist yet. Run supabase/migrations/20260912170000_program_consumer_presentation.sql in the Supabase SQL editor, then rerun npm run import:programs.",
     );
   }
   throw new Error(`Could not read programs import columns: ${error.message}`);

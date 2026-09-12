@@ -112,13 +112,15 @@ const drafts: Draft[] = [
       name: "Energy Savings Assistance",
       slug: "energy-savings-assistance",
       administrator: "California Public Utilities Commission",
+      consumer_headline: "Free home energy upgrades",
+      audience_tags: ["Low income"],
       category: "home-energy",
       subcategory: "weatherization",
       short_description:
         "No-cost energy-efficiency and weatherization upgrades for income-qualified IOU customers.",
       description:
         "ESA can install insulation, efficient appliances, weatherstripping, and other measures at no charge if you qualify. Income must be at or below 250% of the federal poverty level on the June 1, 2026–May 31, 2027 table, or through listed assistance programs. Renters and owners may qualify; landlord permission can be required. Apply with PG&E, SCE, SDG&E, or SoCalGas. This is the statewide CPUC program, not a separate record per utility.",
-      benefit_summary: "No-cost home energy upgrades if you qualify",
+      benefit_summary: "Free home energy upgrades",
       benefit_type: "FREE_SERVICE",
       benefit_min: null,
       benefit_max: null,

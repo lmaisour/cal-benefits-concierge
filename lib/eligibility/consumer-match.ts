@@ -81,6 +81,9 @@ export type ConsumerProgramMatch = {
   slug: string;
   name: string;
   administrator: string | null;
+  consumerHeadline: string | null;
+  administratorDisplayName: string | null;
+  audienceTags: string[];
   category: string;
   subcategory: string | null;
   benefitSummary: string | null;
@@ -223,6 +226,9 @@ export function toConsumerProgramMatch(
     slug: evaluation.program.slug,
     name: evaluation.program.name,
     administrator: evaluation.program.administrator,
+    consumerHeadline: evaluation.program.consumer_headline,
+    administratorDisplayName: evaluation.program.administrator_display_name,
+    audienceTags: evaluation.program.audience_tags ?? [],
     category: evaluation.program.category,
     subcategory: evaluation.program.subcategory,
     benefitSummary: evaluation.program.benefit_summary,

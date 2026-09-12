@@ -100,6 +100,10 @@ describe("program detail visual composition", () => {
       }),
     );
 
+    expect(html).toContain("<h1");
+    expect(html).toContain("Sample rebate");
+    expect(html).toContain("by Sample administrator");
+    expect(html).not.toContain("Audience tags");
     expect(html).toContain("Overview copy stays on the page.");
     expect(html).toContain("Benefit copy stays on the page.");
     expect(html).toContain("Follow the official application.");

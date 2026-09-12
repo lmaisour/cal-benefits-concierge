@@ -29,6 +29,9 @@ export type CatalogProgram = {
   name: string;
   slug: string;
   administrator: string | null;
+  consumer_headline: string | null;
+  administrator_display_name: string | null;
+  audience_tags: string[] | null;
   category: CatalogCategory;
   subcategory: string | null;
   short_description: string | null;

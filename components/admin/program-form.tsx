@@ -74,6 +74,31 @@ export function ProgramForm({
             className={fieldClass}
           />
         </Field>
+        <Field label="Consumer headline" error={errors.consumer_headline}>
+          <input
+            name="consumer_headline"
+            defaultValue={values.consumer_headline}
+            className={fieldClass}
+            maxLength={80}
+          />
+        </Field>
+        <Field label="Administrator display name" error={errors.administrator_display_name}>
+          <input
+            name="administrator_display_name"
+            defaultValue={values.administrator_display_name}
+            className={fieldClass}
+            maxLength={60}
+          />
+        </Field>
+        <Field label="Audience tags" error={errors.audience_tags}>
+          <textarea
+            name="audience_tags"
+            rows={3}
+            defaultValue={values.audience_tags}
+            className={fieldClass}
+            placeholder="One tag per line"
+          />
+        </Field>
         <Field label="Category" error={errors.category}>
           <select name="category" required defaultValue={values.category} className={fieldClass}>
             <option value="">Select category</option>

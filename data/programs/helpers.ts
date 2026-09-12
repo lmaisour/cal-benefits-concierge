@@ -26,12 +26,18 @@ export function program(
     | "has_unmodeled_required_criteria"
     | "unmodeled_required_criteria_summary"
     | "application_deadline"
+    | "consumer_headline"
+    | "administrator_display_name"
+    | "audience_tags"
   > & {
     featured?: boolean;
     last_verified_at?: string;
     has_unmodeled_required_criteria?: boolean;
     unmodeled_required_criteria_summary?: string | null;
     application_deadline?: string | null;
+    consumer_headline?: string | null;
+    administrator_display_name?: string | null;
+    audience_tags?: string[] | null;
   },
 ): CatalogProgram {
   return {
@@ -40,6 +46,9 @@ export function program(
     has_unmodeled_required_criteria: false,
     unmodeled_required_criteria_summary: null,
     application_deadline: null,
+    consumer_headline: null,
+    administrator_display_name: null,
+    audience_tags: null,
     ...input,
   };
 }
