@@ -118,6 +118,28 @@ describe("technical SEO hardening", () => {
     ).toBeUndefined();
   });
 
+  it("does not drop a program from the sitemap because application_deadline passed", async () => {
+    vi.mocked(getActivePrograms).mockResolvedValue([
+      {
+        slug: "ladwp-landscape-efficiency-assistance",
+        updated_at: PROGRAM_UPDATED_AT,
+        application_deadline: "2020-01-01",
+        effective_end: null,
+        status: "ACTIVE",
+        active: true,
+      } as Awaited<ReturnType<typeof getActivePrograms>>[number],
+    ]);
+
+    const entries = await sitemap();
+    expect(
+      entries.some(
+        (entry) =>
+          entry.url ===
+          `${CANONICAL_ORIGIN}/programs/ladwp-landscape-efficiency-assistance`,
+      ),
+    ).toBe(true);
+  });
+
   it("keeps /check out of the sitemap", async () => {
     const entries = await sitemap();
     expect(entries.some((entry) => entry.url.includes("/check"))).toBe(false);

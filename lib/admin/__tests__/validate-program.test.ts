@@ -80,6 +80,19 @@ describe("validateProgramForm", () => {
     }
   });
 
+  it("accepts a nullable application deadline without changing effective_end", () => {
+    const result = validateProgramForm({
+      ...validValues(),
+      application_deadline: "2026-10-31",
+      effective_end: "",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.application_deadline).toBe("2026-10-31");
+      expect(result.data.effective_end).toBeNull();
+    }
+  });
+
   it("rejects a maximum below the minimum", () => {
     const result = validateProgramForm({
       ...validValues(),

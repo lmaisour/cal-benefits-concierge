@@ -73,11 +73,19 @@ export function ProgramDeadlineCard({
   );
 
   if (variant === "panel" && !nested) {
-    return <section aria-labelledby="program-deadline-heading">{content}</section>;
+    return (
+      <section
+        aria-label={display.summary}
+        aria-labelledby="program-deadline-heading"
+      >
+        {content}
+      </section>
+    );
   }
 
   return (
     <section
+      aria-label={display.summary}
       aria-labelledby="program-deadline-heading"
       className={cn(
         "rounded-2xl border px-5 py-4 sm:px-6",

@@ -320,4 +320,23 @@ describe("supplemental follow-up evaluation", () => {
       true,
     );
   });
+
+  it("does not change LEAP matching when application_deadline is set", () => {
+    const withDeadline = makeProgram({
+      ...leapProgram,
+      application_deadline: "2026-10-31",
+      effective_end: null,
+    });
+    const dated = evaluateProgram(withDeadline, [propertyRule], leapLocations, ownerProfile, {
+      questions: leapQuestions,
+      rules: leapFollowupRules,
+      answers: passingAnswers,
+    });
+    const baseline = evaluateLeap(ownerProfile, passingAnswers);
+    expect(dated.status).toBe(baseline.status);
+    expect(dated.ruleResults).toEqual(baseline.ruleResults);
+    expect(dated.followupResults).toEqual(baseline.followupResults);
+    expect(dated.geography).toEqual(baseline.geography);
+    expect(dated.hasUnmodeledRequiredCriteria).toBe(baseline.hasUnmodeledRequiredCriteria);
+  });
 });

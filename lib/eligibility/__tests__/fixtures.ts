@@ -38,6 +38,7 @@ export function makeProgram(overrides: Partial<Program> = {}): Program {
     purchase_before_approval_allowed: true,
     effective_start: "2024-01-01",
     effective_end: null,
+    application_deadline: null,
     last_verified_at: "2026-08-01T00:00:00Z",
     confidence: "MEDIUM",
     featured: false,

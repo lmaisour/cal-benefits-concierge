@@ -31,6 +31,7 @@ export type ProgramFormValues = {
   purchase_before_approval_allowed: string;
   effective_start: string;
   effective_end: string;
+  application_deadline: string;
   last_verified_at: string;
   confidence: string;
   featured: boolean;
@@ -59,6 +60,7 @@ export type ProgramWritePayload = Pick<
   | "purchase_before_approval_allowed"
   | "effective_start"
   | "effective_end"
+  | "application_deadline"
   | "last_verified_at"
   | "confidence"
   | "featured"
@@ -95,6 +97,7 @@ export function emptyProgramFormValues(): ProgramFormValues {
     purchase_before_approval_allowed: "",
     effective_start: "",
     effective_end: "",
+    application_deadline: "",
     last_verified_at: "",
     confidence: "",
     featured: false,
@@ -127,6 +130,7 @@ export function programFormFromData(formData: FormData): ProgramFormValues {
     ),
     effective_start: readString(formData, "effective_start"),
     effective_end: readString(formData, "effective_end"),
+    application_deadline: readString(formData, "application_deadline"),
     last_verified_at: readString(formData, "last_verified_at"),
     confidence: readString(formData, "confidence"),
     featured: formData.get("featured") === "true",
@@ -205,6 +209,11 @@ export function validateProgramForm(
     errors.effective_end = effectiveEnd.error;
   }
 
+  const applicationDeadline = parseOptionalDate(values.application_deadline);
+  if (applicationDeadline.ok === false) {
+    errors.application_deadline = applicationDeadline.error;
+  }
+
   const lastVerified = parseOptionalTimestamp(values.last_verified_at);
   if (lastVerified.ok === false) {
     errors.last_verified_at = lastVerified.error;
@@ -256,6 +265,9 @@ export function validateProgramForm(
         : null,
       effective_start: effectiveStart.ok ? effectiveStart.value : null,
       effective_end: effectiveEnd.ok ? effectiveEnd.value : null,
+      application_deadline: applicationDeadline.ok
+        ? applicationDeadline.value
+        : null,
       last_verified_at: lastVerified.ok ? lastVerified.value : null,
       confidence: confidence.ok ? confidence.value : null,
       featured: values.featured,

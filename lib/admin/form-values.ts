@@ -46,6 +46,7 @@ export function programToFormValues(program: Program): ProgramFormValues {
     ),
     effective_start: dateInput(program.effective_start),
     effective_end: dateInput(program.effective_end),
+    application_deadline: dateInput(program.application_deadline),
     last_verified_at: dateInput(program.last_verified_at),
     confidence: program.confidence ?? "",
     featured: program.featured,

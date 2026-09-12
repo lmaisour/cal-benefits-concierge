@@ -119,6 +119,7 @@ export type ProgramRow = {
   purchase_before_approval_allowed: boolean | null;
   effective_start: string | null;
   effective_end: string | null;
+  application_deadline: string | null;
   last_verified_at: string | null;
   confidence: Confidence | null;
   featured: boolean;

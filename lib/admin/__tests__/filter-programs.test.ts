@@ -26,6 +26,7 @@ function program(overrides: Partial<Program>): Program {
     purchase_before_approval_allowed: null,
     effective_start: null,
     effective_end: null,
+    application_deadline: null,
     last_verified_at: "2026-09-01T00:00:00.000Z",
     confidence: "HIGH",
     featured: false,
