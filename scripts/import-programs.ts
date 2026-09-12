@@ -92,6 +92,7 @@ async function upsertPrograms(
       purchase_before_approval_allowed: program.purchase_before_approval_allowed,
       effective_start: program.effective_start,
       effective_end: program.effective_end,
+      application_deadline: program.application_deadline,
       last_verified_at: program.last_verified_at,
       confidence: program.confidence,
       featured: program.featured,

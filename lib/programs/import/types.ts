@@ -46,6 +46,7 @@ export type CatalogProgram = {
   purchase_before_approval_allowed: boolean | null;
   effective_start: string | null;
   effective_end: string | null;
+  application_deadline: string | null;
   last_verified_at: string;
   confidence: Confidence;
   featured: boolean;

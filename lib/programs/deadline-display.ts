@@ -9,9 +9,12 @@ import {
 import type { ProgramStatus } from "@/types/program";
 
 export type DeadlineUrgency = "info" | "elevated" | "urgent" | "past";
+export type DeadlineKind = "application" | "period";
 
 export type ProgramDeadlineDisplay = {
+  kind: DeadlineKind;
   label: string;
+  summary: string;
   dateLabel: string;
   dateIso: string;
   daysRemaining: number | null;
@@ -30,11 +33,72 @@ const ENDED_STATUSES = new Set<ProgramStatus>([
 
 export function programDeadlineDisplay(
   input: {
+    application_deadline?: string | null;
     effective_start: string | null;
     effective_end: string | null;
     status: ProgramStatus;
   },
   now: Date = new Date(),
+): ProgramDeadlineDisplay | null {
+  const application = applicationDeadlineDisplay(input.application_deadline, now);
+  if (application) {
+    return application;
+  }
+  return periodDeadlineDisplay(input, now);
+}
+
+function applicationDeadlineDisplay(
+  raw: string | null | undefined,
+  now: Date,
+): ProgramDeadlineDisplay | null {
+  const deadline = parseUtcCalendarDate(raw ?? null);
+  if (!deadline) {
+    return null;
+  }
+  const today = utcToday(now);
+  const daysRemaining = calendarDaysBetween(today, deadline);
+  if (daysRemaining < 0) {
+    // A passed application date is not a program expiration.
+    return null;
+  }
+
+  let urgency: DeadlineUrgency;
+  if (daysRemaining <= 7) {
+    urgency = "urgent";
+  } else if (daysRemaining <= 30) {
+    urgency = "elevated";
+  } else {
+    urgency = "info";
+  }
+
+  const dateLabel = formatUtcCalendarDate(deadline);
+  return {
+    kind: "application",
+    label: "Application deadline",
+    summary: `Application deadline: ${dateLabel}`,
+    dateLabel,
+    dateIso: utcCalendarIso(deadline),
+    daysRemaining,
+    daysRemainingLabel:
+      daysRemaining === 0
+        ? "Due today"
+        : daysRemaining === 1
+          ? "1 day remaining"
+          : `${daysRemaining} days remaining`,
+    urgency,
+    periodLabel: null,
+    progressPercent: null,
+    ended: false,
+  };
+}
+
+function periodDeadlineDisplay(
+  input: {
+    effective_start: string | null;
+    effective_end: string | null;
+    status: ProgramStatus;
+  },
+  now: Date,
 ): ProgramDeadlineDisplay | null {
   const end = parseUtcCalendarDate(input.effective_end);
   if (!end) {
@@ -86,9 +150,13 @@ export function programDeadlineDisplay(
     }
   }
 
+  const dateLabel = formatUtcCalendarDate(end);
+  const label = ended ? "Program period ended" : "Current program period ends";
   return {
-    label: ended ? "Program period ended" : "Current program period ends",
-    dateLabel: formatUtcCalendarDate(end),
+    kind: "period",
+    label,
+    summary: `${label}: ${dateLabel}`,
+    dateLabel,
     dateIso: utcCalendarIso(end),
     daysRemaining: dateHasPassed ? null : daysRemaining,
     daysRemainingLabel,

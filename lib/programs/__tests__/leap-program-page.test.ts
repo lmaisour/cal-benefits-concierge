@@ -55,6 +55,7 @@ function leapDetail(): ProgramDetail {
     purchase_before_approval_allowed: leapCatalog.purchase_before_approval_allowed,
     effective_start: leapCatalog.effective_start,
     effective_end: leapCatalog.effective_end,
+    application_deadline: leapCatalog.application_deadline,
     last_verified_at: leapCatalog.last_verified_at,
     confidence: leapCatalog.confidence,
     active: leapCatalog.active,
@@ -139,15 +140,15 @@ describe("LEAP program page content", () => {
     const html = renderLeapPage();
     expect(html).toContain(leapStructuredPatch.name);
     expect(html).toContain(LEAP_PAGE_HEADING);
-    expect(html).toContain("October 31, 2026");
+    expect(html).toContain("Application deadline: October 31, 2026");
     expect(html).toMatch(/application deadline/i);
+    expect(html).not.toContain("Current program period ends");
     expect(html).toContain(LEAP_TURF_REBATE_WARNING);
     expect(html).toContain("No general household income limit is listed");
     expect(html).toContain("Renters are not categorically excluded");
     expect(html).toContain("Address-based DAC eligibility still needs confirmation");
     expect(html).toContain("cannot be saved");
     expect(html).toContain("Program summary");
-    expect(html).toContain("Current program period ends");
     expect(html).toContain("Frequently asked questions");
     expect(html).toContain("Official sources");
     expect(html).toContain("Check what you qualify for");
@@ -189,6 +190,17 @@ describe("LEAP program page content", () => {
     expect(html).toContain("Additional program requirements need to be confirmed.");
     expect(html).toContain(detail.program.unmodeled_required_criteria_summary);
     expect(html).not.toMatch(/disadvantaged community[\s\S]{0,40}passed/i);
+  });
+
+  it("does not store the application deadline on effective_end", () => {
+    expect(leapCatalog.application_deadline).toBe("2026-10-31");
+    expect(leapCatalog.effective_end).toBeNull();
+    expect(leapStructuredPatch.application_deadline).toBe("2026-10-31");
+    expect(leapStructuredPatch.effective_end).toBeNull();
+    const html = renderLeapPage();
+    expect(html).toContain("Application deadline: October 31, 2026");
+    expect(html).not.toContain("Current program period ends");
+    expect(html).not.toContain("Program period ended");
   });
 
   it("uses the provided SEO title and meta description", () => {

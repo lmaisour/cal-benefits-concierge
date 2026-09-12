@@ -7,6 +7,7 @@ const NOW = new Date(Date.UTC(2026, 8, 11, 16, 0, 0)); // 2026-09-11 16:00 UTC
 
 function display(
   overrides: {
+    application_deadline?: string | null;
     effective_start?: string | null;
     effective_end?: string | null;
     status?: ProgramStatus;
@@ -15,6 +16,10 @@ function display(
 ) {
   return programDeadlineDisplay(
     {
+      application_deadline:
+        "application_deadline" in overrides
+          ? (overrides.application_deadline ?? null)
+          : null,
       effective_start: overrides.effective_start ?? null,
       effective_end: "effective_end" in overrides ? (overrides.effective_end ?? null) : "2026-10-31",
       status: overrides.status ?? "ACTIVE",
@@ -119,5 +124,62 @@ describe("programDeadlineDisplay", () => {
     const before = display({ effective_end: "2026-09-11" }, justBeforeUtcMidnight);
     expect(after?.daysRemaining).toBe(0);
     expect(before?.daysRemaining).toBe(1);
+  });
+});
+
+describe("programDeadlineDisplay application_deadline", () => {
+  it("prefers a future application deadline and does not reuse period copy", () => {
+    const result = display({
+      application_deadline: "2026-10-31",
+      effective_end: null,
+    });
+    expect(result?.kind).toBe("application");
+    expect(result?.label).toBe("Application deadline");
+    expect(result?.summary).toBe("Application deadline: October 31, 2026");
+    expect(result?.dateLabel).toBe("October 31, 2026");
+    expect(result?.daysRemaining).toBe(50);
+    expect(result?.ended).toBe(false);
+    expect(result?.periodLabel).toBeNull();
+    expect(result?.progressPercent).toBeNull();
+  });
+
+  it("prefers application_deadline over a coexisting effective_end", () => {
+    const result = display({
+      application_deadline: "2026-10-31",
+      effective_start: "2026-06-01",
+      effective_end: "2026-12-31",
+    });
+    expect(result?.kind).toBe("application");
+    expect(result?.summary).toBe("Application deadline: October 31, 2026");
+    expect(result?.label).not.toBe("Current program period ends");
+    expect(result?.periodLabel).toBeNull();
+  });
+
+  it("hides a past application date without treating it as program expiration", () => {
+    const past = display({
+      application_deadline: "2026-06-30",
+      effective_end: null,
+      status: "ACTIVE",
+    });
+    expect(past).toBeNull();
+
+    const pastWithPeriod = display({
+      application_deadline: "2026-06-30",
+      effective_end: "2026-12-31",
+      status: "ACTIVE",
+    });
+    expect(pastWithPeriod?.kind).toBe("period");
+    expect(pastWithPeriod?.label).toBe("Current program period ends");
+    expect(pastWithPeriod?.ended).toBe(false);
+  });
+
+  it("uses Due today for an application deadline on the current UTC day", () => {
+    const today = display({
+      application_deadline: "2026-09-11",
+      effective_end: null,
+    });
+    expect(today?.daysRemainingLabel).toBe("Due today");
+    expect(today?.urgency).toBe("urgent");
+    expect(today?.ended).toBe(false);
   });
 });

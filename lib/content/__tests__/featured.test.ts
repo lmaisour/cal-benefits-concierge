@@ -26,6 +26,13 @@ describe("isCurrentlyAvailable", () => {
     ).toBe(false);
     expect(isCurrentlyAvailable(program({ name: "A", active: false }))).toBe(false);
   });
+
+  it("does not treat application_deadline as automatic expiration", () => {
+    expect(isCurrentlyAvailable(program({ name: "LEAP" }))).toBe(true);
+    expect(
+      isCurrentlyAvailable(program({ name: "LEAP", status: "EXPIRED" })),
+    ).toBe(false);
+  });
 });
 
 describe("selectHomepageFeatured", () => {

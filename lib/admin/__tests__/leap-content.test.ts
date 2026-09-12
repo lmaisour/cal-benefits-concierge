@@ -56,7 +56,8 @@ describe("LEAP editorial payload", () => {
     expect(leapStructuredPatch.administrator).toBe(
       "Los Angeles Department of Water and Power",
     );
-    expect(leapStructuredPatch.effective_end).toBe("2026-10-31");
+    expect(leapStructuredPatch.application_deadline).toBe("2026-10-31");
+    expect(leapStructuredPatch.effective_end).toBeNull();
   });
 
   it("validates the program brief", () => {

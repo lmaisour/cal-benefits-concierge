@@ -234,6 +234,28 @@ describe("visual primitive shells", () => {
     expect(html).toContain("50 days remaining");
     expect(html).toContain('dateTime="2026-10-31"');
     expect(html).not.toContain("Application deadline");
+    expect(html).not.toContain("Application deadline: October 31, 2026");
+    expect(html).toContain("Current program period ends: October 31, 2026");
+    expect(html).not.toContain('role="progressbar"');
+  });
+
+  it("renders an application deadline without program-period copy", () => {
+    const now = new Date(Date.UTC(2026, 8, 11, 16, 0, 0));
+    const html = renderToStaticMarkup(
+      createElement(ProgramDeadlineCard, {
+        program: makeProgram({
+          application_deadline: "2026-10-31",
+          effective_start: null,
+          effective_end: null,
+        }),
+        now,
+      }),
+    );
+    expect(html).toContain("Application deadline: October 31, 2026");
+    expect(html).toContain("Application deadline");
+    expect(html).toContain("October 31, 2026");
+    expect(html).not.toContain("Current program period ends");
+    expect(html).not.toContain("Program period ended");
     expect(html).not.toContain('role="progressbar"');
   });
 

@@ -34,7 +34,8 @@ export const leapStructuredPatch = {
   status: "ACTIVE" as const,
   active: true,
   confidence: "HIGH" as const,
-  effective_end: "2026-10-31",
+  application_deadline: "2026-10-31",
+  effective_end: null,
 };
 
 export const leapBrief = {

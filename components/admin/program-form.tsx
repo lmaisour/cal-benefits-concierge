@@ -174,6 +174,14 @@ export function ProgramForm({
             className={fieldClass}
           />
         </Field>
+        <Field label="Application deadline" error={errors.application_deadline}>
+          <input
+            name="application_deadline"
+            type="date"
+            defaultValue={values.application_deadline}
+            className={fieldClass}
+          />
+        </Field>
         <Field label="Last verified" error={errors.last_verified_at}>
           <input
             name="last_verified_at"

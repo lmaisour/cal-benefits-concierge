@@ -150,6 +150,7 @@ async function main() {
       status: leapStructuredPatch.status,
       active: leapStructuredPatch.active,
       confidence: leapStructuredPatch.confidence,
+      application_deadline: leapStructuredPatch.application_deadline,
       effective_end: leapStructuredPatch.effective_end,
     })
     .eq("id", programId);

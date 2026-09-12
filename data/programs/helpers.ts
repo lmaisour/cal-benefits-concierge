@@ -25,11 +25,13 @@ export function program(
     | "last_verified_at"
     | "has_unmodeled_required_criteria"
     | "unmodeled_required_criteria_summary"
+    | "application_deadline"
   > & {
     featured?: boolean;
     last_verified_at?: string;
     has_unmodeled_required_criteria?: boolean;
     unmodeled_required_criteria_summary?: string | null;
+    application_deadline?: string | null;
   },
 ): CatalogProgram {
   return {
@@ -37,6 +39,7 @@ export function program(
     last_verified_at: VERIFIED_AT,
     has_unmodeled_required_criteria: false,
     unmodeled_required_criteria_summary: null,
+    application_deadline: null,
     ...input,
   };
 }
