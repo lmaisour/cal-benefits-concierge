@@ -1180,8 +1180,40 @@
     "source_type": "GENERAL",
     "organization": "LADWP",
     "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/landscape-efficiency-assistance-program",
-    "verified_at": "2026-09-07T00:00:00Z",
-    "notes": null
+    "verified_at": "2026-09-12T00:00:00Z",
+    "notes": "Official LEAP program page: deadline, services, eligibility, and how to apply."
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/residential-services/programs-and-rebates-residential/landscape-efficiency-assistance-program/landscape-efficiency-assistance-program-leap-faqs",
+    "verified_at": "2026-09-12T00:00:00Z",
+    "notes": "Official FAQ: DAC definition, first-come first-served, Winter 2026 or funding exhaustion, construction timing."
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "source_type": "ELIGIBILITY",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/sites/default/files/2026-03/LEAP%20Terms%20and%20Conditions_03.27.2026.pdf",
+    "verified_at": "2026-09-12T00:00:00Z",
+    "notes": "Terms dated March 27, 2026: LADWP water service, area range, renter pathway, SoCalWaterSmart front-yard restriction."
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "source_type": "APPLICATION",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/sites/default/files/2026-04/LEAP%20Paper%20Application_April%202026.pdf",
+    "verified_at": "2026-09-12T00:00:00Z",
+    "notes": "April 2026 paper application and mailing instructions."
+  },
+  {
+    "program_external_id": "LADWP-WATER-LEAP",
+    "source_type": "APPLICATION",
+    "organization": "LADWP",
+    "url": "https://www.ladwp.com/sites/default/files/2026-03/Letter%20of%20Permission%20Sample.pdf",
+    "verified_at": "2026-09-12T00:00:00Z",
+    "notes": "Sample owner permission letter for applicants who are not the owner of record."
   },
   {
     "program_external_id": "LA-HOME-CITY-PLANTS",
