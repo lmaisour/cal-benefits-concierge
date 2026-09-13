@@ -11,7 +11,7 @@ function program(overrides: Partial<Program>): Program {
     administrator: "CARB",
     consumer_headline: null,
     administrator_display_name: null,
-    audience_tags: null,
+    consumer_tags: null,
     category: "vehicles",
     subcategory: null,
     short_description: null,

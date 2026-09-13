@@ -29,7 +29,7 @@ export function programToFormValues(program: Program): ProgramFormValues {
     administrator: program.administrator ?? "",
     consumer_headline: program.consumer_headline ?? "",
     administrator_display_name: program.administrator_display_name ?? "",
-    audience_tags: (program.audience_tags ?? []).join("\n"),
+    consumer_tags: (program.consumer_tags ?? []).join("\n"),
     category: program.category,
     subcategory: program.subcategory ?? "",
     short_description: program.short_description ?? "",

@@ -85,13 +85,13 @@ describe("validateProgramForm", () => {
       ...validValues(),
       consumer_headline: "Free rides for 90 days",
       administrator_display_name: "LA Metro",
-      audience_tags: "Low income\nTransit\nLow income\n",
+      consumer_tags: "Low income\nTransit\nLow income\n",
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.consumer_headline).toBe("Free rides for 90 days");
       expect(result.data.administrator_display_name).toBe("LA Metro");
-      expect(result.data.audience_tags).toEqual(["Low income", "Transit"]);
+      expect(result.data.consumer_tags).toEqual(["Low income", "Transit"]);
     }
   });
 
@@ -113,11 +113,11 @@ describe("validateProgramForm", () => {
 
     const tags = validateProgramForm({
       ...validValues(),
-      audience_tags: "One\nTwo\nThree\nFour\nFive\nSix\nSeven",
+      consumer_tags: "One\nTwo\nThree\nFour\nFive\nSix\nSeven",
     });
     expect(tags.ok).toBe(false);
     if (!tags.ok) {
-      expect(tags.errors.audience_tags).toMatch(/6/);
+      expect(tags.errors.consumer_tags).toMatch(/6/);
     }
   });
 

@@ -23,7 +23,7 @@ export function makeProgram(overrides: Partial<Program> = {}): Program {
     administrator: "Sample administrator",
     consumer_headline: null,
     administrator_display_name: null,
-    audience_tags: null,
+    consumer_tags: null,
     category: "home-energy",
     subcategory: null,
     short_description: "Test fixture",

@@ -646,7 +646,7 @@ const drafts: Draft[] = [
       administrator: "Los Angeles Department of Water and Power",
       consumer_headline: "Free front-yard landscaping",
       administrator_display_name: "LADWP",
-      audience_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
+      consumer_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
       category: "water",
       subcategory: "landscaping",
       short_description:
@@ -734,7 +734,7 @@ const drafts: Draft[] = [
       administrator: "City Plants",
       consumer_headline: "Get up to 7 free trees",
       administrator_display_name: "City Plants",
-      audience_tags: ["Los Angeles", "Free trees"],
+      consumer_tags: ["Los Angeles", "Free trees"],
       category: "home-energy",
       subcategory: "shade",
       short_description:

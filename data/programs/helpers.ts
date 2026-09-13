@@ -28,7 +28,7 @@ export function program(
     | "application_deadline"
     | "consumer_headline"
     | "administrator_display_name"
-    | "audience_tags"
+    | "consumer_tags"
   > & {
     featured?: boolean;
     last_verified_at?: string;
@@ -37,7 +37,7 @@ export function program(
     application_deadline?: string | null;
     consumer_headline?: string | null;
     administrator_display_name?: string | null;
-    audience_tags?: string[] | null;
+    consumer_tags?: string[] | null;
   },
 ): CatalogProgram {
   return {
@@ -48,7 +48,7 @@ export function program(
     application_deadline: null,
     consumer_headline: null,
     administrator_display_name: null,
-    audience_tags: null,
+    consumer_tags: null,
     ...input,
   };
 }

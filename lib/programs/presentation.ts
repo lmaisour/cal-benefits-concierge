@@ -1,7 +1,7 @@
 export const CONSUMER_HEADLINE_MAX = 80;
 export const ADMINISTRATOR_DISPLAY_NAME_MAX = 60;
-export const AUDIENCE_TAG_MAX_COUNT = 6;
-export const AUDIENCE_TAG_MAX_LENGTH = 32;
+export const CONSUMER_TAG_MAX_COUNT = 6;
+export const CONSUMER_TAG_MAX_LENGTH = 32;
 
 export type ProgramPresentationSource = {
   name: string;
@@ -10,8 +10,8 @@ export type ProgramPresentationSource = {
   consumerHeadline?: string | null;
   administrator_display_name?: string | null;
   administratorDisplayName?: string | null;
-  audience_tags?: string[] | null;
-  audienceTags?: string[] | null;
+  consumer_tags?: string[] | null;
+  consumerTags?: string[] | null;
 };
 
 export type ProgramPresentation = {
@@ -31,7 +31,7 @@ export function cleanOptionalText(value: string | null | undefined): string | nu
   return trimmed === "" ? null : trimmed;
 }
 
-export function sanitizeAudienceTags(value: string[] | null | undefined): string[] {
+export function sanitizeConsumerTags(value: string[] | null | undefined): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -55,12 +55,12 @@ export function sanitizeAudienceTags(value: string[] | null | undefined): string
   return tags;
 }
 
-export function normalizeAudienceTags(value: string[] | null | undefined): string[] {
-  return sanitizeAudienceTags(value).slice(0, AUDIENCE_TAG_MAX_COUNT);
+export function normalizeConsumerTags(value: string[] | null | undefined): string[] {
+  return sanitizeConsumerTags(value).slice(0, CONSUMER_TAG_MAX_COUNT);
 }
 
-export function parseAudienceTagsInput(raw: string): string[] {
-  return sanitizeAudienceTags(
+export function parseConsumerTagsInput(raw: string): string[] {
+  return sanitizeConsumerTags(
     raw
       .split(/[\n,]/)
       .map((item) => item.trim())
@@ -81,6 +81,6 @@ export function programPresentation(source: ProgramPresentationSource): ProgramP
     showOfficialSubtitle: headline !== null,
     administratorLabel,
     administratorByline: administratorLabel ? `by ${administratorLabel}` : null,
-    tags: normalizeAudienceTags(source.audience_tags ?? source.audienceTags),
+    tags: normalizeConsumerTags(source.consumer_tags ?? source.consumerTags),
   };
 }

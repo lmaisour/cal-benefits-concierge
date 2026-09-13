@@ -113,7 +113,7 @@ const drafts: Draft[] = [
       slug: "energy-savings-assistance",
       administrator: "California Public Utilities Commission",
       consumer_headline: "Free home energy upgrades",
-      audience_tags: ["Low income"],
+      consumer_tags: ["Low income"],
       category: "home-energy",
       subcategory: "weatherization",
       short_description:

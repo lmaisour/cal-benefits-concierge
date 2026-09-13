@@ -90,11 +90,11 @@ export function ProgramForm({
             maxLength={60}
           />
         </Field>
-        <Field label="Audience tags" error={errors.audience_tags}>
+        <Field label="Consumer tags" error={errors.consumer_tags}>
           <textarea
-            name="audience_tags"
+            name="consumer_tags"
             rows={3}
-            defaultValue={values.audience_tags}
+            defaultValue={values.consumer_tags}
             className={fieldClass}
             placeholder="One tag per line"
           />

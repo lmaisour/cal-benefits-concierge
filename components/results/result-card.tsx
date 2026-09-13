@@ -26,7 +26,7 @@ export function ResultCard({
     administrator: match.administrator,
     consumerHeadline: match.consumerHeadline,
     administratorDisplayName: match.administratorDisplayName,
-    audienceTags: match.audienceTags,
+    consumerTags: match.consumerTags,
   });
   const verified = formatDate(match.lastVerifiedAt);
   const followup = match.followup;
@@ -49,7 +49,7 @@ export function ResultCard({
           administrator: match.administrator,
           consumerHeadline: match.consumerHeadline,
           administratorDisplayName: match.administratorDisplayName,
-          audienceTags: match.audienceTags,
+          consumerTags: match.consumerTags,
         }}
         headingLevel={3}
         title={

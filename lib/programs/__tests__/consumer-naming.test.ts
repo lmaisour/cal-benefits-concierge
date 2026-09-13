@@ -101,7 +101,7 @@ describe("consumer program naming", () => {
       consumer_headline: "Free rides for 90 days",
       administrator: "Los Angeles County Metropolitan Transportation Authority",
       administrator_display_name: "LA Metro",
-      audience_tags: ["Low income", "Transit", "Los Angeles County"],
+      consumer_tags: ["Low income", "Transit", "Los Angeles County"],
     });
     const html = renderToStaticMarkup(createElement(ProgramCard, { program }));
     expect(html).toContain("<h2");
@@ -122,22 +122,22 @@ describe("consumer program naming", () => {
       administrator: "Sample California Air District",
       consumer_headline: null,
       administrator_display_name: null,
-      audience_tags: null,
+      consumer_tags: null,
     });
     const html = renderToStaticMarkup(createElement(ProgramCard, { program }));
     expect(html).toContain("Sample rebate");
     expect(html).toContain("by Sample California Air District");
-    expect(html).not.toContain("Audience tags");
+    expect(html).not.toContain("Program tags");
     expect(html.match(/<h2[\s\S]*Sample rebate/)).not.toBeNull();
   });
 
   it("hides the tag row when tags are absent", () => {
     const html = renderToStaticMarkup(
       createElement(ProgramCard, {
-        program: makeProgram({ audience_tags: [] }),
+        program: makeProgram({ consumer_tags: [] }),
       }),
     );
-    expect(html).not.toContain("Audience tags");
+    expect(html).not.toContain("Program tags");
   });
 
   it("keeps result-card eligibility status independent of the headline", () => {
@@ -146,7 +146,7 @@ describe("consumer program naming", () => {
         name: "LA Metro LIFE Program",
         consumer_headline: "Free rides for 90 days",
         administrator_display_name: "LA Metro",
-        audience_tags: ["Low income", "Transit"],
+        consumer_tags: ["Low income", "Transit"],
       }),
     );
     expect(match.eligibilityStatus).toBe("LIKELY_ELIGIBLE");
@@ -163,7 +163,7 @@ describe("consumer program naming", () => {
       consumer_headline: "Free front-yard landscaping",
       administrator: "Los Angeles Department of Water and Power",
       administrator_display_name: "LADWP",
-      audience_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
+      consumer_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
     });
     const { detail, html } = renderDetail(program);
     expect(html).toMatch(/<h1[^>]*>Free front-yard landscaping<\/h1>/);
@@ -189,7 +189,7 @@ describe("consumer program naming", () => {
       ...base,
       consumer_headline: "Free rides for 90 days",
       administrator_display_name: "LA Metro",
-      audience_tags: ["Low income"],
+      consumer_tags: ["Low income"],
     });
     const rules = [
       makeRule({
@@ -219,7 +219,7 @@ describe("seeded consumer presentation", () => {
     const life = catalogById("LA-VEH-METRO-LIFE");
     expect(life.consumer_headline).toBe("Free rides for 90 days");
     expect(life.administrator_display_name).toBe("LA Metro");
-    expect(life.audience_tags).toEqual(["Low income", "Transit", "Los Angeles County"]);
+    expect(life.consumer_tags).toEqual(["Low income", "Transit", "Los Angeles County"]);
     expect(life.name).toBe("LA Metro LIFE Program");
     expect(UNMODELED_REQUIRED_CRITERIA["LA-VEH-METRO-LIFE"]).toMatch(
       /household-income table/i,
@@ -228,24 +228,24 @@ describe("seeded consumer presentation", () => {
     const leap = catalogById("LADWP-WATER-LEAP");
     expect(leap.consumer_headline).toBe("Free front-yard landscaping");
     expect(leap.administrator_display_name).toBe("LADWP");
-    expect(leap.audience_tags).toEqual([
+    expect(leap.consumer_tags).toEqual([
       "Single-family home",
       "LADWP water",
       "Homeowner or renter",
     ]);
-    expect(leap.audience_tags).not.toContain("Low income");
+    expect(leap.consumer_tags).not.toContain("Low income");
     expect(leap.benefit_summary).toBe("Free front-yard landscaping");
 
     const cityPlants = catalogById("LA-HOME-CITY-PLANTS");
     expect(cityPlants.consumer_headline).toBe("Get up to 7 free trees");
     expect(cityPlants.administrator_display_name).toBe("City Plants");
-    expect(cityPlants.audience_tags).toEqual(["Los Angeles", "Free trees"]);
-    expect(cityPlants.audience_tags).not.toContain("Homeowner");
+    expect(cityPlants.consumer_tags).toEqual(["Los Angeles", "Free trees"]);
+    expect(cityPlants.consumer_tags).not.toContain("Homeowner");
 
     const esa = catalogById("CA-UTIL-ESA");
     expect(esa.consumer_headline).toBe("Free home energy upgrades");
     expect(esa.administrator_display_name).toBeNull();
-    expect(esa.audience_tags).toEqual(["Low income"]);
+    expect(esa.consumer_tags).toEqual(["Low income"]);
     expect(programPresentation(esa).administratorByline).toBe(
       "by California Public Utilities Commission",
     );
@@ -257,7 +257,7 @@ describe("seeded consumer presentation", () => {
     const leap = engine.programs.find((program) => program.external_id === "LADWP-WATER-LEAP");
     expect(leap?.consumer_headline).toBe("Free front-yard landscaping");
     expect(leap?.administrator_display_name).toBe("LADWP");
-    expect(leap?.audience_tags).toEqual([
+    expect(leap?.consumer_tags).toEqual([
       "Single-family home",
       "LADWP water",
       "Homeowner or renter",
@@ -270,7 +270,7 @@ describe("seeded consumer presentation", () => {
     const update = catalogProgramUpdateFields(program);
     expect(update).not.toHaveProperty("consumer_headline");
     expect(update).not.toHaveProperty("administrator_display_name");
-    expect(update).not.toHaveProperty("audience_tags");
+    expect(update).not.toHaveProperty("consumer_tags");
     expect(catalogProgramWriteFields(program)).toHaveProperty("consumer_headline", null);
   });
 });

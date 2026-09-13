@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AudienceTags } from "@/components/programs/audience-tags";
+import { ProgramTags } from "@/components/programs/program-tags";
 import {
   programPresentation,
   type ProgramPresentationSource,
@@ -39,7 +39,7 @@ export function ProgramIdentity({
           {display.administratorByline}
         </p>
       ) : null}
-      <AudienceTags tags={display.tags} className={headingLevel === 1 ? "mt-4" : "mt-3"} />
+      <ProgramTags tags={display.tags} className={headingLevel === 1 ? "mt-4" : "mt-3"} />
     </div>
   );
 }

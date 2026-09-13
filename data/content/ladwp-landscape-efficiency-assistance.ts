@@ -29,7 +29,7 @@ export const leapStructuredPatch = {
   benefit_summary: "Free front-yard landscaping",
   consumer_headline: "Free front-yard landscaping",
   administrator_display_name: "LADWP",
-  audience_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
+  consumer_tags: ["Single-family home", "LADWP water", "Homeowner or renter"],
   short_description:
     "Qualifying LADWP water customers may receive free front-yard lawn replacement and drought-tolerant landscaping.",
   description:

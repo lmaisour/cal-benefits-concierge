@@ -1,9 +1,9 @@
 import {
   ADMINISTRATOR_DISPLAY_NAME_MAX,
-  AUDIENCE_TAG_MAX_COUNT,
-  AUDIENCE_TAG_MAX_LENGTH,
   CONSUMER_HEADLINE_MAX,
-  parseAudienceTagsInput,
+  CONSUMER_TAG_MAX_COUNT,
+  CONSUMER_TAG_MAX_LENGTH,
+  parseConsumerTagsInput,
 } from "@/lib/programs/presentation";
 import {
   BENEFIT_TYPES,
@@ -23,7 +23,7 @@ export type ProgramFormValues = {
   administrator: string;
   consumer_headline: string;
   administrator_display_name: string;
-  audience_tags: string;
+  consumer_tags: string;
   category: string;
   subcategory: string;
   short_description: string;
@@ -55,7 +55,7 @@ export type ProgramWritePayload = Pick<
   | "administrator"
   | "consumer_headline"
   | "administrator_display_name"
-  | "audience_tags"
+  | "consumer_tags"
   | "category"
   | "subcategory"
   | "short_description"
@@ -95,7 +95,7 @@ export function emptyProgramFormValues(): ProgramFormValues {
     administrator: "",
     consumer_headline: "",
     administrator_display_name: "",
-    audience_tags: "",
+    consumer_tags: "",
     category: "",
     subcategory: "",
     short_description: "",
@@ -128,7 +128,7 @@ export function programFormFromData(formData: FormData): ProgramFormValues {
     administrator: readString(formData, "administrator"),
     consumer_headline: readString(formData, "consumer_headline"),
     administrator_display_name: readString(formData, "administrator_display_name"),
-    audience_tags: readString(formData, "audience_tags"),
+    consumer_tags: readString(formData, "consumer_tags"),
     category: readString(formData, "category"),
     subcategory: readString(formData, "subcategory"),
     short_description: readString(formData, "short_description"),
@@ -268,12 +268,12 @@ export function validateProgramForm(
     errors.administrator_display_name = `Keep the display name to ${ADMINISTRATOR_DISPLAY_NAME_MAX} characters or fewer.`;
   }
 
-  const audienceTags = parseAudienceTagsInput(values.audience_tags);
-  if (audienceTags.length > AUDIENCE_TAG_MAX_COUNT) {
-    errors.audience_tags = `Use at most ${AUDIENCE_TAG_MAX_COUNT} audience tags.`;
+  const consumerTags = parseConsumerTagsInput(values.consumer_tags);
+  if (consumerTags.length > CONSUMER_TAG_MAX_COUNT) {
+    errors.consumer_tags = `Use at most ${CONSUMER_TAG_MAX_COUNT} consumer tags.`;
   }
-  if (audienceTags.some((tag) => tag.length > AUDIENCE_TAG_MAX_LENGTH)) {
-    errors.audience_tags = `Each tag must be ${AUDIENCE_TAG_MAX_LENGTH} characters or fewer.`;
+  if (consumerTags.some((tag) => tag.length > CONSUMER_TAG_MAX_LENGTH)) {
+    errors.consumer_tags = `Each tag must be ${CONSUMER_TAG_MAX_LENGTH} characters or fewer.`;
   }
 
   if (Object.keys(errors).length > 0) {
@@ -288,7 +288,7 @@ export function validateProgramForm(
       administrator: emptyToNull(values.administrator),
       consumer_headline: consumerHeadline,
       administrator_display_name: administratorDisplayName,
-      audience_tags: audienceTags.length > 0 ? audienceTags : null,
+      consumer_tags: consumerTags.length > 0 ? consumerTags : null,
       category,
       subcategory: emptyToNull(values.subcategory),
       short_description: emptyToNull(values.short_description),

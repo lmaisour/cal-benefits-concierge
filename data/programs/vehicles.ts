@@ -638,7 +638,7 @@ const drafts: Draft[] = [
       administrator: "Los Angeles County Metropolitan Transportation Authority",
       consumer_headline: "Free rides for 90 days",
       administrator_display_name: "LA Metro",
-      audience_tags: ["Low income", "Transit", "Los Angeles County"],
+      consumer_tags: ["Low income", "Transit", "Los Angeles County"],
       category: "vehicles",
       subcategory: "transit",
       short_description:

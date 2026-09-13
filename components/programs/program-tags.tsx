@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils/cn";
 
-export function AudienceTags({
+export function ProgramTags({
   tags,
   className,
 }: {
@@ -13,7 +13,7 @@ export function AudienceTags({
 
   return (
     <ul
-      aria-label="Audience tags"
+      aria-label="Program tags"
       className={cn("flex flex-wrap gap-1.5", className)}
     >
       {tags.map((tag) => (

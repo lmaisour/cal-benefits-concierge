@@ -21,7 +21,7 @@ export function catalogToEngine(catalog: ProgramCatalog): EngineCatalog {
     administrator: program.administrator,
     consumer_headline: program.consumer_headline,
     administrator_display_name: program.administrator_display_name,
-    audience_tags: program.audience_tags,
+    consumer_tags: program.consumer_tags,
     category: program.category,
     subcategory: program.subcategory,
     short_description: program.short_description,

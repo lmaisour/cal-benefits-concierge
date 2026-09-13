@@ -40,7 +40,7 @@ function leapDetail(): ProgramDetail {
     administrator: leapCatalog.administrator,
     consumer_headline: leapCatalog.consumer_headline,
     administrator_display_name: leapCatalog.administrator_display_name,
-    audience_tags: leapCatalog.audience_tags,
+    consumer_tags: leapCatalog.consumer_tags,
     category: leapCatalog.category,
     subcategory: leapCatalog.subcategory,
     short_description: leapCatalog.short_description,

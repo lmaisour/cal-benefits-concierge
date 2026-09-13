@@ -33,7 +33,7 @@ export function catalogProgramWriteFields(program: CatalogProgram): ProgramInser
     unmodeled_required_criteria_summary: program.unmodeled_required_criteria_summary,
     consumer_headline: program.consumer_headline,
     administrator_display_name: program.administrator_display_name,
-    audience_tags: program.audience_tags,
+    consumer_tags: program.consumer_tags,
   };
 }
 
@@ -41,7 +41,7 @@ export function catalogProgramHasPresentation(program: CatalogProgram): boolean 
   return (
     program.consumer_headline !== null ||
     program.administrator_display_name !== null ||
-    program.audience_tags !== null
+    program.consumer_tags !== null
   );
 }
 
@@ -53,6 +53,6 @@ export function catalogProgramUpdateFields(program: CatalogProgram): ProgramInse
   const rest = { ...row };
   delete rest.consumer_headline;
   delete rest.administrator_display_name;
-  delete rest.audience_tags;
+  delete rest.consumer_tags;
   return rest;
 }

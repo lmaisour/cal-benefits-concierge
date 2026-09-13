@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  normalizeAudienceTags,
-  parseAudienceTagsInput,
+  normalizeConsumerTags,
+  parseConsumerTagsInput,
   programPresentation,
 } from "@/lib/programs/presentation";
 
@@ -12,7 +12,7 @@ describe("programPresentation", () => {
       administrator: "Los Angeles County Metropolitan Transportation Authority",
       consumer_headline: "Free rides for 90 days",
       administrator_display_name: "LA Metro",
-      audience_tags: ["Low income", "Transit"],
+      consumer_tags: ["Low income", "Transit"],
     });
     expect(display.primaryTitle).toBe("Free rides for 90 days");
     expect(display.officialName).toBe("LA Metro LIFE Program");
@@ -27,7 +27,7 @@ describe("programPresentation", () => {
       administrator: "California Public Utilities Commission",
       consumer_headline: null,
       administrator_display_name: null,
-      audience_tags: null,
+      consumer_tags: null,
     });
     expect(display.primaryTitle).toBe("Energy Savings Assistance");
     expect(display.showOfficialSubtitle).toBe(false);
@@ -38,13 +38,13 @@ describe("programPresentation", () => {
   });
 });
 
-describe("audience tag parsing", () => {
+describe("consumer tag parsing", () => {
   it("trims, drops empties, and removes duplicates", () => {
-    expect(parseAudienceTagsInput("Low income\n\nTransit\nlow income\n, Los Angeles County")).toEqual([
+    expect(parseConsumerTagsInput("Low income\n\nTransit\nlow income\n, Los Angeles County")).toEqual([
       "Low income",
       "Transit",
       "Los Angeles County",
     ]);
-    expect(normalizeAudienceTags(["  ", "Homeowner", "Homeowner"])).toEqual(["Homeowner"]);
+    expect(normalizeConsumerTags(["  ", "Homeowner", "Homeowner"])).toEqual(["Homeowner"]);
   });
 });

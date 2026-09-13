@@ -293,7 +293,7 @@ async function countRows(
 async function assertProgramImportColumns(supabase: SupabaseClient<Database>) {
   const { error } = await supabase
     .from("programs")
-    .select("external_id, has_unmodeled_required_criteria, unmodeled_required_criteria_summary, consumer_headline, administrator_display_name, audience_tags")
+    .select("external_id, has_unmodeled_required_criteria, unmodeled_required_criteria_summary, consumer_headline, administrator_display_name, consumer_tags")
     .limit(1);
   if (!error) {
     return;
@@ -314,7 +314,7 @@ async function assertProgramImportColumns(supabase: SupabaseClient<Database>) {
   if (
     error.message.includes("consumer_headline") ||
     error.message.includes("administrator_display_name") ||
-    error.message.includes("audience_tags")
+    error.message.includes("consumer_tags")
   ) {
     throw new Error(
       "programs consumer presentation columns do not exist yet. Run supabase/migrations/20260912170000_program_consumer_presentation.sql in the Supabase SQL editor, then rerun npm run import:programs.",
