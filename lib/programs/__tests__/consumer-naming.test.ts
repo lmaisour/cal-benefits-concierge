@@ -111,6 +111,7 @@ describe("consumer program naming", () => {
     expect(html).toContain("Low income");
     expect(html).toContain("Transit");
     expect(html).toContain("Los Angeles County");
+    expect(html).toContain('aria-label="Program tags"');
     expect(html.indexOf("Free rides for 90 days")).toBeLessThan(
       html.indexOf("LA Metro LIFE Program"),
     );
