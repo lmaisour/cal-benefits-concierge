@@ -152,6 +152,9 @@ async function main() {
       confidence: leapStructuredPatch.confidence,
       application_deadline: leapStructuredPatch.application_deadline,
       effective_end: leapStructuredPatch.effective_end,
+      consumer_headline: leapStructuredPatch.consumer_headline,
+      administrator_display_name: leapStructuredPatch.administrator_display_name,
+      consumer_tags: leapStructuredPatch.consumer_tags,
     })
     .eq("id", programId);
   if (programUpdateError) {
