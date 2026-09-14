@@ -137,6 +137,21 @@ describe("validateFollowupRuleForm", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts an optional satisfies_rule_group OR pathway", () => {
+    const result = validateFollowupRuleForm({
+      question_id: "11111111-1111-4111-8111-111111111111",
+      operator: "equals",
+      expected_value: '"yes"',
+      required: true,
+      explanation: "Alternate pathway.",
+      satisfies_rule_group: "1",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.satisfies_rule_group).toBe(1);
+    }
+  });
+
   it("rejects an unknown operator", () => {
     const result = validateFollowupRuleForm({
       question_id: "11111111-1111-4111-8111-111111111111",

@@ -51,6 +51,7 @@ export const RULE_OPERATORS = [
   "is_false",
   "exists",
   "not_exists",
+  "less_than_or_equal_by_household_size",
 ] as const;
 
 export type RuleOperator = (typeof RULE_OPERATORS)[number];
@@ -173,6 +174,12 @@ export type ProgramFollowupRuleRow = {
   expected_value: Json | null;
   required: boolean;
   explanation: string | null;
+  /**
+   * When set, this required follow-up is an OR alternative for the matching
+   * core `program_rules.rule_group`. Null keeps the follow-up as an
+   * independent AND requirement.
+   */
+  satisfies_rule_group: number | null;
   created_at: string;
   updated_at: string;
 };

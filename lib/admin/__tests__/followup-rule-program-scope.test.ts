@@ -61,6 +61,7 @@ describe("follow-up rule program scope", () => {
       expected_value: "yes",
       required: true,
       explanation: "Must be yes.",
+      satisfies_rule_group: null,
       created_at: "2026-09-11T00:00:00Z",
       updated_at: "2026-09-11T00:00:00Z",
     });
@@ -73,6 +74,7 @@ describe("follow-up rule program scope", () => {
       expected_value: "yes",
       required: true,
       explanation: "Must be yes.",
+      satisfies_rule_group: null,
       program_id: PROGRAM_ID,
     });
   });

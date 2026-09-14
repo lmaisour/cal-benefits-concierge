@@ -62,6 +62,7 @@ export function followupRowsFromCatalogSeeds(programs: Program[]): {
         expected_value: question.expectedValue as Json,
         required: question.ruleRequired,
         explanation: question.explanation,
+        satisfies_rule_group: question.satisfiesRuleGroup ?? null,
         created_at: CATALOG_TIMESTAMP,
         updated_at: CATALOG_TIMESTAMP,
       });

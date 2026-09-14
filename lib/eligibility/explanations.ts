@@ -1,5 +1,9 @@
 import type { ProgramRule } from "@/types/program";
-import type { GeographyEvaluation, RuleResultStatus } from "@/lib/eligibility/types";
+import type {
+  GeographyEvaluation,
+  RuleResultStatus,
+  UserProfile,
+} from "@/lib/eligibility/types";
 
 const FIELD_LABELS: Record<string, string> = {
   zip: "ZIP code",
@@ -54,8 +58,32 @@ function incomeFailMessage(operator: string): string {
 export function explainRule(
   rule: ProgramRule,
   status: RuleResultStatus,
+  profile?: UserProfile,
 ): string {
   const label = fieldLabel(rule.field);
+
+  if (rule.operator === "less_than_or_equal_by_household_size") {
+    if (status === "PASS") {
+      return "Your household income is at or below the published limit for your household size.";
+    }
+    if (status === "UNKNOWN") {
+      if (profile && profile.household_income == null) {
+        return "We need your household income to evaluate this requirement.";
+      }
+      if (profile && profile.household_size == null) {
+        return "We need your household size to evaluate this requirement.";
+      }
+      if (
+        profile &&
+        profile.household_income != null &&
+        profile.household_size != null
+      ) {
+        return "We don't have a published income limit for this household size, so we can't confirm this requirement from the table.";
+      }
+      return "We need your household income and household size to evaluate this requirement.";
+    }
+    return "Your household income is above the published limit for your household size.";
+  }
 
   if (rule.field === "household_income") {
     if (status === "PASS") {

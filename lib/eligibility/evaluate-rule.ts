@@ -33,21 +33,24 @@ export function evaluateRule(
   profile: UserProfile,
 ): RuleEvaluation {
   try {
-    const status = evaluateOperator(
-      rule.operator,
-      getProfileValue(profile, rule.field),
-      rule.value,
-    );
+    const status =
+      rule.operator === "less_than_or_equal_by_household_size"
+        ? evaluateHouseholdSizeIncomeTable(profile, rule.value)
+        : evaluateOperator(
+            rule.operator,
+            getProfileValue(profile, rule.field),
+            rule.value,
+          );
     return {
       rule,
       status,
-      explanation: explainRule(rule, status),
+      explanation: explainRule(rule, status, profile),
     };
   } catch {
     return {
       rule,
       status: "UNKNOWN",
-      explanation: explainRule(rule, "UNKNOWN"),
+      explanation: explainRule(rule, "UNKNOWN", profile),
     };
   }
 }
@@ -88,9 +91,65 @@ export function evaluateOperator(
       return evaluateMembership(actualValue, expectedValue, missing, true);
     case "contains":
       return evaluateContains(actualValue, expectedValue, missing);
+    case "less_than_or_equal_by_household_size":
+      return "UNKNOWN";
     default:
       return "UNKNOWN";
   }
+}
+
+/**
+ * Compare household_income to a published per-size table.
+ * Missing income, missing size, a malformed table, or a size with no
+ * published limit are UNKNOWN — never an invented increment or FAIL.
+ */
+export function evaluateHouseholdSizeIncomeTable(
+  profile: UserProfile,
+  expectedValue: unknown,
+): RuleResultStatus {
+  const table = parseHouseholdIncomeTable(expectedValue);
+  if (!table) {
+    return "UNKNOWN";
+  }
+
+  const size = asNumber(profile.household_size);
+  if (size === undefined || !Number.isInteger(size)) {
+    return "UNKNOWN";
+  }
+
+  const income = asNumber(profile.household_income);
+  if (income === undefined) {
+    return "UNKNOWN";
+  }
+
+  const limit = table[String(size)];
+  if (limit === undefined) {
+    return "UNKNOWN";
+  }
+
+  return income <= limit ? "PASS" : "FAIL";
+}
+
+function parseHouseholdIncomeTable(
+  value: unknown,
+): Record<string, number> | null {
+  if (!isPlainObject(value)) {
+    return null;
+  }
+
+  const table: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!/^[0-9]+$/.test(key)) {
+      continue;
+    }
+    const limit = asNumber(raw);
+    if (limit === undefined) {
+      continue;
+    }
+    table[key] = limit;
+  }
+
+  return Object.keys(table).length > 0 ? table : null;
 }
 
 function evaluateBoolean(

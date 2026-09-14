@@ -64,7 +64,9 @@ describe("Milestone 7A local integration profiles", () => {
     ).toBe(false);
     const handyworker = result.possiblyEligible.find((item) => item.slug === "lacda-handyworker");
     expect(handyworker).toBeDefined();
-    expect(handyworker?.missingInformation).toContain("County");
+    expect(handyworker?.eligibilityStatus).toBe("POSSIBLY_ELIGIBLE");
+    expect(handyworker?.missingInformation).not.toContain("County");
+    expect(handyworker?.additionalRequirements).toMatch(/unincorporated|80%/i);
   });
 
   it("LADWP renter: municipal discount can match; CARE is not forced", () => {

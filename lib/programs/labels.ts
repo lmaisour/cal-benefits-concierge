@@ -133,4 +133,6 @@ export const RULE_OPERATOR_LABELS: Record<RuleOperator, string> = {
   is_false: "is no",
   exists: "must be provided",
   not_exists: "must not be present",
+  less_than_or_equal_by_household_size:
+    "at most the published limit for household size",
 };

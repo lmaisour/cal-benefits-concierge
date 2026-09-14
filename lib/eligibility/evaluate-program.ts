@@ -30,6 +30,11 @@ import type {
  * If rules in one group disagree on `group_operator`, the first rule's
  * operator is used. The schema does not encode nested Boolean logic.
  *
+ * A required follow-up with `satisfies_rule_group = N` is an OR alternative
+ * for core group N — not an independent AND. Follow-ups with a null
+ * `satisfies_rule_group` stay independent AND requirements. This is generic
+ * and not program-specific.
+ *
  * Individual required-rule lists (`failedRequiredRules`, …) stay raw rule
  * results. An OR alternative can FAIL while the group — and the program —
  * still PASSes.
@@ -55,17 +60,27 @@ export function evaluateProgram(
     (result) => !result.rule.required,
   );
 
-  const requiredGroups = foldGroups(requiredResults, true);
+  const coreGroups = foldGroups(requiredResults, true);
+  const coreGroupStatuses = new Map(
+    coreGroups.map((group) => [group.ruleGroup, group.status]),
+  );
   const geography = evaluateGeography(program, locations, profile);
-  const followupResults = evaluateFollowupForProgram(program.id, profile, followup);
+  const followupResults = evaluateFollowupForProgram(
+    program.id,
+    profile,
+    followup,
+    coreGroupStatuses,
+  );
   const requiredFollowup = followupResults.filter((result) => result.rule.required);
+  const { requiredGroups, independentFollowupStatuses } = combineCoreAndFollowup(
+    coreGroups,
+    requiredFollowup,
+  );
 
-  const groupStatuses = requiredGroups.map((group) => group.status);
-  const followupStatuses = requiredFollowup.map((result) => result.status);
   const combined = andStatuses([
-    ...groupStatuses,
+    ...requiredGroups.map((group) => group.status),
     geography.status,
-    ...followupStatuses,
+    ...independentFollowupStatuses,
   ]);
   const status = programStatusFromRequired(
     combined,
@@ -99,6 +114,7 @@ function evaluateFollowupForProgram(
   programId: string,
   profile: UserProfile,
   followup?: FollowupEvaluationInput,
+  coreGroupStatuses?: ReadonlyMap<number, RuleResultStatus>,
 ): FollowupRuleEvaluation[] {
   if (!followup) {
     return [];
@@ -109,9 +125,56 @@ function evaluateFollowupForProgram(
     return [];
   }
   return evaluateFollowupRules(
-    { questions, rules, answers: followup.answers },
+    { questions, rules, answers: followup.answers, coreGroupStatuses },
     profile,
   );
+}
+
+/**
+ * Fold follow-ups that declare `satisfies_rule_group` into that core group
+ * with OR semantics. Independent follow-ups remain AND requirements.
+ */
+function combineCoreAndFollowup(
+  coreGroups: RuleGroupEvaluation[],
+  requiredFollowup: FollowupRuleEvaluation[],
+): {
+  requiredGroups: RuleGroupEvaluation[];
+  independentFollowupStatuses: RuleResultStatus[];
+} {
+  const alternateByGroup = new Map<number, RuleResultStatus[]>();
+  const independentFollowupStatuses: RuleResultStatus[] = [];
+
+  for (const result of requiredFollowup) {
+    const group = result.rule.satisfies_rule_group;
+    if (group == null) {
+      independentFollowupStatuses.push(result.status);
+      continue;
+    }
+    const existing = alternateByGroup.get(group) ?? [];
+    existing.push(result.status);
+    alternateByGroup.set(group, existing);
+  }
+
+  const coreGroupNumbers = new Set(coreGroups.map((group) => group.ruleGroup));
+  const requiredGroups = coreGroups.map((group) => {
+    const alternates = alternateByGroup.get(group.ruleGroup);
+    if (!alternates?.length) {
+      return group;
+    }
+    return {
+      ...group,
+      status: foldGroupStatus([group.status, ...alternates], "OR"),
+    };
+  });
+
+  for (const [groupNumber, statuses] of alternateByGroup) {
+    if (coreGroupNumbers.has(groupNumber)) {
+      continue;
+    }
+    independentFollowupStatuses.push(foldGroupStatus(statuses, "OR"));
+  }
+
+  return { requiredGroups, independentFollowupStatuses };
 }
 
 export function foldGroupStatus(

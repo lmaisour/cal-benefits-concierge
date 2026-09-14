@@ -103,6 +103,8 @@ export type FollowupEvaluationInput = {
   questions: ProgramFollowupQuestion[];
   rules: ProgramFollowupRule[];
   answers: Record<string, unknown>;
+  /** Core required-group statuses, used to hide already-satisfied alternate pathways. */
+  coreGroupStatuses?: ReadonlyMap<number, RuleResultStatus>;
 };
 
 export type FollowupRuleEvaluation = {

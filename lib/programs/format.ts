@@ -113,6 +113,8 @@ export function formatRule(rule: ProgramRule): string {
   switch (rule.operator) {
     case "less_than_or_equal":
       return `${field} must be ${formatted} or less.`;
+    case "less_than_or_equal_by_household_size":
+      return `${field} must be at or below the published limit for the household size.`;
     case "less_than":
       return `${field} must be less than ${formatted}.`;
     case "greater_than_or_equal":

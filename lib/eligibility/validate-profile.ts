@@ -1,4 +1,5 @@
 import type { UserProfile } from "@/lib/eligibility/types";
+import { resolveZipContext } from "@/lib/geo/resolve-zip-context";
 import { isInterestValue } from "@/lib/questionnaire/interests";
 import { isValidZip } from "@/lib/questionnaire/validation";
 
@@ -160,6 +161,13 @@ export function validateUserProfile(input: unknown): ProfileValidationResult {
     if (value !== undefined) {
       profile[field] = value;
     }
+  }
+
+  const zipContext = resolveZipContext(profile.zip);
+  if (zipContext.county) {
+    profile.county = zipContext.county;
+  } else {
+    delete profile.county;
   }
 
   for (const field of BOOLEAN_FIELDS) {

@@ -223,8 +223,9 @@ describe("seeded consumer presentation", () => {
     expect(life.consumer_tags).toEqual(["Low income", "Transit", "Los Angeles County"]);
     expect(life.name).toBe("LA Metro LIFE Program");
     expect(UNMODELED_REQUIRED_CRITERIA["LA-VEH-METRO-LIFE"]).toMatch(
-      /household-income table/i,
+      /primary LIFE applicant must be age 18 or older/i,
     );
+    expect(life.has_unmodeled_required_criteria).toBe(true);
 
     const leap = catalogById("LADWP-WATER-LEAP");
     expect(leap.consumer_headline).toBe("Free front-yard landscaping");

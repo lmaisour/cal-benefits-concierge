@@ -161,6 +161,26 @@ describe("validateUserProfile", () => {
     }
   });
 
+  it("derives county from ZIP and does not trust a client-supplied county", () => {
+    const la = validateUserProfile(validProfile);
+    expect(la.ok).toBe(true);
+    if (la.ok) {
+      expect(la.profile.county).toBe("Los Angeles");
+    }
+
+    const spoofed = validateUserProfile({
+      ...validProfile,
+      zip: "94110",
+      county: "Los Angeles",
+      city: "Client City",
+    });
+    expect(spoofed.ok).toBe(true);
+    if (spoofed.ok) {
+      expect(spoofed.profile.county).toBe("San Francisco");
+      expect(spoofed.profile.city).toBe("Client City");
+    }
+  });
+
   it("derives homeowner from housing status instead of trusting input", () => {
     const renter = validateUserProfile({
       ...validProfile,
