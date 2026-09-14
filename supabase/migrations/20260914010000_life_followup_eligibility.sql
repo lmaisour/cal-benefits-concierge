@@ -75,8 +75,9 @@ WHERE p.id = r.program_id
 
 UPDATE public.programs
 SET
-  has_unmodeled_required_criteria = FALSE,
-  unmodeled_required_criteria_summary = NULL,
+  has_unmodeled_required_criteria = TRUE,
+  unmodeled_required_criteria_summary =
+    'The primary LIFE applicant must be age 18 or older and the head of household. Household members under 18 may receive LIFE benefits through an eligible adult household application.',
   updated_at = NOW()
 WHERE external_id = 'LA-VEH-METRO-LIFE';
 

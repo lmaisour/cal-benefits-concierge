@@ -497,8 +497,8 @@
   {
     "featured": false,
     "last_verified_at": "2026-09-07T00:00:00Z",
-    "has_unmodeled_required_criteria": false,
-    "unmodeled_required_criteria_summary": null,
+    "has_unmodeled_required_criteria": true,
+    "unmodeled_required_criteria_summary": "The primary LIFE applicant must be age 18 or older and the head of household. Household members under 18 may receive LIFE benefits through an eligible adult household application.",
     "application_deadline": null,
     "consumer_headline": "Free rides for 90 days",
     "administrator_display_name": "LA Metro",

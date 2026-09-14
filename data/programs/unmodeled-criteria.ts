@@ -217,6 +217,8 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
     "You must live in a qualifying disadvantaged community. Address-based DAC eligibility is not confirmed here.",
   "LA-HOME-CITY-PLANTS":
     "You must be able to plant and water the trees on eligible City of Los Angeles private property, or qualify for the separate street-tree pathway.",
+  "LA-VEH-METRO-LIFE":
+    "The primary LIFE applicant must be age 18 or older and the head of household. Household members under 18 may receive LIFE benefits through an eligible adult household application.",
   "SCAQMD-VEH-RYR":
     "You must live in the South Coast AQMD jurisdiction and meet the published older-vehicle and household-income rules.",
   "SCAQMD-HOME-LAWN-GARDEN":

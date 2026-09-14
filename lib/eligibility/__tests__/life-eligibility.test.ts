@@ -74,7 +74,10 @@ describe("LIFE catalog model", () => {
     expect(lifeProgram.consumer_headline).toBe("Free rides for 90 days");
     expect(lifeProgram.administrator_display_name).toBe("LA Metro");
     expect(lifeProgram.consumer_tags).toEqual(["Low income", "Transit", "Los Angeles County"]);
-    expect(lifeProgram.has_unmodeled_required_criteria).toBe(false);
+    expect(lifeProgram.has_unmodeled_required_criteria).toBe(true);
+    expect(lifeProgram.unmodeled_required_criteria_summary).toMatch(
+      /primary LIFE applicant must be age 18 or older/i,
+    );
     expect(lifeRules).toHaveLength(1);
     expect(lifeRules[0]?.operator).toBe("less_than_or_equal_by_household_size");
     expect(lifeRules[0]?.value).toEqual(LIFE_ANNUAL_INCOME_LIMITS_BY_HOUSEHOLD_SIZE);
@@ -86,9 +89,9 @@ describe("LIFE catalog model", () => {
 });
 
 describe("LIFE eligibility scenarios", () => {
-  it("A: income-qualified LA County resident with no conflicting pass is LIKELY", () => {
+  it("A: income-qualified LA County resident with no conflicting pass stays POSSIBLY while the applicant rule is unmodeled", () => {
     const evaluation = evaluateLife(
-      { household_income: 40000 },
+      { household_income: 40000, age: 42 },
       { life_other_transit_subsidy: "no" },
     );
     expect(evaluation.geography.status).toBe("PASS");
@@ -96,7 +99,9 @@ describe("LIFE eligibility scenarios", () => {
     expect(followupKeys(evaluation)).toEqual(["life_other_transit_subsidy"]);
     expect(followupStatus(evaluation, "life_qualifying_public_benefit")).toBeUndefined();
     expect(followupStatus(evaluation, "life_other_transit_subsidy")).toBe("PASS");
-    expect(evaluation.status).toBe("LIKELY_ELIGIBLE");
+    expect(evaluation.hasUnmodeledRequiredCriteria).toBe(true);
+    expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("LIKELY_ELIGIBLE");
   });
 
   it("B: income over the limit with unanswered benefit stays POSSIBLY and shows the benefit question", () => {
@@ -121,7 +126,7 @@ describe("LIFE eligibility scenarios", () => {
     );
   });
 
-  it("C: income over the limit plus qualifying benefit yes is LIKELY", () => {
+  it("C: income over the limit plus qualifying benefit yes PASSes the financial OR and stays POSSIBLY", () => {
     const evaluation = evaluateLife(
       { household_income: 70000 },
       {
@@ -132,7 +137,9 @@ describe("LIFE eligibility scenarios", () => {
     expect(evaluation.failedRequiredRules).toHaveLength(1);
     expect(evaluation.requiredGroups[0]?.status).toBe("PASS");
     expect(followupStatus(evaluation, "life_qualifying_public_benefit")).toBe("PASS");
-    expect(evaluation.status).toBe("LIKELY_ELIGIBLE");
+    expect(evaluation.hasUnmodeledRequiredCriteria).toBe(true);
+    expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("LIKELY_ELIGIBLE");
   });
 
   it("D: income over the limit plus qualifying benefit no is NOT_ELIGIBLE", () => {
@@ -166,7 +173,7 @@ describe("LIFE eligibility scenarios", () => {
     expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
   });
 
-  it("G: missing income plus qualifying benefit yes PASSes the financial OR", () => {
+  it("G: missing income plus qualifying benefit yes PASSes the financial OR and stays POSSIBLY", () => {
     const evaluation = evaluateLife(
       {},
       {
@@ -176,7 +183,9 @@ describe("LIFE eligibility scenarios", () => {
     );
     expect(evaluation.unknownRequiredRules).toHaveLength(1);
     expect(evaluation.requiredGroups[0]?.status).toBe("PASS");
-    expect(evaluation.status).toBe("LIKELY_ELIGIBLE");
+    expect(evaluation.hasUnmodeledRequiredCriteria).toBe(true);
+    expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("LIKELY_ELIGIBLE");
   });
 
   it("H: a non-Los Angeles County ZIP is NOT_ELIGIBLE regardless of the financial path", () => {
@@ -199,7 +208,8 @@ describe("LIFE income table boundaries", () => {
         { household_size: Number(size), household_income: limit },
         { life_other_transit_subsidy: "no" },
       );
-      expect(atLimit.status, `size ${size} at ${limit}`).toBe("LIKELY_ELIGIBLE");
+      expect(atLimit.status, `size ${size} at ${limit}`).toBe("POSSIBLY_ELIGIBLE");
+      expect(atLimit.passedRequiredRules, `size ${size} at ${limit}`).toHaveLength(1);
       expect(followupKeys(atLimit)).not.toContain("life_qualifying_public_benefit");
 
       const over = evaluateLife(
@@ -267,7 +277,7 @@ describe("LIFE conflicting transit follow-up", () => {
 });
 
 describe("LIFE profile and supplemental isolation", () => {
-  it("does not treat age under 18 as NOT_ELIGIBLE", () => {
+  it("does not treat age under 18 as NOT_ELIGIBLE while the applicant rule is unmodeled", () => {
     const validated = validatedProfile({ household_income: 40000, age: 16 });
     expect(validated.ok).toBe(true);
     if (!validated.ok) {
@@ -279,7 +289,31 @@ describe("LIFE profile and supplemental isolation", () => {
       rules: lifeFollowup.rules,
       answers: { life_other_transit_subsidy: "no" },
     });
-    expect(evaluation.status).toBe("LIKELY_ELIGIBLE");
+    expect(evaluation.passedRequiredRules).toHaveLength(1);
+    expect(evaluation.hasUnmodeledRequiredCriteria).toBe(true);
+    expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("LIKELY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("NOT_ELIGIBLE");
+  });
+
+  it("keeps an otherwise-passing adult profile POSSIBLY while the applicant rule is unmodeled", () => {
+    const evaluation = evaluateLife(
+      { household_income: 40000, age: 42 },
+      { life_other_transit_subsidy: "no" },
+    );
+    expect(evaluation.geography.status).toBe("PASS");
+    expect(evaluation.passedRequiredRules).toHaveLength(1);
+    expect(followupStatus(evaluation, "life_other_transit_subsidy")).toBe("PASS");
+    expect(evaluation.failedRequiredRules).toHaveLength(0);
+    expect(evaluation.unknownRequiredRules).toHaveLength(0);
+    expect(evaluation.failedRequiredFollowupRules).toHaveLength(0);
+    expect(evaluation.unknownRequiredFollowupRules).toHaveLength(0);
+    expect(evaluation.hasUnmodeledRequiredCriteria).toBe(true);
+    expect(evaluation.unmodeledRequiredCriteriaSummary).toMatch(
+      /head of household/i,
+    );
+    expect(evaluation.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(evaluation.status).not.toBe("LIKELY_ELIGIBLE");
   });
 
   it("does not let supplemental answers override core profile facts", () => {
