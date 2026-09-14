@@ -7,6 +7,7 @@ import type {
   ProgramContentRow,
   ProgramFaqRow,
   ProgramLocationRow,
+  ProgramBenefitTierRow,
   ProgramRow,
   ProgramRuleRow,
   ProgramSourceRow,
@@ -38,6 +39,14 @@ const STATIC_ROUTES = [
   siteConfig.urls.guides,
 ];
 
+function isMissingRelationError(error: { message: string; code?: string }): boolean {
+  return (
+    error.code === "PGRST205" ||
+    /could not find the table/i.test(error.message) ||
+    /does not exist/i.test(error.message)
+  );
+}
+
 async function loadTable<T>(
   client: LivePipelineClient,
   table: string,
@@ -52,9 +61,27 @@ async function loadTable<T>(
   return (data ?? []) as T[];
 }
 
+async function loadOptionalTable<T>(
+  client: LivePipelineClient,
+  table: string,
+): Promise<T[]> {
+  const { data, error } = (await Promise.resolve(client.from(table).select("*"))) as {
+    data: T[] | null;
+    error: { message: string; code?: string } | null;
+  };
+  if (error) {
+    if (isMissingRelationError(error)) {
+      return [];
+    }
+    throw new LivePipelineLoadError(`Failed to load ${table}: ${error.message}`);
+  }
+  return (data ?? []) as T[];
+}
+
 function toCatalogProgram(
   program: ProgramRow,
   featured: boolean,
+  tiers: ProgramBenefitTierRow[] = [],
 ): DiscoveryRecord["program"] {
   return {
     external_id: program.external_id ?? program.id,
@@ -73,6 +100,16 @@ function toCatalogProgram(
     benefit_min: program.benefit_min,
     benefit_max: program.benefit_max,
     benefit_period: program.benefit_period,
+    benefit_amount_structure: program.benefit_amount_structure ?? null,
+    benefit_tiers: tiers
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((tier, index) => ({
+        amount: tier.amount,
+        label: tier.label,
+        condition_summary: tier.condition_summary,
+        evidence_path: `benefit.tiers.${index}`,
+      })),
     status: program.status,
     official_url: program.official_url ?? "",
     application_url: program.application_url,
@@ -101,8 +138,10 @@ export function recordsFromLiveRows(input: {
   briefs: ContentBriefRow[];
   evidence: ContentEvidenceRow[];
   homepageFeatures: HomepageFeatureRow[];
+  benefitTiers?: ProgramBenefitTierRow[];
 }): DiscoveryRecord[] {
   const featuredIds = new Set(input.homepageFeatures.map((row) => row.program_id));
+  const tiersByProgram = groupBy(input.benefitTiers ?? [], (row) => row.program_id);
   const rulesByProgram = groupBy(input.rules, (row) => row.program_id);
   const locationsByProgram = groupBy(input.locations, (row) => row.program_id);
   const sourcesByProgram = groupBy(input.sources, (row) => row.program_id);
@@ -123,6 +162,7 @@ export function recordsFromLiveRows(input: {
       program: toCatalogProgram(
         program,
         program.featured || featuredIds.has(program.id),
+        tiersByProgram.get(program.id) ?? [],
       ),
       rules: (rulesByProgram.get(program.id) ?? []).map((rule) => ({
         program_external_id: program.external_id ?? program.id,
@@ -243,6 +283,7 @@ export async function loadLivePipelineContext(
     briefs,
     evidence,
     homepageFeatures,
+    benefitTiers,
   ] = await Promise.all([
     loadTable<ProgramRow>(client, "programs"),
     loadTable<ProgramRuleRow>(client, "program_rules"),
@@ -253,6 +294,7 @@ export async function loadLivePipelineContext(
     loadTable<ContentBriefRow>(client, "content_briefs"),
     loadTable<ContentEvidenceRow>(client, "content_evidence"),
     loadTable<HomepageFeatureRow>(client, "homepage_features"),
+    loadOptionalTable<ProgramBenefitTierRow>(client, "program_benefit_tiers"),
   ]);
 
   return contextFromRecords(
@@ -266,6 +308,7 @@ export async function loadLivePipelineContext(
       briefs,
       evidence,
       homepageFeatures,
+      benefitTiers,
     }),
   );
 }

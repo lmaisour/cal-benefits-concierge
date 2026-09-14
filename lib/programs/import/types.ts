@@ -1,4 +1,8 @@
 import type {
+  BenefitAmountStructure,
+  BenefitTier,
+} from "@/lib/content-pipeline/amount-structure";
+import type {
   BenefitType,
   Confidence,
   Json,
@@ -41,6 +45,8 @@ export type CatalogProgram = {
   benefit_min: number | null;
   benefit_max: number | null;
   benefit_period: string | null;
+  benefit_amount_structure?: BenefitAmountStructure | null;
+  benefit_tiers?: BenefitTier[];
   status: ProgramStatus;
   official_url: string;
   application_url: string | null;

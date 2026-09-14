@@ -6,6 +6,10 @@ const MIGRATION = path.resolve(
   __dirname,
   "../../../supabase/migrations/20260914020000_content_pipeline_dry_run.sql",
 );
+const TIER_MIGRATION = path.resolve(
+  __dirname,
+  "../../../supabase/migrations/20260914030000_content_pipeline_benefit_tiers.sql",
+);
 
 describe("content pipeline migration", () => {
   const sql = readFileSync(MIGRATION, "utf8");
@@ -36,5 +40,21 @@ describe("content pipeline migration", () => {
 
   it("keeps one opportunity per program type", () => {
     expect(sql).toContain("CREATE UNIQUE INDEX content_opportunities_type_program_uidx");
+  });
+});
+
+describe("content pipeline benefit-tier migration", () => {
+  const sql = readFileSync(TIER_MIGRATION, "utf8");
+
+  it("adds an explicit amount-structure column without inferring RANGE or TIERED", () => {
+    expect(sql).toContain("ADD COLUMN benefit_amount_structure TEXT");
+    expect(sql).toContain("'SINGLE', 'RANGE', 'TIERED', 'UNKNOWN'");
+    expect(sql).toMatch(/NULL means infer safely/);
+  });
+
+  it("creates modeled tier rows and does not seed live program facts", () => {
+    expect(sql).toContain("CREATE TABLE public.program_benefit_tiers");
+    expect(sql).not.toMatch(/CA-VEH-BAR-RETIRE|1350|2000/);
+    expect(sql).toContain("GRANT SELECT ON TABLE public.program_benefit_tiers TO anon, authenticated");
   });
 });
