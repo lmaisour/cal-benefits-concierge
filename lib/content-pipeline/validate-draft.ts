@@ -3,6 +3,11 @@ import {
   formatUtcCalendarDate,
   parseUtcCalendarDate,
 } from "@/lib/programs/calendar";
+import {
+  extractSynthesizedRanges,
+  looksLikeDefiniteSynthesizedAmount,
+  looksLikeSynthesizedRange,
+} from "@/lib/content-pipeline/amount-structure";
 import { factualSectionMatchesClaims } from "@/lib/content-pipeline/claims";
 import {
   FACTUAL_DRAFT_SECTIONS,
@@ -139,15 +144,28 @@ function extractAmounts(text: string): string[] {
   return [...found];
 }
 
-function extractEvidenceAmounts(evidence: EvidencePackage): Set<string> {
+function extractEvidenceAmounts(
+  evidence: EvidencePackage,
+  options: { excludeMinMax?: boolean } = {},
+): Set<string> {
   const amounts = new Set<string>();
-  if (evidence.benefit.min !== null) {
-    amounts.add(String(evidence.benefit.min));
+  if (!options.excludeMinMax) {
+    if (evidence.benefit.min !== null) {
+      amounts.add(String(evidence.benefit.min));
+    }
+    if (evidence.benefit.max !== null) {
+      amounts.add(String(evidence.benefit.max));
+    }
   }
-  if (evidence.benefit.max !== null) {
-    amounts.add(String(evidence.benefit.max));
-  }
+  const skip = new Set<unknown>(
+    options.excludeMinMax
+      ? [evidence.benefit.min, evidence.benefit.max]
+      : [],
+  );
   walkValues(evidence, (item) => {
+    if (skip.has(item)) {
+      return;
+    }
     if (typeof item === "number" && Number.isFinite(item)) {
       amounts.add(String(Math.round(item)));
     }
@@ -158,6 +176,25 @@ function extractEvidenceAmounts(evidence: EvidencePackage): Set<string> {
     }
   });
   return amounts;
+}
+
+function extractAllowedDraftAmounts(evidence: EvidencePackage): Set<string> {
+  if (evidence.benefit.amount_structure === "TIERED") {
+    const amounts = new Set<string>();
+    for (const tier of evidence.benefit.tiers) {
+      if (tier.amount !== null) {
+        amounts.add(String(tier.amount));
+      }
+      for (const amount of extractAmounts(`${tier.label} ${tier.condition_summary}`)) {
+        amounts.add(amount);
+      }
+    }
+    return amounts;
+  }
+  if (evidence.benefit.amount_structure === "UNKNOWN") {
+    return extractEvidenceAmounts(evidence, { excludeMinMax: true });
+  }
+  return extractEvidenceAmounts(evidence);
 }
 
 function extractDates(text: string): string[] {
@@ -264,17 +301,44 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
     );
   }
 
-  const allowedAmounts = extractEvidenceAmounts(evidence);
+  const allowedAmounts = extractAllowedDraftAmounts(evidence);
   for (const amount of extractAmounts(text)) {
     if (!allowedAmounts.has(amount)) {
+      const tiered = evidence.benefit.amount_structure === "TIERED";
       errors.push(
         issue(
-          "UNSUPPORTED_AMOUNT",
+          tiered ? "UNSUPPORTED_TIER_AMOUNT" : "UNSUPPORTED_AMOUNT",
           `Draft includes unsupported dollar amount $${amount}.`,
-          "benefit",
+          tiered ? "benefit.tiers" : "benefit",
         ),
       );
     }
+  }
+
+  if (
+    evidence.benefit.amount_structure === "TIERED" &&
+    looksLikeSynthesizedRange(text)
+  ) {
+    errors.push(
+      issue(
+        "TIERED_BENEFIT_FLATTENED",
+        `Tiered benefit is rendered as a synthesized range (${extractSynthesizedRanges(text).join(", ")}). Describe each modeled tier and its condition instead.`,
+        "benefit.amount_structure",
+      ),
+    );
+  }
+
+  if (
+    evidence.benefit.amount_structure === "UNKNOWN" &&
+    (looksLikeSynthesizedRange(text) || looksLikeDefiniteSynthesizedAmount(text))
+  ) {
+    errors.push(
+      issue(
+        "UNKNOWN_AMOUNT_RANGE",
+        "Unknown amount structure cannot be presented as a definite synthesized amount or range.",
+        "benefit.amount_structure",
+      ),
+    );
   }
 
   const allowedDates = evidenceDates(evidence);
@@ -313,22 +377,37 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
   const modeledFields = new Set(
     evidence.eligibility.modeled_rules.map((rule) => rule.field),
   );
-  const eligibilityText = `${draft.who_may_qualify}\n${draft.overview}\n${draft.faqs.map((faq) => faq.answer).join("\n")}`;
+  const eligibilityText = `${draft.who_may_qualify}\n${draft.overview}\n${draft.faqs.map((faq) => `${faq.question}\n${faq.answer}`).join("\n")}`;
   const corpus = eligibilityCorpus(evidence);
+  const tierCorpus = evidence.benefit.tiers
+    .map((tier) => `${tier.label} ${tier.condition_summary}`)
+    .join("\n");
   for (const hint of ELIGIBILITY_HINTS) {
-    if (!hint.pattern.test(eligibilityText)) {
+    if (!hint.pattern.test(eligibilityText) && !hint.pattern.test(text)) {
       continue;
     }
     const modeled = hint.fields.some((field) => modeledFields.has(field));
     const inEvidence = hint.pattern.test(corpus);
-    if (!modeled && !inEvidence) {
-      errors.push(
-        issue(
-          "UNSUPPORTED_ELIGIBILITY",
-          `Draft makes an eligibility claim about ${hint.label} that is not in structured rules or unmodeled summary.`,
-          "eligibility.modeled_rules",
-        ),
-      );
+    const inTiers = hint.pattern.test(tierCorpus);
+    if (!modeled && !inEvidence && !inTiers) {
+      if (evidence.benefit.amount_structure === "TIERED" && hint.pattern.test(text)) {
+        errors.push(
+          issue(
+            "UNSUPPORTED_TIER_CONDITION",
+            `Draft states a tier condition about ${hint.label} that is not in modeled tiers.`,
+            "benefit.tiers",
+          ),
+        );
+      }
+      if (hint.pattern.test(eligibilityText)) {
+        errors.push(
+          issue(
+            "UNSUPPORTED_ELIGIBILITY",
+            `Draft makes an eligibility claim about ${hint.label} that is not in structured rules or unmodeled summary.`,
+            "eligibility.modeled_rules",
+          ),
+        );
+      }
     }
   }
 

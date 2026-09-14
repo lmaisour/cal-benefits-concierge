@@ -13,6 +13,8 @@ describe("buildEvidencePackage", () => {
     expect(evidence.eligibility.tags_are_not_eligibility).toBe(true);
     expect(evidence.eligibility.unknown_is_not_a_fact).toBe(true);
     expect(evidence.benefit.amounts_are_structured_facts).toBe(true);
+    expect(evidence.benefit.amount_structure).toBe("UNKNOWN");
+    expect(evidence.benefit.tiers).toEqual([]);
     expect(evidence.benefit.min).toBe(200);
     expect(evidence.deadline.application_deadline).toBe("2026-11-01");
     expect(evidence.deadline.source).toBe("structured");
@@ -28,6 +30,7 @@ describe("buildEvidencePackage", () => {
     expect(evidence.benefit.min).toBeNull();
     expect(evidence.benefit.max).toBeNull();
     expect(evidence.benefit.amounts_are_structured_facts).toBe(false);
+    expect(evidence.benefit.amount_structure).toBe("UNKNOWN");
   });
 
   it("surfaces unmodeled required eligibility as a warning, not a satisfied fact", () => {

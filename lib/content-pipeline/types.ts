@@ -1,4 +1,8 @@
 import type {
+  BenefitAmountStructure,
+  BenefitTier,
+} from "@/lib/content-pipeline/amount-structure";
+import type {
   BenefitType,
   Confidence,
   ContentOpportunityStatus,
@@ -183,6 +187,8 @@ export type EvidencePackage = {
     period: string | null;
     repayable: boolean;
     amounts_are_structured_facts: boolean;
+    amount_structure: BenefitAmountStructure;
+    tiers: BenefitTier[];
   };
   eligibility: {
     modeled_rules: EvidenceEligibilityRule[];
@@ -226,6 +232,12 @@ export type EvidencePackage = {
     seo_title_suffix: string;
     h1_qualify_suffix: string;
     meta_description_suffix: string;
+    faq_who_may_qualify: string;
+    faq_how_to_apply: string;
+    faq_documents: string;
+    faq_only_consider: string;
+    unknown_amount_guidance: string;
+    tiered_amount_guidance: string;
   };
 };
 
@@ -293,6 +305,10 @@ export type ValidationIssueCode =
   | "TITLE_OVERSTATES_ELIGIBILITY"
   | "DEFINITE_QUALIFY_LANGUAGE"
   | "UNMAPPED_CLAIM"
+  | "TIERED_BENEFIT_FLATTENED"
+  | "UNKNOWN_AMOUNT_RANGE"
+  | "UNSUPPORTED_TIER_AMOUNT"
+  | "UNSUPPORTED_TIER_CONDITION"
   | "NEAR_DUPLICATE_CONTENT"
   | "BROKEN_INTERNAL_LINK"
   | "INVALID_SOURCE_URL"

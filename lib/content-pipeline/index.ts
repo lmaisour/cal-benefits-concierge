@@ -4,6 +4,10 @@ export { scoreOpportunity, scoreOpportunities } from "@/lib/content-pipeline/sco
 export { selectOpportunity } from "@/lib/content-pipeline/select-opportunity";
 export { buildEvidencePackage } from "@/lib/content-pipeline/build-evidence-package";
 export {
+  resolveBenefitAmountStructure,
+  BENEFIT_AMOUNT_STRUCTURES,
+} from "@/lib/content-pipeline/amount-structure";
+export {
   FakeContentDraftProvider,
   createContentDraftProvider,
   generateDraft,

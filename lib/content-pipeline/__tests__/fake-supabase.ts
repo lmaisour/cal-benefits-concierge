@@ -17,6 +17,7 @@ export function createFakeSupabase(options: FakeSupabaseOptions = {}) {
     content_briefs: [],
     content_evidence: [],
     homepage_features: [],
+    program_benefit_tiers: [],
     content_opportunities: [],
     content_pipeline_runs: [],
     ...(options.tables

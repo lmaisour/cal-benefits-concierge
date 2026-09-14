@@ -3,8 +3,9 @@ import {
   formatUtcCalendarDate,
   parseUtcCalendarDate,
 } from "@/lib/programs/calendar";
+import { looksLikeSynthesizedRange } from "@/lib/content-pipeline/amount-structure";
 import {
-  renderFaqAnswers,
+  renderFaqs,
   renderFactualSection,
 } from "@/lib/content-pipeline/claims";
 import type {
@@ -83,11 +84,19 @@ function benefitClaims(
     return claims;
   }
 
-  if (evidence.benefit.summary?.trim()) {
+  const summary = evidence.benefit.summary?.trim() ?? "";
+  const structure = evidence.benefit.amount_structure;
+  const canUseSummary =
+    Boolean(summary) &&
+    (structure === "RANGE" ||
+      structure === "SINGLE" ||
+      !looksLikeSynthesizedRange(summary));
+
+  if (canUseSummary) {
     claims.push(
       claim(
         `${idPrefix}summary`,
-        evidence.benefit.summary.trim(),
+        summary,
         "benefit.summary",
         sourceUrl,
         section,
@@ -105,24 +114,63 @@ function benefitClaims(
     );
   }
 
-  if (evidence.benefit.amounts_are_structured_facts) {
-    let text = "";
-    let path = "benefit.max";
-    if (evidence.benefit.min !== null && evidence.benefit.max !== null) {
-      path = "benefit.max";
-      text =
-        evidence.benefit.min === evidence.benefit.max
-          ? `The structured catalog value is ${formatAmount(evidence.benefit.min)}.`
-          : `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`;
-    } else if (evidence.benefit.max !== null) {
-      text = `The structured catalog maximum is ${formatAmount(evidence.benefit.max)}.`;
-    } else if (evidence.benefit.min !== null) {
-      path = "benefit.min";
-      text = `The structured catalog minimum is ${formatAmount(evidence.benefit.min)}.`;
+  if (structure === "SINGLE" && evidence.benefit.amounts_are_structured_facts) {
+    const amount = evidence.benefit.min ?? evidence.benefit.max;
+    const path = evidence.benefit.min !== null ? "benefit.min" : "benefit.max";
+    if (amount !== null) {
+      claims.push(
+        claim(
+          `${idPrefix}amount`,
+          `The structured catalog value is ${formatAmount(amount)}.`,
+          path,
+          sourceUrl,
+          section,
+        ),
+      );
     }
-    if (text) {
-      claims.push(claim(`${idPrefix}amount`, text, path, sourceUrl, section));
-    }
+  } else if (structure === "RANGE" && evidence.benefit.min !== null && evidence.benefit.max !== null) {
+    claims.push(
+      claim(
+        `${idPrefix}amount`,
+        `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
+        "benefit.max",
+        sourceUrl,
+        section,
+      ),
+    );
+  } else if (structure === "TIERED") {
+    claims.push(
+      claim(
+        `${idPrefix}tiered-guidance`,
+        evidence.boilerplate.tiered_amount_guidance,
+        "boilerplate.tiered_amount_guidance",
+        sourceUrl,
+        section,
+      ),
+    );
+    evidence.benefit.tiers.forEach((tier, index) => {
+      const amountText =
+        tier.amount !== null ? `${formatAmount(tier.amount)}. ` : "";
+      claims.push(
+        claim(
+          `${idPrefix}tier-${index}`,
+          `${tier.label}: ${amountText}Condition: ${tier.condition_summary}`,
+          `benefit.tiers.${index}.condition_summary`,
+          sourceUrl,
+          section,
+        ),
+      );
+    });
+  } else if (structure === "UNKNOWN") {
+    claims.push(
+      claim(
+        `${idPrefix}unknown-guidance`,
+        evidence.boilerplate.unknown_amount_guidance,
+        "boilerplate.unknown_amount_guidance",
+        sourceUrl,
+        section,
+      ),
+    );
   }
 
   return claims;
@@ -438,29 +486,89 @@ export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
 
   const qualifyText = renderFactualSection(claims, "who_may_qualify");
   const applyText = renderFactualSection(claims, "how_to_apply");
+  const documentsText = renderFactualSection(claims, "documents");
   claims.push(
     claim(
-      "faq-qualify",
+      "faq-q-qualify",
+      `Who may qualify for ${evidence.official_name}?`,
+      "official_name",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-a-qualify",
       qualifyText,
       "official_name",
       sourceUrl,
       "faqs",
     ),
     claim(
-      "faq-apply",
+      "faq-q-apply",
+      evidence.boilerplate.faq_how_to_apply,
+      "boilerplate.faq_how_to_apply",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-a-apply",
       applyText,
       "application.official_url",
       sourceUrl,
       "faqs",
     ),
     claim(
-      "faq-exhaustive",
+      "faq-q-documents",
+      evidence.boilerplate.faq_documents,
+      "boilerplate.faq_documents",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-a-documents",
+      documentsText,
+      evidence.application.documents?.trim()
+        ? "application.documents"
+        : "boilerplate.documents_unlisted",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-q-only",
+      evidence.boilerplate.faq_only_consider,
+      "boilerplate.faq_only_consider",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-a-only",
       "No. This catalog is not exhaustive. Other local, state, or federal programs may also exist.",
       "boilerplate.not_exhaustive",
       sourceUrl,
       "faqs",
     ),
   );
+
+  if (evidence.benefit.amount_structure === "TIERED" && evidence.benefit.tiers[0]) {
+    const tier = evidence.benefit.tiers[0];
+    claims.push(
+      claim(
+        "faq-q-tier-0",
+        `What award applies for ${tier.label}?`,
+        "benefit.tiers.0.label",
+        sourceUrl,
+        "faqs",
+      ),
+      claim(
+        "faq-a-tier-0",
+        tier.amount !== null
+          ? `${tier.label}: ${formatAmount(tier.amount)}. Condition: ${tier.condition_summary}`
+          : `${tier.label}. Condition: ${tier.condition_summary}`,
+        "benefit.tiers.0.condition_summary",
+        sourceUrl,
+        "faqs",
+      ),
+    );
+  }
 
   return claims.filter((item) => item.text.trim().length > 0);
 }
@@ -470,7 +578,6 @@ export function renderDraftFromClaims(
   evidence: EvidencePackage,
   opportunity: ScoredOpportunity,
 ): ContentDraft {
-  const faqAnswers = renderFaqAnswers(claims);
   return {
     seo_title: renderFactualSection(claims, "seo_title"),
     meta_description: renderFactualSection(claims, "meta_description"),
@@ -482,20 +589,7 @@ export function renderDraftFromClaims(
     how_to_apply: renderFactualSection(claims, "how_to_apply"),
     documents: renderFactualSection(claims, "documents"),
     important_notes: renderFactualSection(claims, "important_notes"),
-    faqs: [
-      {
-        question: `Who may qualify for ${evidence.official_name}?`,
-        answer: faqAnswers[0] ?? "",
-      },
-      {
-        question: "How do I apply?",
-        answer: faqAnswers[1] ?? "",
-      },
-      {
-        question: "Is this the only California benefit I should consider?",
-        answer: faqAnswers[2] ?? evidence.boilerplate.not_exhaustive,
-      },
-    ],
+    faqs: renderFaqs(claims),
     suggested_internal_links: [
       {
         href: `/programs/${opportunity.proposed_slug}`,
