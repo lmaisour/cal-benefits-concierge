@@ -3,10 +3,16 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(__dirname, "../../..");
-const INTERNAL_TABLES = ["content_briefs", "content_evidence"];
+const INTERNAL_TABLES = [
+  "content_briefs",
+  "content_evidence",
+  "content_opportunities",
+  "content_pipeline_runs",
+];
 
 const SKIP_DIR_NAMES = new Set([
   "admin",
+  "internal",
   "node_modules",
   ".git",
   "__tests__",

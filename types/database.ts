@@ -384,6 +384,79 @@ export type ContentEvidenceInsert = Pick<
     >
   >;
 
+export const CONTENT_OPPORTUNITY_TYPES = ["PROGRAM_GUIDE"] as const;
+
+export type ContentOpportunityType = (typeof CONTENT_OPPORTUNITY_TYPES)[number];
+
+export const CONTENT_OPPORTUNITY_STATUSES = [
+  "DISCOVERED",
+  "SELECTED",
+  "RESEARCHING",
+  "DRAFTED",
+  "VALIDATION_FAILED",
+  "READY_FOR_REVIEW",
+  "SKIPPED",
+  "ERROR",
+] as const;
+
+export type ContentOpportunityStatus = (typeof CONTENT_OPPORTUNITY_STATUSES)[number];
+
+export const CONTENT_PIPELINE_RUN_MODES = ["DRY_RUN"] as const;
+
+export type ContentPipelineRunMode = (typeof CONTENT_PIPELINE_RUN_MODES)[number];
+
+export const CONTENT_PIPELINE_RUN_STATUSES = [
+  "STARTED",
+  "COMPLETED",
+  "BLOCKED",
+  "ERROR",
+] as const;
+
+export type ContentPipelineRunStatus = (typeof CONTENT_PIPELINE_RUN_STATUSES)[number];
+
+export type ContentOpportunityRow = {
+  id: string;
+  opportunity_type: ContentOpportunityType;
+  program_id: string | null;
+  guide_id: string | null;
+  proposed_slug: string | null;
+  proposed_title: string | null;
+  primary_keyword: string | null;
+  secondary_keywords: string[];
+  score: number;
+  score_breakdown: Json;
+  discovery_reason: string | null;
+  status: ContentOpportunityStatus;
+  next_eligible_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContentOpportunityInsert = Pick<
+  ContentOpportunityRow,
+  "opportunity_type" | "score" | "status"
+> &
+  Partial<Omit<ContentOpportunityRow, "opportunity_type" | "score" | "status">>;
+
+export type ContentPipelineRunRow = {
+  id: string;
+  opportunity_id: string | null;
+  mode: ContentPipelineRunMode;
+  status: ContentPipelineRunStatus;
+  started_at: string;
+  completed_at: string | null;
+  selected_reason: string | null;
+  evidence_snapshot: Json | null;
+  draft_snapshot: Json | null;
+  validation_snapshot: Json | null;
+  error_message: string | null;
+  provider_metadata: Json | null;
+  created_at: string;
+};
+
+export type ContentPipelineRunInsert = Pick<ContentPipelineRunRow, "status"> &
+  Partial<Omit<ContentPipelineRunRow, "status">>;
+
 export type Database = {
   public: {
     Tables: {
@@ -469,6 +542,18 @@ export type Database = {
         Row: ContentEvidenceRow;
         Insert: ContentEvidenceInsert;
         Update: Partial<ContentEvidenceRow>;
+        Relationships: [];
+      };
+      content_opportunities: {
+        Row: ContentOpportunityRow;
+        Insert: ContentOpportunityInsert;
+        Update: Partial<ContentOpportunityRow>;
+        Relationships: [];
+      };
+      content_pipeline_runs: {
+        Row: ContentPipelineRunRow;
+        Insert: ContentPipelineRunInsert;
+        Update: Partial<ContentPipelineRunRow>;
         Relationships: [];
       };
     };
