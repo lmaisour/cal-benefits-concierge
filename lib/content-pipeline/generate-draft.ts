@@ -200,6 +200,62 @@ export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
 
   claims.push(
     claim(
+      "seo-title-name",
+      evidence.official_name,
+      "official_name",
+      sourceUrl,
+      "seo_title",
+    ),
+    claim(
+      "seo-title-suffix",
+      evidence.boilerplate.seo_title_suffix,
+      "boilerplate.seo_title_suffix",
+      sourceUrl,
+      "seo_title",
+    ),
+    claim(
+      "meta-name",
+      evidence.official_name,
+      "official_name",
+      sourceUrl,
+      "meta_description",
+    ),
+    claim(
+      "meta-suffix",
+      evidence.boilerplate.meta_description_suffix,
+      "boilerplate.meta_description_suffix",
+      sourceUrl,
+      "meta_description",
+    ),
+  );
+
+  const headline = evidence.consumer_headline?.trim();
+  if (headline) {
+    claims.push(
+      claim("h1-headline", headline, "consumer_headline", sourceUrl, "h1"),
+      claim(
+        "h1-suffix",
+        evidence.boilerplate.h1_qualify_suffix,
+        "boilerplate.h1_qualify_suffix",
+        sourceUrl,
+        "h1",
+      ),
+    );
+  } else {
+    claims.push(
+      claim("h1-name", evidence.official_name, "official_name", sourceUrl, "h1"),
+      claim(
+        "h1-suffix",
+        evidence.boilerplate.seo_title_suffix,
+        "boilerplate.seo_title_suffix",
+        sourceUrl,
+        "h1",
+      ),
+    );
+  }
+
+  claims.push(
+    claim(
       "dek-status",
       `${evidence.official_name} is listed as ${evidence.status}.`,
       "status",
@@ -415,13 +471,10 @@ export function renderDraftFromClaims(
   opportunity: ScoredOpportunity,
 ): ContentDraft {
   const faqAnswers = renderFaqAnswers(claims);
-  const seo_title = `${evidence.official_name}: who may qualify and how to apply`;
   return {
-    seo_title,
-    meta_description: `${evidence.official_name} may help qualifying households. See who may qualify, what you may receive, and how to apply. Confirm details on the official source.`,
-    h1: evidence.consumer_headline?.trim()
-      ? `${evidence.consumer_headline.trim()} — who may qualify`
-      : seo_title,
+    seo_title: renderFactualSection(claims, "seo_title"),
+    meta_description: renderFactualSection(claims, "meta_description"),
+    h1: renderFactualSection(claims, "h1"),
     dek: renderFactualSection(claims, "dek"),
     overview: renderFactualSection(claims, "overview"),
     what_you_get: renderFactualSection(claims, "what_you_get"),

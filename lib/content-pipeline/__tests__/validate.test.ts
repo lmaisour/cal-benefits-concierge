@@ -196,6 +196,57 @@ describe("validateDraft", () => {
     expect(result.errors.some((error) => error.code === "UNMAPPED_CLAIM")).toBe(true);
   });
 
+  it("fails an unmapped factual sentence in meta_description even when body claims are valid", async () => {
+    const { draft, evidence } = await validPair();
+    draft.meta_description += " Applicants receive a guaranteed $9,999 award.";
+    const result = validateDraft({
+      draft,
+      evidence,
+      known_routes: knownRoutes,
+      own_slug: "test-home-rebate",
+      own_titles: [evidence.official_name],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNMAPPED_CLAIM")).toBe(true);
+    expect(
+      result.errors.some((error) =>
+        error.message.includes("meta_description"),
+      ),
+    ).toBe(true);
+  });
+
+  it("fails unsupported eligibility or value language inserted into h1", async () => {
+    const { draft, evidence } = await validPair();
+    draft.h1 += " — veterans automatically qualify for $12,000";
+    const result = validateDraft({
+      draft,
+      evidence,
+      known_routes: knownRoutes,
+      own_slug: "test-home-rebate",
+      own_titles: [evidence.official_name],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNMAPPED_CLAIM")).toBe(true);
+    expect(result.errors.some((error) => error.message.includes("h1"))).toBe(true);
+  });
+
+  it("fails unsupported factual language in seo_title", async () => {
+    const { draft, evidence } = await validPair();
+    draft.seo_title += ": every California resident is eligible";
+    const result = validateDraft({
+      draft,
+      evidence,
+      known_routes: knownRoutes,
+      own_slug: "test-home-rebate",
+      own_titles: [evidence.official_name],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNMAPPED_CLAIM")).toBe(true);
+    expect(
+      result.errors.some((error) => error.message.includes("seo_title")),
+    ).toBe(true);
+  });
+
   it("blocks silent omission of unmodeled required criteria", async () => {
     const record = makeRecord({
       program: {

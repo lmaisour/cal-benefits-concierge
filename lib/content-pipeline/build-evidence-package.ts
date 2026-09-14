@@ -111,6 +111,10 @@ export function buildEvidencePackage(
       check_official_dates: "Check the official source for current dates.",
       eligibility_rules_limited:
         "Modeled eligibility rules are limited. Confirm requirements on the official source.",
+      seo_title_suffix: ": who may qualify and how to apply",
+      h1_qualify_suffix: " — who may qualify",
+      meta_description_suffix:
+        " may help qualifying households. See who may qualify, what you may receive, and how to apply. Confirm details on the official source.",
     },
   };
 }

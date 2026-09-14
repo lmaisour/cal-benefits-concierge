@@ -8,6 +8,9 @@ export const FACTUAL_SECTION_JOIN: Record<
   Exclude<FactualDraftSection, "faqs">,
   string
 > = {
+  seo_title: "",
+  meta_description: "",
+  h1: "",
   dek: " ",
   overview: " ",
   what_you_get: " ",
@@ -33,8 +36,8 @@ export function renderFactualSection(
   section: Exclude<FactualDraftSection, "faqs">,
 ): string {
   return claimsForSection(claims, section)
-    .map((claim) => claim.text.trim())
-    .filter(Boolean)
+    .map((claim) => claim.text)
+    .filter((text) => text.trim().length > 0)
     .join(FACTUAL_SECTION_JOIN[section]);
 }
 
@@ -47,6 +50,9 @@ export function renderFaqAnswers(claims: SourceClaim[]): string[] {
 export function factualSectionText(
   draft: Pick<
     ContentDraft,
+    | "seo_title"
+    | "meta_description"
+    | "h1"
     | "dek"
     | "overview"
     | "what_you_get"

@@ -223,6 +223,9 @@ export type EvidencePackage = {
     deadline_none: string;
     check_official_dates: string;
     eligibility_rules_limited: string;
+    seo_title_suffix: string;
+    h1_qualify_suffix: string;
+    meta_description_suffix: string;
   };
 };
 
@@ -238,6 +241,9 @@ export type SuggestedInternalLink = {
 };
 
 export const FACTUAL_DRAFT_SECTIONS = [
+  "seo_title",
+  "meta_description",
+  "h1",
   "dek",
   "overview",
   "what_you_get",
