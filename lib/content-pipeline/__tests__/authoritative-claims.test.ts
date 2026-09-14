@@ -199,6 +199,36 @@ describe("authoritative source claims", () => {
     );
   });
 
+  it("fails when a valid claim’s source URL is changed to another valid HTTP URL", async () => {
+    const { draft, evidence } = await pair();
+    const original = draft.source_claims.find((item) => item.source_url);
+    expect(original?.source_url).toBeTruthy();
+    draft.source_claims = draft.source_claims.map((item) =>
+      item.claim_id === original?.claim_id
+        ? { ...item, source_url: "https://example.invalid/other-official" }
+        : item,
+    );
+    const result = validate(draft, evidence);
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNSUPPORTED_SOURCE_CLAIM")).toBe(
+      true,
+    );
+  });
+
+  it("fails when a valid claim’s source URL is removed but the authoritative claim has one", async () => {
+    const { draft, evidence } = await pair();
+    const original = draft.source_claims.find((item) => item.source_url);
+    expect(original?.source_url).toBeTruthy();
+    draft.source_claims = draft.source_claims.map((item) =>
+      item.claim_id === original?.claim_id ? { ...item, source_url: null } : item,
+    );
+    const result = validate(draft, evidence);
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNSUPPORTED_SOURCE_CLAIM")).toBe(
+      true,
+    );
+  });
+
   it("still passes the normal fake-provider draft", async () => {
     const { draft, evidence } = await pair();
     const allowed = buildFactualClaims(evidence);

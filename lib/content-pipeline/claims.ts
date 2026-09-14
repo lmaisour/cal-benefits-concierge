@@ -117,20 +117,25 @@ export function factualSectionMatchesClaims(
   );
 }
 
+export function normalizeSourceUrl(value: string | null | undefined): string {
+  return (value ?? "").trim();
+}
+
 export function sourceClaimFingerprint(
-  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">,
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">,
 ): string {
   return [
     normalizeClaimText(claim.claim_id),
     claim.section,
     claim.evidence_path.trim(),
     normalizeClaimText(claim.text),
+    normalizeSourceUrl(claim.source_url),
   ].join("\n");
 }
 
 export function isAuthoritativeSourceClaim(
-  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">,
-  allowed: Array<Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">>,
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">,
+  allowed: Array<Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">>,
 ): boolean {
   const key = sourceClaimFingerprint(claim);
   return allowed.some((item) => sourceClaimFingerprint(item) === key);
