@@ -35,6 +35,7 @@ export type FollowupRuleFormValues = {
   expected_value: string;
   required: boolean;
   explanation: string;
+  satisfies_rule_group?: string;
 };
 
 export type FollowupQuestionValidationResult =
@@ -194,6 +195,10 @@ export function validateFollowupRuleForm(
   if (expected.ok === false) {
     errors.expected_value = expected.error;
   }
+  const satisfiesGroup = parseOptionalRuleGroup(values.satisfies_rule_group);
+  if (satisfiesGroup.ok === false) {
+    errors.satisfies_rule_group = satisfiesGroup.error;
+  }
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
@@ -205,6 +210,7 @@ export function validateFollowupRuleForm(
       expected_value: expected.ok ? expected.value : null,
       required: values.required,
       explanation: emptyToNull(values.explanation),
+      satisfies_rule_group: satisfiesGroup.ok ? satisfiesGroup.value : null,
     },
   };
 }
@@ -233,6 +239,7 @@ export function followupRuleFormFromData(formData: FormData): FollowupRuleFormVa
     expected_value: readString(formData, "expected_value"),
     required: formData.get("required") === "true",
     explanation: readString(formData, "explanation"),
+    satisfies_rule_group: readString(formData, "satisfies_rule_group"),
   };
 }
 
@@ -242,6 +249,19 @@ function parseNonNegativeInt(
   const trimmed = raw.trim() || "0";
   if (!/^[0-9]+$/.test(trimmed)) {
     return { ok: false, error: "Sort order must be a whole number." };
+  }
+  return { ok: true, value: Number(trimmed) };
+}
+
+function parseOptionalRuleGroup(
+  raw: string | undefined,
+): { ok: true; value: number | null } | { ok: false; error: string } {
+  const trimmed = raw?.trim() ?? "";
+  if (trimmed === "") {
+    return { ok: true, value: null };
+  }
+  if (!/^[1-9][0-9]*$/.test(trimmed)) {
+    return { ok: false, error: "Use a positive whole number, or leave blank." };
   }
   return { ok: true, value: Number(trimmed) };
 }

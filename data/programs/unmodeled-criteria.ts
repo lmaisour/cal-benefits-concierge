@@ -217,8 +217,6 @@ export const UNMODELED_REQUIRED_CRITERIA: Record<string, string> = {
     "You must live in a qualifying disadvantaged community. Address-based DAC eligibility is not confirmed here.",
   "LA-HOME-CITY-PLANTS":
     "You must be able to plant and water the trees on eligible City of Los Angeles private property, or qualify for the separate street-tree pathway.",
-  "LA-VEH-METRO-LIFE":
-    "You must live in Los Angeles County and meet the published household-income table or be enrolled in a listed public-benefit program.",
   "SCAQMD-VEH-RYR":
     "You must live in the South Coast AQMD jurisdiction and meet the published older-vehicle and household-income rules.",
   "SCAQMD-HOME-LAWN-GARDEN":

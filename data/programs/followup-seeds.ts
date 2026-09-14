@@ -21,6 +21,8 @@ export type CatalogFollowupQuestionSeed = {
   expectedValue: unknown;
   ruleRequired: boolean;
   explanation: string;
+  /** OR alternative for a core `program_rules.rule_group`. Null = independent AND. */
+  satisfiesRuleGroup?: number | null;
 };
 
 export type CatalogFollowupProgramSeed = {
@@ -100,6 +102,64 @@ export const CATALOG_FOLLOWUP_SEEDS: CatalogFollowupProgramSeed[] = [
         ruleRequired: true,
         explanation:
           "Written permission from the property owner is required when you do not own the home.",
+      },
+    ],
+  },
+  {
+    externalId: "LA-VEH-METRO-LIFE",
+    questions: [
+      {
+        questionKey: "life_qualifying_public_benefit",
+        question: "Are you currently enrolled in any of these programs?",
+        helpText:
+          "Some LIFE applicants can qualify through participation in another public-benefit program even if household income is above the listed LIFE limit. Examples include CalFresh / SNAP / EBT, Medi-Cal, reduced-price or free school lunch where Metro recognizes it, Social Security, Social Security Disability, and TANF.",
+        options: [
+          { value: "yes", label: "Yes" },
+          { value: "no", label: "No" },
+          { value: "not_sure", label: "I'm not sure", unknown: true },
+        ],
+        sortOrder: 10,
+        required: true,
+        displayWhenField: null,
+        displayWhenOperator: null,
+        displayWhenValue: null,
+        ctaLabel: "Check LIFE eligibility",
+        operator: "equals",
+        expectedValue: "yes",
+        ruleRequired: true,
+        explanation:
+          "Enrollment in a qualifying public-benefit program can satisfy LIFE financial eligibility.",
+        satisfiesRuleGroup: 1,
+      },
+      {
+        questionKey: "life_other_transit_subsidy",
+        question:
+          "Are you currently getting free or discounted transit through another transit program?",
+        helpText:
+          "Metro’s LIFE page lists GoPass, College U-Pass, and Employer Pass as conflicting examples. Another discount program is not treated as an automatic conflict here unless Metro names it.",
+        options: [
+          { value: "no", label: "No" },
+          { value: "gopass", label: "GoPass" },
+          { value: "college_upass", label: "College U-Pass" },
+          { value: "employer_pass", label: "Employer transit pass" },
+          {
+            value: "other",
+            label: "Another transit discount program",
+            unknown: true,
+          },
+          { value: "not_sure", label: "I'm not sure", unknown: true },
+        ],
+        sortOrder: 20,
+        required: true,
+        displayWhenField: null,
+        displayWhenOperator: null,
+        displayWhenValue: null,
+        ctaLabel: null,
+        operator: "equals",
+        expectedValue: "no",
+        ruleRequired: true,
+        explanation:
+          "LIFE cannot be combined with GoPass, College U-Pass, or an employer transit pass.",
       },
     ],
   },

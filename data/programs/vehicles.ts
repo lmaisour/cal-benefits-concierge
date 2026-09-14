@@ -1,4 +1,5 @@
 import { loc, pack, program, rule, src, VERIFIED_7C_AT, type Draft } from "@/data/programs/helpers";
+import { LIFE_ANNUAL_INCOME_LIMITS_BY_HOUSEHOLD_SIZE } from "@/data/programs/life-income-limits";
 
 const drafts: Draft[] = [
   {
@@ -644,7 +645,7 @@ const drafts: Draft[] = [
       short_description:
         "Free and discounted transit rides for qualifying Los Angeles County residents.",
       description:
-        "LIFE is for Los Angeles County residents who meet a published household-income table or who are enrolled in a listed public benefit such as CalFresh, Medi-Cal, reduced-price school meals, SNAP, Social Security, SSDI, or TANF. After approval, riders receive unlimited free rides for 90 days on participating systems, then 20 free regional rides each month. A household-size income table is published on Metro’s official page and is not converted into a single engine limit here. Temporary South LA and Pomona extra-month promotions are not treated as the standing countywide benefit. Apply through Metro’s LIFE page.",
+        "LIFE is for Los Angeles County residents who meet a published household-income table or who are enrolled in a listed public benefit such as CalFresh, Medi-Cal, reduced-price school meals, SNAP, Social Security, SSDI, or TANF. After approval, riders receive unlimited free rides for 90 days on participating systems, then 20 free regional rides each month. A household-size income table is published on Metro’s official page and is used here for household sizes 1 through 8. Households larger than 8 are not assigned an invented limit. Temporary South LA and Pomona extra-month promotions are not treated as the standing countywide benefit. Apply through Metro’s LIFE page.",
       benefit_summary: "Unlimited free rides for 90 days after approval, then 20 free regional rides each month",
       benefit_type: "FREE_SERVICE",
       benefit_min: null,
@@ -666,6 +667,15 @@ const drafts: Draft[] = [
       src("LA-VEH-METRO-LIFE", "GENERAL", "LA Metro", "https://www.metro.net/fares/life/", null, VERIFIED_7C_AT),
     ],
     locations: [loc("LA-VEH-METRO-LIFE", "STATE", "CA"), loc("LA-VEH-METRO-LIFE", "COUNTY", "Los Angeles")],
+    rules: [
+      rule(
+        "LA-VEH-METRO-LIFE",
+        "household_income",
+        "less_than_or_equal_by_household_size",
+        LIFE_ANNUAL_INCOME_LIMITS_BY_HOUSEHOLD_SIZE,
+        "Household income must be at or below the published LIFE limit for the household size, or the applicant must be enrolled in a qualifying public-benefit program.",
+      ),
+    ],
   },
   {
     program: program({

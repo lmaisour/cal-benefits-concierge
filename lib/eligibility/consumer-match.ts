@@ -149,12 +149,22 @@ export function additionalRequirementsFor(
 
 export function missingInformationFor(evaluation: ProgramEvaluation): string[] {
   const labels = new Set<string>();
+  const groupStatus = new Map(
+    evaluation.requiredGroups.map((group) => [group.ruleGroup, group.status]),
+  );
 
   for (const result of evaluation.unknownRequiredRules) {
+    if (groupStatus.get(result.rule.rule_group) === "PASS") {
+      continue;
+    }
     labels.add(fieldLabel(result.rule.field));
   }
 
   for (const result of evaluation.unknownRequiredFollowupRules) {
+    const group = result.rule.satisfies_rule_group;
+    if (group != null && groupStatus.get(group) === "PASS") {
+      continue;
+    }
     labels.add(result.question.question);
   }
 
@@ -374,6 +384,9 @@ function uniqueQuestions(questions: ProgramFollowupQuestion[]): ProgramFollowupQ
 
 function criteriaFor(evaluation: ProgramEvaluation): ConsumerCriterion[] {
   const items: ConsumerCriterion[] = [];
+  const groupStatus = new Map(
+    evaluation.requiredGroups.map((group) => [group.ruleGroup, group.status]),
+  );
 
   for (const result of evaluation.passedRequiredRules) {
     items.push({
@@ -384,6 +397,9 @@ function criteriaFor(evaluation: ProgramEvaluation): ConsumerCriterion[] {
     });
   }
   for (const result of evaluation.failedRequiredRules) {
+    if (groupStatus.get(result.rule.rule_group) === "PASS") {
+      continue;
+    }
     items.push({
       id: `core-${result.rule.id}`,
       label: fieldLabel(result.rule.field),
@@ -392,6 +408,9 @@ function criteriaFor(evaluation: ProgramEvaluation): ConsumerCriterion[] {
     });
   }
   for (const result of evaluation.unknownRequiredRules) {
+    if (groupStatus.get(result.rule.rule_group) === "PASS") {
+      continue;
+    }
     items.push({
       id: `core-${result.rule.id}`,
       label: fieldLabel(result.rule.field),
@@ -401,6 +420,10 @@ function criteriaFor(evaluation: ProgramEvaluation): ConsumerCriterion[] {
   }
 
   for (const result of evaluation.followupResults.filter((item) => item.rule.required)) {
+    const group = result.rule.satisfies_rule_group;
+    if (group != null && groupStatus.get(group) === "PASS" && result.status !== "PASS") {
+      continue;
+    }
     items.push(criterionFromFollowup(result));
   }
 

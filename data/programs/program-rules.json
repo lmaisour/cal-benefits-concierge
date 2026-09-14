@@ -140,6 +140,25 @@
     "explanation": "The insured vehicle generally must be valued at $25,000 or less."
   },
   {
+    "program_external_id": "LA-VEH-METRO-LIFE",
+    "field": "household_income",
+    "operator": "less_than_or_equal_by_household_size",
+    "value": {
+      "1": 58300,
+      "2": 66650,
+      "3": 74950,
+      "4": 83300,
+      "5": 89950,
+      "6": 96600,
+      "7": 103250,
+      "8": 110000
+    },
+    "rule_group": 1,
+    "group_operator": "AND",
+    "required": true,
+    "explanation": "Household income must be at or below the published LIFE limit for the household size, or the applicant must be enrolled in a qualifying public-benefit program."
+  },
+  {
     "program_external_id": "CA-UTIL-CARE",
     "field": "electric_utility",
     "operator": "in",

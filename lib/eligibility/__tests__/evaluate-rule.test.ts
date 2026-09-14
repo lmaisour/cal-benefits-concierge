@@ -197,6 +197,27 @@ describe("evaluateRule", () => {
     expect(result.status).toBe("UNKNOWN");
   });
 
+  it("compares income to a household-size table without inventing missing sizes", () => {
+    const tableRule = rule("household_income", "less_than_or_equal_by_household_size", {
+      "1": 58300,
+      "2": 66650,
+    });
+    expect(
+      evaluateRule(tableRule, { household_size: 1, household_income: 58300 }).status,
+    ).toBe("PASS");
+    expect(
+      evaluateRule(tableRule, { household_size: 1, household_income: 58301 }).status,
+    ).toBe("FAIL");
+    expect(evaluateRule(tableRule, { household_size: 1 }).status).toBe("UNKNOWN");
+    expect(evaluateRule(tableRule, { household_income: 40000 }).status).toBe("UNKNOWN");
+    const oversize = evaluateRule(tableRule, {
+      household_size: 9,
+      household_income: 40000,
+    });
+    expect(oversize.status).toBe("UNKNOWN");
+    expect(oversize.explanation).toMatch(/don't have a published income limit/i);
+  });
+
   it("keeps a reference to the original rule on the evaluation", () => {
     const incomeRule = rule("household_income", "less_than", 65000);
     const result = evaluateRule(incomeRule, { household_income: 10000 });

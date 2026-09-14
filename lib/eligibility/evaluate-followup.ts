@@ -3,6 +3,7 @@ import type {
   FollowupEvaluationInput,
   FollowupOption,
   FollowupRuleEvaluation,
+  RuleResultStatus,
   UserProfile,
 } from "@/lib/eligibility/types";
 import {
@@ -59,19 +60,52 @@ export function isUnknownFollowupAnswer(
 export function isFollowupQuestionVisible(
   question: ProgramFollowupQuestion,
   profile: UserProfile,
+  context?: {
+    rules?: ProgramFollowupRule[];
+    coreGroupStatuses?: ReadonlyMap<number, RuleResultStatus>;
+  },
 ): boolean {
   if (!question.active) {
     return false;
   }
-  if (!question.display_when_field || !question.display_when_operator) {
-    return true;
+  if (question.display_when_field && question.display_when_operator) {
+    const status = evaluateOperator(
+      question.display_when_operator,
+      getProfileValue(profile, question.display_when_field),
+      question.display_when_value,
+    );
+    if (status === "FAIL") {
+      return false;
+    }
   }
-  const status = evaluateOperator(
-    question.display_when_operator,
-    getProfileValue(profile, question.display_when_field),
-    question.display_when_value,
+  if (isSatisfiedByPassedCoreGroup(question, context)) {
+    return false;
+  }
+  return true;
+}
+
+function isSatisfiedByPassedCoreGroup(
+  question: ProgramFollowupQuestion,
+  context?: {
+    rules?: ProgramFollowupRule[];
+    coreGroupStatuses?: ReadonlyMap<number, RuleResultStatus>;
+  },
+): boolean {
+  if (!context?.rules || !context.coreGroupStatuses) {
+    return false;
+  }
+  const required = context.rules.filter(
+    (rule) => rule.question_id === question.id && rule.required,
   );
-  return status !== "FAIL";
+  if (required.length === 0) {
+    return false;
+  }
+  return required.every((rule) => {
+    if (rule.satisfies_rule_group == null) {
+      return false;
+    }
+    return context.coreGroupStatuses?.get(rule.satisfies_rule_group) === "PASS";
+  });
 }
 
 export function evaluateFollowupRules(
@@ -86,7 +120,12 @@ export function evaluateFollowupRules(
     if (!question || question.program_id !== rule.program_id) {
       continue;
     }
-    if (!isFollowupQuestionVisible(question, profile)) {
+    if (
+      !isFollowupQuestionVisible(question, profile, {
+        rules: input.rules,
+        coreGroupStatuses: input.coreGroupStatuses,
+      })
+    ) {
       continue;
     }
 
@@ -129,8 +168,12 @@ function explanationForFollowup(
 export function visibleFollowupQuestions(
   questions: ProgramFollowupQuestion[],
   profile: UserProfile,
+  context?: {
+    rules?: ProgramFollowupRule[];
+    coreGroupStatuses?: ReadonlyMap<number, RuleResultStatus>;
+  },
 ): ProgramFollowupQuestion[] {
   return questions
-    .filter((question) => isFollowupQuestionVisible(question, profile))
+    .filter((question) => isFollowupQuestionVisible(question, profile, context))
     .sort((left, right) => left.sort_order - right.sort_order || left.question.localeCompare(right.question));
 }

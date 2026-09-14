@@ -321,6 +321,96 @@ describe("supplemental follow-up evaluation", () => {
     );
   });
 
+  it("ORs a follow-up into a core group when satisfies_rule_group is set", () => {
+    const income = makeRule({
+      program_id: LEAP_ID,
+      field: "household_income",
+      operator: "less_than_or_equal",
+      value: 50000,
+    });
+    const benefitQuestion = makeFollowupQuestion({
+      id: "q-benefit-or",
+      program_id: LEAP_ID,
+      question_key: "alt_benefit",
+      question: "Are you enrolled in a qualifying benefit?",
+    });
+    const benefitRule = makeFollowupRule({
+      program_id: LEAP_ID,
+      question_id: benefitQuestion.id,
+      expected_value: "yes",
+      satisfies_rule_group: 1,
+    });
+    const independentQuestion = makeFollowupQuestion({
+      id: "q-independent-or",
+      program_id: LEAP_ID,
+      question_key: "independent_flag",
+      question: "Do you meet the independent requirement?",
+    });
+    const independentRule = makeFollowupRule({
+      program_id: LEAP_ID,
+      question_id: independentQuestion.id,
+      expected_value: "yes",
+    });
+    const modeledProgram = makeProgram({
+      ...leapProgram,
+      has_unmodeled_required_criteria: false,
+      unmodeled_required_criteria_summary: null,
+    });
+
+    const overIncome = { ...ownerProfile, household_income: 70000 };
+    const underIncome = { ...ownerProfile, household_income: 40000 };
+
+    const unanswered = evaluateProgram(modeledProgram, [income], leapLocations, overIncome, {
+      questions: [benefitQuestion, independentQuestion],
+      rules: [benefitRule, independentRule],
+      answers: { independent_flag: "yes" },
+    });
+    expect(unanswered.status).toBe("POSSIBLY_ELIGIBLE");
+    expect(
+      unanswered.followupResults.some((item) => item.question.question_key === "alt_benefit"),
+    ).toBe(true);
+
+    const alternatePass = evaluateProgram(modeledProgram, [income], leapLocations, overIncome, {
+      questions: [benefitQuestion, independentQuestion],
+      rules: [benefitRule, independentRule],
+      answers: { alt_benefit: "yes", independent_flag: "yes" },
+    });
+    expect(alternatePass.requiredGroups[0]?.status).toBe("PASS");
+    expect(alternatePass.status).toBe("LIKELY_ELIGIBLE");
+
+    const bothFail = evaluateProgram(modeledProgram, [income], leapLocations, overIncome, {
+      questions: [benefitQuestion, independentQuestion],
+      rules: [benefitRule, independentRule],
+      answers: { alt_benefit: "no", independent_flag: "yes" },
+    });
+    expect(bothFail.status).toBe("NOT_ELIGIBLE");
+
+    const incomePassHidesAlternate = evaluateProgram(
+      modeledProgram,
+      [income],
+      leapLocations,
+      underIncome,
+      {
+        questions: [benefitQuestion, independentQuestion],
+        rules: [benefitRule, independentRule],
+        answers: { independent_flag: "yes" },
+      },
+    );
+    expect(
+      incomePassHidesAlternate.followupResults.some(
+        (item) => item.question.question_key === "alt_benefit",
+      ),
+    ).toBe(false);
+    expect(incomePassHidesAlternate.status).toBe("LIKELY_ELIGIBLE");
+
+    const independentFail = evaluateProgram(modeledProgram, [income], leapLocations, underIncome, {
+      questions: [benefitQuestion, independentQuestion],
+      rules: [benefitRule, independentRule],
+      answers: { independent_flag: "no" },
+    });
+    expect(independentFail.status).toBe("NOT_ELIGIBLE");
+  });
+
   it("does not change LEAP matching when application_deadline is set", () => {
     const withDeadline = makeProgram({
       ...leapProgram,

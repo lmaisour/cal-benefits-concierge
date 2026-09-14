@@ -100,6 +100,7 @@ export function FollowupRecords({
               expected_value: '"yes"',
               required: true,
               explanation: "",
+              satisfies_rule_group: "",
             }}
             submitLabel="Add rule"
           />
@@ -174,6 +175,8 @@ function RuleEditor({
             rule.expected_value === null ? "" : JSON.stringify(rule.expected_value),
           required: rule.required,
           explanation: rule.explanation ?? "",
+          satisfies_rule_group:
+            rule.satisfies_rule_group == null ? "" : String(rule.satisfies_rule_group),
         }}
         submitLabel="Save rule"
         extra={
@@ -322,6 +325,7 @@ function RuleFields({
     expected_value: string;
     required: boolean;
     explanation: string;
+    satisfies_rule_group: string;
   };
   submitLabel: string;
   extra?: ReactNode;
@@ -357,6 +361,14 @@ function RuleFields({
       <label className="text-sm sm:col-span-2">
         Explanation
         <input name="explanation" defaultValue={defaults.explanation} className={fieldClass} />
+      </label>
+      <label className="text-sm sm:col-span-2">
+        Satisfies core rule group (optional OR pathway)
+        <input
+          name="satisfies_rule_group"
+          defaultValue={defaults.satisfies_rule_group}
+          className={fieldClass}
+        />
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="required" value="true" defaultChecked={defaults.required} />
