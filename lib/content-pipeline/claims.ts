@@ -116,3 +116,22 @@ export function factualSectionMatchesClaims(
     normalizeClaimText(expectedFactualSection(draft.source_claims, section))
   );
 }
+
+export function sourceClaimFingerprint(
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">,
+): string {
+  return [
+    normalizeClaimText(claim.claim_id),
+    claim.section,
+    claim.evidence_path.trim(),
+    normalizeClaimText(claim.text),
+  ].join("\n");
+}
+
+export function isAuthoritativeSourceClaim(
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">,
+  allowed: Array<Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text">>,
+): boolean {
+  const key = sourceClaimFingerprint(claim);
+  return allowed.some((item) => sourceClaimFingerprint(item) === key);
+}

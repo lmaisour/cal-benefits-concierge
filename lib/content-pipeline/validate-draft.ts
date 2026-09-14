@@ -8,7 +8,11 @@ import {
   looksLikeDefiniteSynthesizedAmount,
   looksLikeSynthesizedRange,
 } from "@/lib/content-pipeline/amount-structure";
-import { factualSectionMatchesClaims } from "@/lib/content-pipeline/claims";
+import {
+  factualSectionMatchesClaims,
+  isAuthoritativeSourceClaim,
+} from "@/lib/content-pipeline/claims";
+import { buildFactualClaims } from "@/lib/content-pipeline/generate-draft";
 import {
   FACTUAL_DRAFT_SECTIONS,
   type ContentDraft,
@@ -478,6 +482,7 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
       );
     }
   }
+  const allowedClaims = buildFactualClaims(evidence);
   for (const claim of draft.source_claims) {
     if (!claim.section) {
       errors.push(
@@ -489,6 +494,15 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
         issue(
           "UNMAPPED_CLAIM",
           `Claim ${claim.claim_id} does not map to evidence path ${claim.evidence_path}.`,
+          claim.evidence_path,
+        ),
+      );
+    }
+    if (!isAuthoritativeSourceClaim(claim, allowedClaims)) {
+      errors.push(
+        issue(
+          "UNSUPPORTED_SOURCE_CLAIM",
+          `Claim ${claim.claim_id} is not an allowed factual atom from the server evidence contract.`,
           claim.evidence_path,
         ),
       );

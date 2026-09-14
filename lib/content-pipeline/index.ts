@@ -9,6 +9,7 @@ export {
 } from "@/lib/content-pipeline/amount-structure";
 export {
   FakeContentDraftProvider,
+  buildFactualClaims,
   createContentDraftProvider,
   generateDraft,
 } from "@/lib/content-pipeline/generate-draft";
