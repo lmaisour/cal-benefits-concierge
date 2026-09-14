@@ -1,6 +1,5 @@
 import { isRepayableBenefit } from "@/lib/programs/labels";
 import { isStaleVerification } from "@/lib/content-pipeline/freshness";
-import { catalogProgramId } from "@/lib/content-pipeline/ids";
 import { collectOfficialSources } from "@/lib/content-pipeline/official-sources";
 import type { DiscoveryRecord, EvidencePackage } from "@/lib/content-pipeline/types";
 
@@ -37,8 +36,8 @@ export function buildEvidencePackage(
   }
 
   return {
-    program_id: catalogProgramId(program.external_id),
-    external_id: program.external_id,
+    program_id: record.program_id,
+    external_id: program.external_id || record.program_id,
     official_name: program.name,
     consumer_headline: program.consumer_headline,
     status: program.status,
@@ -100,5 +99,18 @@ export function buildEvidencePackage(
     faqs: record.faqs,
     brief: record.brief,
     content_evidence: record.evidence_rows,
+    boilerplate: {
+      not_exhaustive: "This catalog is not exhaustive.",
+      cannot_determine_personal_eligibility:
+        "This page cannot determine personal eligibility.",
+      confirm_with_administrator:
+        "Always confirm eligibility, funding, and deadlines with the official administrator.",
+      documents_unlisted:
+        "Required documents are not fully listed in the structured catalog. Use the official application checklist.",
+      deadline_none: "No structured application deadline is recorded.",
+      check_official_dates: "Check the official source for current dates.",
+      eligibility_rules_limited:
+        "Modeled eligibility rules are limited. Confirm requirements on the official source.",
+    },
   };
 }

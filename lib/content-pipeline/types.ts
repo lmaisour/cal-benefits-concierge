@@ -57,6 +57,7 @@ export type EditorialEvidenceRow = {
 };
 
 export type DiscoveryRecord = {
+  program_id: string;
   program: CatalogProgram;
   rules: CatalogRule[];
   locations: CatalogLocation[];
@@ -96,7 +97,7 @@ export type ScoreBreakdown = {
 
 export type DiscoveredOpportunity = {
   opportunity_type: typeof CONTENT_PIPELINE_OPPORTUNITY_TYPE;
-  catalog_program_id: string;
+  program_id: string;
   external_id: string;
   proposed_slug: string;
   proposed_title: string;
@@ -214,6 +215,15 @@ export type EvidencePackage = {
   faqs: EditorialFaq[];
   brief: EditorialBrief | null;
   content_evidence: EditorialEvidenceRow[];
+  boilerplate: {
+    not_exhaustive: string;
+    cannot_determine_personal_eligibility: string;
+    confirm_with_administrator: string;
+    documents_unlisted: string;
+    deadline_none: string;
+    check_official_dates: string;
+    eligibility_rules_limited: string;
+  };
 };
 
 export type DraftFaq = {
@@ -227,11 +237,25 @@ export type SuggestedInternalLink = {
   required: boolean;
 };
 
+export const FACTUAL_DRAFT_SECTIONS = [
+  "dek",
+  "overview",
+  "what_you_get",
+  "who_may_qualify",
+  "how_to_apply",
+  "documents",
+  "important_notes",
+  "faqs",
+] as const;
+
+export type FactualDraftSection = (typeof FACTUAL_DRAFT_SECTIONS)[number];
+
 export type SourceClaim = {
   claim_id: string;
   text: string;
   evidence_path: string;
   source_url: string | null;
+  section: FactualDraftSection;
 };
 
 export type ContentDraft = {

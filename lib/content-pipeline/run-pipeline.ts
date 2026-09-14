@@ -82,9 +82,9 @@ export async function runDryRunContentPipeline(
 
     const selectedReason = selectionReason(selected);
     const opportunity = await store.upsertOpportunity({
-      id: opportunityId(selected.opportunity_type, selected.catalog_program_id),
+      id: opportunityId(selected.opportunity_type, selected.program_id),
       opportunity_type: selected.opportunity_type,
-      program_id: selected.catalog_program_id,
+      program_id: selected.program_id,
       guide_id: null,
       proposed_slug: selected.proposed_slug,
       proposed_title: selected.proposed_title,

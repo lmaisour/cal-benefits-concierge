@@ -81,6 +81,7 @@ export function buildCatalogContext(
   const records: DiscoveryRecord[] = catalog.programs.map((program) => {
     const overlay = overlayFor(program, overlays);
     return {
+      program_id: catalogProgramId(program.external_id),
       program,
       rules: catalog.rules.filter((rule) => rule.program_external_id === program.external_id),
       locations: catalog.locations.filter(

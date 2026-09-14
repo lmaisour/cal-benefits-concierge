@@ -1,6 +1,13 @@
 import { isHttpUrl } from "@/lib/admin/validate-program";
-import type { CatalogSource } from "@/lib/programs/import/types";
 import type { EvidenceSource } from "@/lib/content-pipeline/types";
+
+export type OfficialSourceInput = {
+  url: string;
+  organization?: string | null;
+  source_type: EvidenceSource["source_type"];
+  verified_at?: string | null;
+  notes?: string | null;
+};
 
 export function isOfficialHttpUrl(value: string | null | undefined): boolean {
   return typeof value === "string" && isHttpUrl(value.trim());
@@ -8,7 +15,7 @@ export function isOfficialHttpUrl(value: string | null | undefined): boolean {
 
 export function collectOfficialSources(input: {
   official_url: string | null | undefined;
-  sources: CatalogSource[];
+  sources: OfficialSourceInput[];
 }): EvidenceSource[] {
   const collected: EvidenceSource[] = [];
   const seen = new Set<string>();
@@ -35,10 +42,10 @@ export function collectOfficialSources(input: {
   for (const source of input.sources) {
     add({
       url: source.url,
-      organization: source.organization,
+      organization: source.organization ?? null,
       source_type: source.source_type,
-      verified_at: source.verified_at,
-      notes: source.notes,
+      verified_at: source.verified_at ?? null,
+      notes: source.notes ?? null,
     });
   }
 
@@ -47,7 +54,7 @@ export function collectOfficialSources(input: {
 
 export function hasOfficialSource(input: {
   official_url: string | null | undefined;
-  sources: CatalogSource[];
+  sources: OfficialSourceInput[];
 }): boolean {
   return collectOfficialSources(input).length > 0;
 }

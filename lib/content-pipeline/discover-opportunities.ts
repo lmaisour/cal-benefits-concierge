@@ -1,6 +1,5 @@
 import { isStaleVerification } from "@/lib/content-pipeline/freshness";
 import { isGoldStandardEditorial } from "@/lib/content-pipeline/gold-standard";
-import { catalogProgramId } from "@/lib/content-pipeline/ids";
 import { hasOfficialSource } from "@/lib/content-pipeline/official-sources";
 import {
   CONTENT_PIPELINE_OPPORTUNITY_TYPE,
@@ -95,7 +94,7 @@ export function discoverOpportunities(
     const reason = skipReason(record, nowMs);
     if (reason) {
       skipped.push({
-        external_id: record.program.external_id,
+        external_id: record.program.external_id || record.program_id,
         slug: record.program.slug,
         reason,
       });
@@ -107,8 +106,8 @@ export function discoverOpportunities(
 
     candidates.push({
       opportunity_type: CONTENT_PIPELINE_OPPORTUNITY_TYPE,
-      catalog_program_id: catalogProgramId(record.program.external_id),
-      external_id: record.program.external_id,
+      program_id: record.program_id,
+      external_id: record.program.external_id || record.program_id,
       proposed_slug: record.program.slug,
       proposed_title: proposedTitle(record),
       primary_keyword: primaryKeyword(record),

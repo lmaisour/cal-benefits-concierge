@@ -1,12 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
 import { isAutoPublishEnabled } from "@/lib/content-pipeline/config";
+import { buildCatalogContext } from "@/lib/content-pipeline/catalog";
 import { handleContentPipelineDryRunRequest } from "@/lib/content-pipeline/dry-run-request";
-import { resetMemoryContentPipelineStore } from "@/lib/content-pipeline/store";
+import { FakeContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
+import { MemoryContentPipelineStore, resetMemoryContentPipelineStore } from "@/lib/content-pipeline/store";
 
 const ORIGINAL_ENABLED = process.env.CONTENT_PIPELINE_ENABLED;
 const ORIGINAL_SECRET = process.env.CONTENT_PIPELINE_SECRET;
 const ORIGINAL_PROVIDER = process.env.CONTENT_PIPELINE_DRAFT_PROVIDER;
+
+function testRuntime() {
+  return {
+    context: buildCatalogContext(),
+    store: new MemoryContentPipelineStore(),
+    provider: new FakeContentDraftProvider(),
+  };
+}
 
 function request(headers: Record<string, string> = {}, body: unknown = {}) {
   return new Request("http://localhost/api/internal/content/dry-run", {
@@ -62,6 +72,7 @@ describe("content pipeline endpoint auth", () => {
 
     const response = await handleContentPipelineDryRunRequest(
       request({ authorization: "Bearer test-secret" }),
+      async () => testRuntime(),
     );
     expect(response.status).toBe(403);
     const json = await response.json();
@@ -73,16 +84,18 @@ describe("content pipeline endpoint auth", () => {
     process.env.CONTENT_PIPELINE_ENABLED = "true";
     process.env.CONTENT_PIPELINE_SECRET = "test-secret";
 
-    const missing = await handleContentPipelineDryRunRequest(request());
+    const missing = await handleContentPipelineDryRunRequest(request(), async () => testRuntime());
     expect(missing.status).toBe(401);
 
     const invalid = await handleContentPipelineDryRunRequest(
       request({ authorization: "Bearer wrong-secret" }),
+      async () => testRuntime(),
     );
     expect(invalid.status).toBe(401);
 
     const sessionShortcut = await handleContentPipelineDryRunRequest(
       request({ cookie: "admin_session=not-enough" }),
+      async () => testRuntime(),
     );
     expect(sessionShortcut.status).toBe(401);
   });
@@ -92,6 +105,7 @@ describe("content pipeline endpoint auth", () => {
     process.env.CONTENT_PIPELINE_SECRET = "test-secret";
     const response = await handleContentPipelineDryRunRequest(
       request({ authorization: "Bearer test-secret" }),
+      async () => testRuntime(),
     );
     expect(response.status).toBe(200);
     const json = await response.json();

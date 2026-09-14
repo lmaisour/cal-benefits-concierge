@@ -1,17 +1,18 @@
-import { buildCatalogContext } from "@/lib/content-pipeline/catalog";
 import { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
-import { getDraftProviderId } from "@/lib/content-pipeline/config";
-import { createContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
+import { LivePipelineLoadError } from "@/lib/content-pipeline/live-context";
+import type { PipelineRuntime } from "@/lib/content-pipeline/live-runtime";
 import { runDryRunContentPipeline } from "@/lib/content-pipeline/run-pipeline";
-import { getMemoryContentPipelineStore } from "@/lib/content-pipeline/store";
 import { toDryRunSummary } from "@/lib/content-pipeline/summary";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+export type CreatePipelineRuntime = () => Promise<PipelineRuntime>;
+
 export async function handleContentPipelineDryRunRequest(
   request: Request,
+  createRuntime: CreatePipelineRuntime,
 ): Promise<Response> {
   const auth = authorizeContentPipelineRequest(request);
   if (!auth.ok) {
@@ -29,16 +30,28 @@ export async function handleContentPipelineDryRunRequest(
   }
 
   try {
-    const provider = createContentDraftProvider(getDraftProviderId());
+    const runtime = await createRuntime();
     const result = await runDryRunContentPipeline({
-      context: buildCatalogContext(),
-      provider,
-      store: getMemoryContentPipelineStore(),
+      context: runtime.context,
+      provider: runtime.provider,
+      store: runtime.store,
     });
     return Response.json(toDryRunSummary(result, { includeSnapshots }));
-  } catch {
+  } catch (error) {
+    const message =
+      error instanceof LivePipelineLoadError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : "content_pipeline_failed";
     return Response.json(
-      { error: "content_pipeline_failed", published: false },
+      {
+        error: message,
+        status: "ERROR",
+        published: false,
+        selected_opportunity: null,
+        validation: null,
+      },
       { status: 500 },
     );
   }

@@ -76,8 +76,11 @@ export function goldFaqs(): EditorialFaq[] {
   ];
 }
 
+export const FIXTURE_PROGRAM_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
 export function makeRecord(
   overrides: {
+    program_id?: string;
     program?: Partial<CatalogProgram>;
     sources?: CatalogSource[];
     content?: EditorialContent | null;
@@ -86,6 +89,7 @@ export function makeRecord(
 ): DiscoveryRecord {
   const program = makeCatalogProgram(overrides.program);
   return {
+    program_id: overrides.program_id ?? FIXTURE_PROGRAM_ID,
     program,
     rules: [
       {

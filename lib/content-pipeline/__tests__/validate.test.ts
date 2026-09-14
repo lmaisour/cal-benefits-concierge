@@ -131,6 +131,7 @@ describe("validateDraft", () => {
         text: "Invented fact",
         evidence_path: "does.not.exist",
         source_url: "https://example.invalid/official",
+        section: "overview",
       },
     ];
     expectCode(draft, evidence, "UNMAPPED_CLAIM");
@@ -178,6 +179,21 @@ describe("validateDraft", () => {
     const { draft, evidence } = await validPair();
     evidence.freshness.is_stale = true;
     expectCode(draft, evidence, "STALE_TIME_SENSITIVE");
+  });
+
+  it("fails an unmapped factual sentence even when another valid source_claim exists", async () => {
+    const { draft, evidence } = await validPair();
+    expect(draft.source_claims.length).toBeGreaterThan(0);
+    draft.what_you_get += " Households also receive a secret extra award.";
+    const result = validateDraft({
+      draft,
+      evidence,
+      known_routes: knownRoutes,
+      own_slug: "test-home-rebate",
+      own_titles: [evidence.official_name],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNMAPPED_CLAIM")).toBe(true);
   });
 
   it("blocks silent omission of unmodeled required criteria", async () => {

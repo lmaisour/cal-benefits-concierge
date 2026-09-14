@@ -3,10 +3,15 @@ import {
   formatUtcCalendarDate,
   parseUtcCalendarDate,
 } from "@/lib/programs/calendar";
+import {
+  renderFaqAnswers,
+  renderFactualSection,
+} from "@/lib/content-pipeline/claims";
 import type {
   ContentDraft,
   ContentDraftProvider,
   EvidencePackage,
+  FactualDraftSection,
   ScoredOpportunity,
   SourceClaim,
 } from "@/lib/content-pipeline/types";
@@ -44,123 +49,243 @@ export async function generateDraft(input: {
   });
 }
 
-function moneyPhrase(evidence: EvidencePackage): { text: string; claims: SourceClaim[] } {
+function claim(
+  claim_id: string,
+  text: string,
+  evidence_path: string,
+  source_url: string | null,
+  section: FactualDraftSection,
+): SourceClaim {
+  return { claim_id, text, evidence_path, source_url, section };
+}
+
+function formatAmount(value: number): string {
+  return `$${value.toLocaleString("en-US")}`;
+}
+
+function benefitClaims(
+  evidence: EvidencePackage,
+  sourceUrl: string | null,
+  section: FactualDraftSection,
+  idPrefix: string,
+): SourceClaim[] {
   const claims: SourceClaim[] = [];
   if (evidence.benefit.repayable) {
-    const text = `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`;
-    claims.push({
-      claim_id: "benefit-repayable",
-      text,
-      evidence_path: "benefit.repayable",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
-    return { text, claims };
+    claims.push(
+      claim(
+        `${idPrefix}repayable`,
+        `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`,
+        "benefit.repayable",
+        sourceUrl,
+        section,
+      ),
+    );
+    return claims;
   }
 
-  const parts: string[] = [];
   if (evidence.benefit.summary?.trim()) {
-    parts.push(evidence.benefit.summary.trim());
-    claims.push({
-      claim_id: "benefit-summary",
-      text: evidence.benefit.summary.trim(),
-      evidence_path: "benefit.summary",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
-  } else {
-    parts.push(
-      `This is a ${benefitTypeLabel(evidence.benefit.type).toLowerCase()} program. Confirm the current benefit on the official page.`,
+    claims.push(
+      claim(
+        `${idPrefix}summary`,
+        evidence.benefit.summary.trim(),
+        "benefit.summary",
+        sourceUrl,
+        section,
+      ),
     );
-    claims.push({
-      claim_id: "benefit-type",
-      text: benefitTypeLabel(evidence.benefit.type),
-      evidence_path: "benefit.type",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
+  } else {
+    claims.push(
+      claim(
+        `${idPrefix}type`,
+        `This is a ${benefitTypeLabel(evidence.benefit.type).toLowerCase()} program.`,
+        "benefit.type",
+        sourceUrl,
+        section,
+      ),
+    );
   }
 
   if (evidence.benefit.amounts_are_structured_facts) {
-    const formatAmount = (value: number) => `$${value.toLocaleString("en-US")}`;
+    let text = "";
+    let path = "benefit.max";
     if (evidence.benefit.min !== null && evidence.benefit.max !== null) {
-      if (evidence.benefit.min === evidence.benefit.max) {
-        parts.push(`The structured catalog value is ${formatAmount(evidence.benefit.min)}.`);
-      } else {
-        parts.push(
-          `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
-        );
-      }
+      path = "benefit.max";
+      text =
+        evidence.benefit.min === evidence.benefit.max
+          ? `The structured catalog value is ${formatAmount(evidence.benefit.min)}.`
+          : `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`;
     } else if (evidence.benefit.max !== null) {
-      parts.push(`The structured catalog maximum is ${formatAmount(evidence.benefit.max)}.`);
+      text = `The structured catalog maximum is ${formatAmount(evidence.benefit.max)}.`;
     } else if (evidence.benefit.min !== null) {
-      parts.push(`The structured catalog minimum is ${formatAmount(evidence.benefit.min)}.`);
+      path = "benefit.min";
+      text = `The structured catalog minimum is ${formatAmount(evidence.benefit.min)}.`;
     }
-    claims.push({
-      claim_id: "benefit-amount",
-      text:
-        evidence.benefit.max !== null
-          ? formatAmount(evidence.benefit.max)
-          : formatAmount(evidence.benefit.min ?? 0),
-      evidence_path:
-        evidence.benefit.max !== null ? "benefit.max" : "benefit.min",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
+    if (text) {
+      claims.push(claim(`${idPrefix}amount`, text, path, sourceUrl, section));
+    }
   }
 
-  return { text: parts.join(" "), claims };
+  return claims;
 }
 
-function deadlinePhrase(evidence: EvidencePackage): { text: string; claims: SourceClaim[] } {
+function deadlineClaims(
+  evidence: EvidencePackage,
+  sourceUrl: string | null,
+  section: FactualDraftSection,
+  idPrefix: string,
+): SourceClaim[] {
   const deadline = parseUtcCalendarDate(evidence.deadline.application_deadline);
   if (!deadline || !evidence.deadline.application_deadline) {
-    return {
-      text: "No structured application deadline is recorded. Check the official source for current dates.",
-      claims: [
-        {
-          claim_id: "deadline-none",
-          text: "No structured application deadline is recorded.",
-          evidence_path: "deadline.application_deadline",
-          source_url: evidence.official_sources[0]?.url ?? null,
-        },
-      ],
-    };
+    return [
+      claim(
+        `${idPrefix}none`,
+        evidence.boilerplate.deadline_none,
+        "boilerplate.deadline_none",
+        sourceUrl,
+        section,
+      ),
+      claim(
+        `${idPrefix}check`,
+        evidence.boilerplate.check_official_dates,
+        "boilerplate.check_official_dates",
+        sourceUrl,
+        section,
+      ),
+    ];
   }
-  const label = formatUtcCalendarDate(deadline);
-  const text = `The structured application deadline is ${label}.`;
-  return {
-    text,
-    claims: [
-      {
-        claim_id: "deadline",
-        text: label,
-        evidence_path: "deadline.application_deadline",
-        source_url: evidence.official_sources[0]?.url ?? null,
-      },
-    ],
-  };
+  return [
+    claim(
+      `${idPrefix}date`,
+      `The structured application deadline is ${formatUtcCalendarDate(deadline)}.`,
+      "deadline.application_deadline",
+      sourceUrl,
+      section,
+    ),
+  ];
 }
 
-function eligibilityPhrase(evidence: EvidencePackage): { text: string; claims: SourceClaim[] } {
+function geographyClaim(
+  evidence: EvidencePackage,
+  sourceUrl: string | null,
+  section: FactualDraftSection,
+): SourceClaim {
+  if (evidence.geography.statewide) {
+    return claim(
+      `${section}-geography`,
+      "The structured geography is statewide in California.",
+      "geography.statewide",
+      sourceUrl,
+      section,
+    );
+  }
+  const text = `The structured geography includes ${
+    evidence.geography.locations
+      .map((location) => `${location.value} (${location.type.toLowerCase()})`)
+      .join(", ") || "a limited service area"
+  }.`;
+  return claim(
+    `${section}-geography`,
+    text,
+    evidence.geography.locations[0] ? "geography.locations.0.value" : "geography.statewide",
+    sourceUrl,
+    section,
+  );
+}
+
+export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
+  const sourceUrl = evidence.official_sources[0]?.url ?? null;
+  const administrator = evidence.administrator ?? "the program administrator";
+  const applyUrl = evidence.application.application_url ?? evidence.application.official_url;
   const claims: SourceClaim[] = [];
-  const lines = [
-    "Households may qualify when they meet the modeled rules below. This page cannot determine personal eligibility.",
-  ];
+
+  claims.push(
+    claim(
+      "dek-status",
+      `${evidence.official_name} is listed as ${evidence.status}.`,
+      "status",
+      sourceUrl,
+      "dek",
+    ),
+    claim(
+      "dek-limit",
+      evidence.boilerplate.cannot_determine_personal_eligibility,
+      "boilerplate.cannot_determine_personal_eligibility",
+      sourceUrl,
+      "dek",
+    ),
+    claim(
+      "overview-admin",
+      `${evidence.official_name} is administered by ${administrator}.`,
+      "administrator",
+      sourceUrl,
+      "overview",
+    ),
+    claim(
+      "overview-status",
+      `Structured status: ${evidence.status}.`,
+      "status",
+      sourceUrl,
+      "overview",
+    ),
+    geographyClaim(evidence, sourceUrl, "overview"),
+    ...benefitClaims(evidence, sourceUrl, "overview", "overview-benefit-"),
+    ...deadlineClaims(evidence, sourceUrl, "overview", "overview-deadline-"),
+    claim(
+      "overview-source",
+      sourceUrl ? `Official source: ${sourceUrl}.` : "Official source is listed in the evidence package.",
+      "official_sources.0.url",
+      sourceUrl,
+      "overview",
+    ),
+    claim(
+      "overview-not-exhaustive",
+      evidence.boilerplate.not_exhaustive,
+      "boilerplate.not_exhaustive",
+      sourceUrl,
+      "overview",
+    ),
+    ...benefitClaims(evidence, sourceUrl, "what_you_get", "benefit-"),
+    claim(
+      "qualify-intro",
+      "Households may qualify when they meet the modeled rules below.",
+      "official_name",
+      sourceUrl,
+      "who_may_qualify",
+    ),
+    claim(
+      "qualify-limit",
+      evidence.boilerplate.cannot_determine_personal_eligibility,
+      "boilerplate.cannot_determine_personal_eligibility",
+      sourceUrl,
+      "who_may_qualify",
+    ),
+  );
 
   evidence.eligibility.modeled_rules.forEach((rule, index) => {
     const explanation = rule.explanation?.trim();
     const line = explanation
-      ? explanation
-      : `${fieldLabel(rule.field)} ${rule.operator.replaceAll("_", " ")}`;
-    lines.push(`- ${line}`);
-    claims.push({
-      claim_id: `eligibility-rule-${index}`,
-      text: line,
-      evidence_path: `eligibility.modeled_rules.${index}.${explanation ? "explanation" : "field"}`,
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
+      ? `- ${explanation}`
+      : `- ${fieldLabel(rule.field)} ${rule.operator.replaceAll("_", " ")}`;
+    claims.push(
+      claim(
+        `eligibility-rule-${index}`,
+        line,
+        `eligibility.modeled_rules.${index}.${explanation ? "explanation" : "field"}`,
+        sourceUrl,
+        "who_may_qualify",
+      ),
+    );
   });
 
   if (evidence.eligibility.modeled_rules.length === 0) {
-    lines.push(
-      "- Modeled eligibility rules are limited. Confirm requirements on the official source.",
+    claims.push(
+      claim(
+        "eligibility-limited",
+        `- ${evidence.boilerplate.eligibility_rules_limited}`,
+        "boilerplate.eligibility_rules_limited",
+        sourceUrl,
+        "who_may_qualify",
+      ),
     );
   }
 
@@ -168,154 +293,156 @@ function eligibilityPhrase(evidence: EvidencePackage): { text: string; claims: S
     const extra =
       evidence.eligibility.unmodeled_summary?.trim() ||
       "Additional required eligibility is not fully modeled and is not treated as satisfied.";
-    lines.push(
-      `Additional required criteria are not fully modeled and may also apply: ${extra}`,
+    claims.push(
+      claim(
+        "eligibility-unmodeled",
+        `Additional required criteria are not fully modeled and may also apply: ${extra}`,
+        evidence.eligibility.unmodeled_summary
+          ? "eligibility.unmodeled_summary"
+          : "eligibility.unmodeled_required",
+        sourceUrl,
+        "who_may_qualify",
+      ),
     );
-    claims.push({
-      claim_id: "eligibility-unmodeled",
-      text: extra,
-      evidence_path: "eligibility.unmodeled_summary",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    });
   }
 
-  claims.push({
-    claim_id: "eligibility-may",
-    text: "Households may qualify when they meet the modeled rules below.",
-    evidence_path: "official_name",
-    source_url: evidence.official_sources[0]?.url ?? null,
+  const howToApply = evidence.application.how_to_apply?.trim()
+    ? evidence.application.how_to_apply.trim()
+    : applyUrl
+      ? `Review the official instructions and apply through ${applyUrl}.`
+      : "Review the official program page before applying.";
+  claims.push(
+    claim(
+      "how-to-apply",
+      howToApply,
+      evidence.application.how_to_apply?.trim()
+        ? "application.how_to_apply"
+        : applyUrl
+          ? "application.application_url"
+          : "application.official_url",
+      sourceUrl,
+      "how_to_apply",
+    ),
+    claim(
+      "how-to-apply-confirm",
+      `Always confirm current steps with ${administrator}.`,
+      "administrator",
+      sourceUrl,
+      "how_to_apply",
+    ),
+    claim(
+      "documents",
+      evidence.application.documents?.trim() || evidence.boilerplate.documents_unlisted,
+      evidence.application.documents?.trim()
+        ? "application.documents"
+        : "boilerplate.documents_unlisted",
+      sourceUrl,
+      "documents",
+    ),
+  );
+
+  evidence.warnings.forEach((warning, index) => {
+    claims.push(
+      claim(
+        `warning-${index}`,
+        warning,
+        `warnings.${index}`,
+        sourceUrl,
+        "important_notes",
+      ),
+    );
   });
+  claims.push(
+    claim(
+      "notes-not-exhaustive",
+      evidence.boilerplate.not_exhaustive,
+      "boilerplate.not_exhaustive",
+      sourceUrl,
+      "important_notes",
+    ),
+    claim(
+      "notes-confirm",
+      evidence.boilerplate.confirm_with_administrator,
+      "boilerplate.confirm_with_administrator",
+      sourceUrl,
+      "important_notes",
+    ),
+  );
+  if (evidence.eligibility.unmodeled_required) {
+    claims.push(
+      claim(
+        "notes-unmodeled",
+        "Some required eligibility is not fully modeled here and may also apply.",
+        "eligibility.unmodeled_required",
+        sourceUrl,
+        "important_notes",
+      ),
+    );
+  }
 
-  return { text: lines.join("\n"), claims };
+  const qualifyText = renderFactualSection(claims, "who_may_qualify");
+  const applyText = renderFactualSection(claims, "how_to_apply");
+  claims.push(
+    claim(
+      "faq-qualify",
+      qualifyText,
+      "official_name",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-apply",
+      applyText,
+      "application.official_url",
+      sourceUrl,
+      "faqs",
+    ),
+    claim(
+      "faq-exhaustive",
+      "No. This catalog is not exhaustive. Other local, state, or federal programs may also exist.",
+      "boilerplate.not_exhaustive",
+      sourceUrl,
+      "faqs",
+    ),
+  );
+
+  return claims.filter((item) => item.text.trim().length > 0);
 }
 
-function geographyPhrase(evidence: EvidencePackage): { text: string; claim: SourceClaim } {
-  const text = evidence.geography.statewide
-    ? "The structured geography is statewide in California."
-    : `The structured geography includes ${
-        evidence.geography.locations
-          .map((location) => `${location.value} (${location.type.toLowerCase()})`)
-          .join(", ") || "a limited service area"
-      }.`;
-  return {
-    text,
-    claim: {
-      claim_id: "geography",
-      text,
-      evidence_path: evidence.geography.statewide
-        ? "geography.statewide"
-        : "geography.locations.0.value",
-      source_url: evidence.official_sources[0]?.url ?? null,
-    },
-  };
-}
-
-export function buildDeterministicDraft(
+export function renderDraftFromClaims(
+  claims: SourceClaim[],
   evidence: EvidencePackage,
   opportunity: ScoredOpportunity,
 ): ContentDraft {
-  const benefit = moneyPhrase(evidence);
-  const deadline = deadlinePhrase(evidence);
-  const eligibility = eligibilityPhrase(evidence);
-  const geography = geographyPhrase(evidence);
-  const sourceUrl = evidence.official_sources[0]?.url ?? "";
-  const administrator = evidence.administrator ?? "the program administrator";
-  const applyUrl = evidence.application.application_url ?? evidence.application.official_url;
-
+  const faqAnswers = renderFaqAnswers(claims);
   const seo_title = `${evidence.official_name}: who may qualify and how to apply`;
-  const h1 = evidence.consumer_headline?.trim()
-    ? `${evidence.consumer_headline.trim()} — who may qualify`
-    : seo_title;
-  const dek = `${evidence.official_name} is listed as ${evidence.status}. Households may qualify; this catalog cannot determine personal eligibility.`;
-  const overview = [
-    `${evidence.official_name} is administered by ${administrator}.`,
-    `Structured status: ${evidence.status}.`,
-    geography.text,
-    benefit.text,
-    deadline.text,
-    `Official source: ${sourceUrl}. This is not an exhaustive list of California benefits.`,
-  ].join(" ");
-
-  const how_to_apply = evidence.application.how_to_apply?.trim()
-    ? evidence.application.how_to_apply.trim()
-    : applyUrl
-      ? `Review the official instructions and apply through ${applyUrl}. Always confirm current steps with ${administrator}.`
-      : `Review the official program page before applying. Always confirm current steps with ${administrator}.`;
-
-  const documents =
-    evidence.application.documents?.trim() ||
-    "Required documents are not fully listed in the structured catalog. Use the official application checklist.";
-
-  const important_notes = [
-    ...evidence.warnings,
-    "This catalog is not exhaustive.",
-    "Always confirm eligibility, funding, and deadlines with the official administrator.",
-    evidence.eligibility.unmodeled_required
-      ? "Some required eligibility is not fully modeled here and may also apply."
-      : null,
-  ]
-    .filter((line): line is string => Boolean(line))
-    .join("\n\n");
-
-  const faqs = [
-    {
-      question: `Who may qualify for ${evidence.official_name}?`,
-      answer: eligibility.text,
-    },
-    {
-      question: "How do I apply?",
-      answer: how_to_apply,
-    },
-    {
-      question: "Is this the only California benefit I should consider?",
-      answer:
-        "No. This catalog is not exhaustive. Other local, state, or federal programs may also exist.",
-    },
-  ];
-
-  const source_claims: SourceClaim[] = [
-    {
-      claim_id: "official-name",
-      text: evidence.official_name,
-      evidence_path: "official_name",
-      source_url: sourceUrl || null,
-    },
-    {
-      claim_id: "status",
-      text: evidence.status,
-      evidence_path: "status",
-      source_url: sourceUrl || null,
-    },
-    {
-      claim_id: "administrator",
-      text: administrator,
-      evidence_path: "administrator",
-      source_url: sourceUrl || null,
-    },
-    geography.claim,
-    ...benefit.claims,
-    ...deadline.claims,
-    ...eligibility.claims,
-    {
-      claim_id: "official-source",
-      text: sourceUrl,
-      evidence_path: "official_sources.0.url",
-      source_url: sourceUrl || null,
-    },
-  ].filter((claim) => claim.text && claim.text.length > 0);
-
   return {
     seo_title,
     meta_description: `${evidence.official_name} may help qualifying households. See who may qualify, what you may receive, and how to apply. Confirm details on the official source.`,
-    h1,
-    dek,
-    overview,
-    what_you_get: benefit.text,
-    who_may_qualify: eligibility.text,
-    how_to_apply,
-    documents,
-    important_notes,
-    faqs,
+    h1: evidence.consumer_headline?.trim()
+      ? `${evidence.consumer_headline.trim()} — who may qualify`
+      : seo_title,
+    dek: renderFactualSection(claims, "dek"),
+    overview: renderFactualSection(claims, "overview"),
+    what_you_get: renderFactualSection(claims, "what_you_get"),
+    who_may_qualify: renderFactualSection(claims, "who_may_qualify"),
+    how_to_apply: renderFactualSection(claims, "how_to_apply"),
+    documents: renderFactualSection(claims, "documents"),
+    important_notes: renderFactualSection(claims, "important_notes"),
+    faqs: [
+      {
+        question: `Who may qualify for ${evidence.official_name}?`,
+        answer: faqAnswers[0] ?? "",
+      },
+      {
+        question: "How do I apply?",
+        answer: faqAnswers[1] ?? "",
+      },
+      {
+        question: "Is this the only California benefit I should consider?",
+        answer: faqAnswers[2] ?? evidence.boilerplate.not_exhaustive,
+      },
+    ],
     suggested_internal_links: [
       {
         href: `/programs/${opportunity.proposed_slug}`,
@@ -333,6 +460,13 @@ export function buildDeterministicDraft(
         required: false,
       },
     ],
-    source_claims,
+    source_claims: claims,
   };
+}
+
+export function buildDeterministicDraft(
+  evidence: EvidencePackage,
+  opportunity: ScoredOpportunity,
+): ContentDraft {
+  return renderDraftFromClaims(buildFactualClaims(evidence), evidence, opportunity);
 }

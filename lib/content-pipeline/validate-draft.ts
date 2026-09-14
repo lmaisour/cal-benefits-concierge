@@ -3,14 +3,16 @@ import {
   formatUtcCalendarDate,
   parseUtcCalendarDate,
 } from "@/lib/programs/calendar";
-import type {
-  ContentDraft,
-  DuplicateIndex,
-  EvidencePackage,
-  ValidationIssue,
-  ValidationIssueCode,
-  ValidationResult,
-  ValidationWarning,
+import { factualSectionMatchesClaims } from "@/lib/content-pipeline/claims";
+import {
+  FACTUAL_DRAFT_SECTIONS,
+  type ContentDraft,
+  type DuplicateIndex,
+  type EvidencePackage,
+  type ValidationIssue,
+  type ValidationIssueCode,
+  type ValidationResult,
+  type ValidationWarning,
 } from "@/lib/content-pipeline/types";
 
 export type ValidateDraftInput = {
@@ -387,7 +389,22 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
   if (draft.source_claims.length === 0) {
     errors.push(issue("UNMAPPED_CLAIM", "Draft has no source_claims mapping."));
   }
+  for (const section of FACTUAL_DRAFT_SECTIONS) {
+    if (!factualSectionMatchesClaims(draft, section)) {
+      errors.push(
+        issue(
+          "UNMAPPED_CLAIM",
+          `Factual section ${section} contains text that was not composed from mapped claims.`,
+        ),
+      );
+    }
+  }
   for (const claim of draft.source_claims) {
+    if (!claim.section) {
+      errors.push(
+        issue("UNMAPPED_CLAIM", `Claim ${claim.claim_id} is missing a draft section.`),
+      );
+    }
     if (!claim.evidence_path || !pathExists(evidence, claim.evidence_path)) {
       errors.push(
         issue(
