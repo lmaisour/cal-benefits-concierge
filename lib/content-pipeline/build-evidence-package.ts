@@ -96,6 +96,7 @@ export function buildEvidencePackage(
       how_to_apply: record.content?.how_to_apply ?? null,
       documents: record.content?.documents_needed ?? null,
       preapproval_required: program.preapproval_required,
+      purchase_before_approval_allowed: program.purchase_before_approval_allowed,
     },
     deadline: {
       application_deadline: program.application_deadline,

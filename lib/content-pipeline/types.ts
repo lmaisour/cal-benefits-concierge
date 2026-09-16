@@ -203,6 +203,7 @@ export type EvidencePackage = {
     how_to_apply: string | null;
     documents: string | null;
     preapproval_required: boolean | null;
+    purchase_before_approval_allowed: boolean | null;
   };
   deadline: {
     application_deadline: string | null;
@@ -338,6 +339,18 @@ export type ValidationResult = {
 export type ProviderMetadata = {
   provider: string;
   mode: ContentPipelineRunMode;
+  model?: string | null;
+  request_id?: string | null;
+  response_id?: string | null;
+  client_request_id?: string | null;
+  status?: string | null;
+  incomplete_reason?: string | null;
+  finish_reason?: string | null;
+  usage?: {
+    input_tokens?: number | null;
+    output_tokens?: number | null;
+    total_tokens?: number | null;
+  } | null;
 };
 
 export type ContentDraftProvider = {
@@ -346,6 +359,7 @@ export type ContentDraftProvider = {
     evidence: EvidencePackage;
     opportunity: ScoredOpportunity;
   }): Promise<ContentDraft>;
+  takeMetadata?(): Omit<ProviderMetadata, "provider" | "mode"> | null;
 };
 
 export type DuplicateIndex = {
