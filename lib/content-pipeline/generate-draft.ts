@@ -28,17 +28,6 @@ export class FakeContentDraftProvider implements ContentDraftProvider {
   }
 }
 
-export function createContentDraftProvider(
-  providerId = "fake",
-): ContentDraftProvider {
-  if (providerId === "fake" || providerId === "") {
-    return new FakeContentDraftProvider();
-  }
-  throw new Error(
-    `Draft provider "${providerId}" is not implemented. Use the fake provider for this dry-run milestone.`,
-  );
-}
-
 export async function generateDraft(input: {
   provider: ContentDraftProvider;
   evidence: EvidencePackage;
@@ -434,6 +423,19 @@ export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
       sourceUrl,
       "how_to_apply",
     ),
+  );
+  if (evidence.application.purchase_before_approval_allowed === false) {
+    claims.push(
+      claim(
+        "how-to-apply-before-purchase",
+        "Apply before you buy or retire the item. Purchasing before approval may make you ineligible.",
+        "application.purchase_before_approval_allowed",
+        sourceUrl,
+        "how_to_apply",
+      ),
+    );
+  }
+  claims.push(
     claim(
       "documents",
       evidence.application.documents?.trim() || evidence.boilerplate.documents_unlisted,

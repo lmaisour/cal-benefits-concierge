@@ -1,6 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDraftProviderId } from "@/lib/content-pipeline/config";
-import { createContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
+import { createContentDraftProvider } from "@/lib/content-pipeline/create-draft-provider";
 import { loadLivePipelineContext, LivePipelineLoadError } from "@/lib/content-pipeline/live-context";
 import { newRunId } from "@/lib/content-pipeline/ids";
 import { SupabaseContentPipelineStore } from "@/lib/content-pipeline/supabase-store";

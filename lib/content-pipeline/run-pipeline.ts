@@ -1,5 +1,6 @@
 import { buildEvidencePackage } from "@/lib/content-pipeline/build-evidence-package";
 import { discoverOpportunities } from "@/lib/content-pipeline/discover-opportunities";
+import { sanitizeProviderMessage } from "@/lib/content-pipeline/compose-selected-claims";
 import { generateDraft } from "@/lib/content-pipeline/generate-draft";
 import { newRunId, opportunityId } from "@/lib/content-pipeline/ids";
 import { scoreOpportunities } from "@/lib/content-pipeline/score-opportunity";
@@ -107,10 +108,11 @@ export async function runDryRunContentPipeline(
     const evidence = buildEvidencePackage(selected.record, now);
 
     let draft;
-    const provider_metadata: ProviderMetadata = {
+    const metadataFromProvider = (): ProviderMetadata => ({
       provider: input.provider.id,
       mode: "DRY_RUN",
-    };
+      ...(input.provider.takeMetadata?.() ?? {}),
+    });
     try {
       draft = await generateDraft({
         provider: input.provider,
@@ -118,7 +120,9 @@ export async function runDryRunContentPipeline(
         opportunity: selected,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Draft provider failed.";
+      const message = sanitizeProviderMessage(
+        error instanceof Error ? error.message : "Draft provider failed.",
+      );
       const failed = await store.updateOpportunity(opportunity.id, { status: "ERROR" });
       return finish(
         {
@@ -127,7 +131,7 @@ export async function runDryRunContentPipeline(
           selected_reason: selectedReason,
           evidence_snapshot: evidence,
           error_message: message,
-          provider_metadata,
+          provider_metadata: metadataFromProvider(),
         },
         {
           opportunity: failed,
@@ -171,7 +175,7 @@ export async function runDryRunContentPipeline(
         error_message: validation.passed
           ? null
           : validation.errors.map((error) => error.code).join(", "),
-        provider_metadata,
+        provider_metadata: metadataFromProvider(),
       },
       {
         opportunity: updated,
@@ -183,7 +187,9 @@ export async function runDryRunContentPipeline(
       },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Content pipeline failed.";
+    const message = sanitizeProviderMessage(
+      error instanceof Error ? error.message : "Content pipeline failed.",
+    );
     return finish(
       {
         status: "ERROR",

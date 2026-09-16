@@ -10,9 +10,9 @@ export {
 export {
   FakeContentDraftProvider,
   buildFactualClaims,
-  createContentDraftProvider,
   generateDraft,
 } from "@/lib/content-pipeline/generate-draft";
+export { createContentDraftProvider } from "@/lib/content-pipeline/create-draft-provider";
 export { validateDraft } from "@/lib/content-pipeline/validate-draft";
 export { runDryRunContentPipeline } from "@/lib/content-pipeline/run-pipeline";
 export { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
