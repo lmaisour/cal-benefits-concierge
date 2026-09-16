@@ -113,6 +113,10 @@ describe("runDryRunContentPipeline", () => {
     expect(first.evidence?.program_id).toBe(FIXTURE_PROGRAM_ID);
     expect(client.tables.content_opportunities).toHaveLength(1);
     expect(client.tables.content_pipeline_runs).toHaveLength(2);
+    expect(client.tables.program_content).toHaveLength(0);
+    expect(client.tables.program_faqs).toHaveLength(0);
+    expect(client.tables.guides ?? []).toHaveLength(0);
+    expect(first.published).toBe(false);
   });
 
   it("can dry-run the verified program catalog with the fake provider", async () => {

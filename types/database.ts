@@ -18,6 +18,15 @@ export const PROGRAM_STATUSES = [
 
 export type ProgramStatus = (typeof PROGRAM_STATUSES)[number];
 
+export const BENEFIT_AMOUNT_STRUCTURES = [
+  "SINGLE",
+  "RANGE",
+  "TIERED",
+  "UNKNOWN",
+] as const;
+
+export type BenefitAmountStructure = (typeof BENEFIT_AMOUNT_STRUCTURES)[number];
+
 export const BENEFIT_TYPES = [
   "CASH",
   "REBATE",
@@ -115,6 +124,7 @@ export type ProgramRow = {
   benefit_min: number | null;
   benefit_max: number | null;
   benefit_period: string | null;
+  benefit_amount_structure?: BenefitAmountStructure | null;
   status: ProgramStatus;
   official_url: string | null;
   application_url: string | null;
@@ -130,6 +140,17 @@ export type ProgramRow = {
   active: boolean;
   has_unmodeled_required_criteria: boolean;
   unmodeled_required_criteria_summary: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProgramBenefitTierRow = {
+  id: string;
+  program_id: string;
+  amount: number | null;
+  label: string;
+  condition_summary: string;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -464,6 +485,13 @@ export type Database = {
         Row: ProgramRow;
         Insert: ProgramInsert;
         Update: Partial<ProgramRow>;
+        Relationships: [];
+      };
+      program_benefit_tiers: {
+        Row: ProgramBenefitTierRow;
+        Insert: Pick<ProgramBenefitTierRow, "program_id" | "label" | "condition_summary"> &
+          Partial<Omit<ProgramBenefitTierRow, "program_id" | "label" | "condition_summary">>;
+        Update: Partial<ProgramBenefitTierRow>;
         Relationships: [];
       };
       program_rules: {

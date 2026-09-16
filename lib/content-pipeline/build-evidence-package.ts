@@ -1,4 +1,8 @@
 import { isRepayableBenefit } from "@/lib/programs/labels";
+import {
+  normalizeBenefitTiers,
+  resolveBenefitAmountStructure,
+} from "@/lib/content-pipeline/amount-structure";
 import { isStaleVerification } from "@/lib/content-pipeline/freshness";
 import { collectOfficialSources } from "@/lib/content-pipeline/official-sources";
 import type { DiscoveryRecord, EvidencePackage } from "@/lib/content-pipeline/types";
@@ -13,6 +17,16 @@ export function buildEvidencePackage(
     sources: record.sources,
   });
   const repayable = isRepayableBenefit(program.benefit_type);
+  const tiers = normalizeBenefitTiers(program.benefit_tiers).map((tier, index) => ({
+    ...tier,
+    evidence_path: `benefit.tiers.${index}`,
+  }));
+  const amount_structure = resolveBenefitAmountStructure({
+    amount_structure: program.benefit_amount_structure,
+    min: program.benefit_min,
+    max: program.benefit_max,
+    tiers,
+  });
   const warnings: string[] = [];
 
   if (repayable) {
@@ -59,6 +73,8 @@ export function buildEvidencePackage(
       repayable,
       amounts_are_structured_facts:
         program.benefit_min !== null || program.benefit_max !== null,
+      amount_structure,
+      tiers: amount_structure === "TIERED" ? tiers : [],
     },
     eligibility: {
       modeled_rules: record.rules.map((rule) => ({
@@ -115,6 +131,14 @@ export function buildEvidencePackage(
       h1_qualify_suffix: " — who may qualify",
       meta_description_suffix:
         " may help qualifying households. See who may qualify, what you may receive, and how to apply. Confirm details on the official source.",
+      faq_who_may_qualify: "Who may qualify?",
+      faq_how_to_apply: "How do I apply?",
+      faq_documents: "What documents might I need?",
+      faq_only_consider: "Is this the only California benefit I should consider?",
+      unknown_amount_guidance:
+        "Award amounts depend on program conditions. Confirm the current award on the official source.",
+      tiered_amount_guidance:
+        "Awards are condition-dependent. Each listed amount applies only when its stated condition is met.",
     },
   };
 }

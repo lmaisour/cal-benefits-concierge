@@ -42,9 +42,32 @@ export function renderFactualSection(
 }
 
 export function renderFaqAnswers(claims: SourceClaim[]): string[] {
-  return claimsForSection(claims, "faqs")
-    .map((claim) => claim.text.trim())
+  return renderFaqs(claims)
+    .map((faq) => faq.answer.trim())
     .filter(Boolean);
+}
+
+export function renderFaqs(claims: SourceClaim[]): Array<{
+  question: string;
+  answer: string;
+}> {
+  const faqClaims = claimsForSection(claims, "faqs");
+  const keys: string[] = [];
+  for (const item of faqClaims) {
+    const key = item.claim_id.replace(/^faq-[qa]-/, "");
+    if (key && !keys.includes(key)) {
+      keys.push(key);
+    }
+  }
+  return keys
+    .map((key) => {
+      const question =
+        faqClaims.find((item) => item.claim_id === `faq-q-${key}`)?.text.trim() ?? "";
+      const answer =
+        faqClaims.find((item) => item.claim_id === `faq-a-${key}`)?.text.trim() ?? "";
+      return { question, answer };
+    })
+    .filter((faq) => faq.question.length > 0 || faq.answer.length > 0);
 }
 
 export function factualSectionText(
@@ -65,7 +88,9 @@ export function factualSectionText(
   section: FactualDraftSection,
 ): string {
   if (section === "faqs") {
-    return draft.faqs.map((faq) => faq.answer).join("\n");
+    return draft.faqs
+      .map((faq) => `${faq.question.trim()}\n${faq.answer.trim()}`)
+      .join("\n");
   }
   return draft[section];
 }
@@ -75,7 +100,9 @@ export function expectedFactualSection(
   section: FactualDraftSection,
 ): string {
   if (section === "faqs") {
-    return renderFaqAnswers(claims).join("\n");
+    return renderFaqs(claims)
+      .map((faq) => `${faq.question.trim()}\n${faq.answer.trim()}`)
+      .join("\n");
   }
   return renderFactualSection(claims, section);
 }
@@ -88,4 +115,28 @@ export function factualSectionMatchesClaims(
     normalizeClaimText(factualSectionText(draft, section)) ===
     normalizeClaimText(expectedFactualSection(draft.source_claims, section))
   );
+}
+
+export function normalizeSourceUrl(value: string | null | undefined): string {
+  return (value ?? "").trim();
+}
+
+export function sourceClaimFingerprint(
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">,
+): string {
+  return [
+    normalizeClaimText(claim.claim_id),
+    claim.section,
+    claim.evidence_path.trim(),
+    normalizeClaimText(claim.text),
+    normalizeSourceUrl(claim.source_url),
+  ].join("\n");
+}
+
+export function isAuthoritativeSourceClaim(
+  claim: Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">,
+  allowed: Array<Pick<SourceClaim, "claim_id" | "section" | "evidence_path" | "text" | "source_url">>,
+): boolean {
+  const key = sourceClaimFingerprint(claim);
+  return allowed.some((item) => sourceClaimFingerprint(item) === key);
 }

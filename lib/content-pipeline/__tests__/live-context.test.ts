@@ -131,4 +131,56 @@ describe("live Supabase context loader", () => {
     });
     await expect(loadLivePipelineContext(client)).rejects.toThrow(/Failed to load programs/);
   });
+
+  it("continues when program_benefit_tiers is not migrated yet", async () => {
+    const client = createFakeSupabase({
+      tables: {
+        programs: [liveProgram()],
+      },
+      errors: {
+        program_benefit_tiers: {
+          message: "Could not find the table 'public.program_benefit_tiers' in the schema cache",
+          code: "PGRST205",
+        },
+      },
+    });
+    const context = await loadLivePipelineContext(client);
+    expect(context.records[0]?.program_id).toBe(LIVE_PROGRAM_ID);
+    expect(context.records[0]?.program.benefit_tiers).toEqual([]);
+  });
+
+  it("maps modeled benefit tiers onto the live program record", () => {
+    const records = recordsFromLiveRows({
+      programs: [liveProgram({ benefit_amount_structure: "TIERED" })],
+      rules: [],
+      locations: [],
+      sources: [],
+      content: [],
+      faqs: [],
+      briefs: [],
+      evidence: [],
+      homepageFeatures: [],
+      benefitTiers: [
+        {
+          id: "tier-1",
+          program_id: LIVE_PROGRAM_ID,
+          amount: 1350,
+          label: "Standard award",
+          condition_summary: "Standard path.",
+          sort_order: 0,
+          created_at: "2026-09-01T00:00:00.000Z",
+          updated_at: "2026-09-01T00:00:00.000Z",
+        },
+      ],
+    });
+    expect(records[0]?.program.benefit_amount_structure).toBe("TIERED");
+    expect(records[0]?.program.benefit_tiers).toEqual([
+      {
+        amount: 1350,
+        label: "Standard award",
+        condition_summary: "Standard path.",
+        evidence_path: "benefit.tiers.0",
+      },
+    ]);
+  });
 });
