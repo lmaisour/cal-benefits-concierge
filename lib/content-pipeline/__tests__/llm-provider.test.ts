@@ -6,6 +6,7 @@ import {
   LlmDraftProviderError,
   parseClaimSelection,
 } from "@/lib/content-pipeline/compose-selected-claims";
+import { getOpenAiDraftConfig } from "@/lib/content-pipeline/config";
 import { createContentDraftProvider } from "@/lib/content-pipeline/create-draft-provider";
 import { discoverOpportunities } from "@/lib/content-pipeline/discover-opportunities";
 import {
@@ -91,17 +92,21 @@ function validate(draft: ContentDraft, evidence: EvidencePackage) {
   });
 }
 
-function completion(payload: unknown, extras: Record<string, unknown> = {}) {
+function responsesResult(payload: unknown, extras: Record<string, unknown> = {}) {
+  const text = typeof payload === "string" ? payload : JSON.stringify(payload);
   return {
-    id: "chatcmpl-test",
-    model: "gpt-4o-mini",
-    choices: [
+    id: "resp-test",
+    model: "gpt-5.6-luna",
+    status: "completed",
+    incomplete_details: null,
+    output: [
       {
-        finish_reason: "stop",
-        message: { content: JSON.stringify(payload) },
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text }],
       },
     ],
-    usage: { prompt_tokens: 900, completion_tokens: 140, total_tokens: 1040 },
+    usage: { input_tokens: 900, output_tokens: 140, total_tokens: 1040 },
     ...extras,
   };
 }
@@ -117,7 +122,7 @@ function mockProvider(fetchImpl: LlmFetch, maxRetries = 0) {
   return new OpenAiClaimDraftProvider({
     config: {
       apiKey: "sk-test-not-a-real-key",
-      model: "gpt-4o-mini",
+      model: "gpt-5.6-luna",
       baseUrl: "https://api.openai.com/v1",
       timeoutMs: 50,
       maxOutputTokens: 400,
@@ -134,6 +139,7 @@ const ENV_KEYS = [
   "CONTENT_PIPELINE_LLM_TIMEOUT_MS",
   "CONTENT_PIPELINE_LLM_MAX_RETRIES",
   "CONTENT_PIPELINE_LLM_MAX_OUTPUT_TOKENS",
+  "CONTENT_PIPELINE_LLM_MODEL",
 ] as const;
 
 const ORIGINAL_ENV = Object.fromEntries(
@@ -216,24 +222,40 @@ describe("OpenAI claim-selection provider", () => {
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
     let capturedBody = "";
-    const llm = mockProvider(async (_url, init) => {
+    let capturedUrl = "";
+    const llm = mockProvider(async (url, init) => {
+      capturedUrl = url;
       capturedBody = init.body;
       expect(init.headers.Authorization).toMatch(/^Bearer /);
-      return jsonResponse(completion({ sections: selection }));
+      expect(init.headers["X-Client-Request-Id"]).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
+      return jsonResponse(responsesResult({ sections: selection }));
     });
     const draft = await llm.generateDraft({ evidence, opportunity });
+    expect(capturedUrl).toBe("https://api.openai.com/v1/responses");
     const requestBody = JSON.parse(capturedBody) as {
-      temperature: number;
-      max_tokens: number;
-      response_format: { json_schema: { strict: boolean; name: string } };
-      messages: Array<{ role: string; content: string }>;
+      model: string;
+      store: boolean;
+      max_output_tokens: number;
+      temperature?: number;
+      messages?: unknown;
+      response_format?: unknown;
+      text: { format: { type: string; name: string; strict: boolean } };
+      instructions: string;
+      input: Array<{ role: string; content: string }>;
     };
-    expect(requestBody.temperature).toBe(0);
-    expect(requestBody.max_tokens).toBe(400);
-    expect(requestBody.response_format.json_schema.strict).toBe(true);
-    expect(requestBody.response_format.json_schema.name).toBe("content_draft_claim_selection");
-    expect(requestBody.messages[0]?.content).toMatch(/UNKNOWN is not PASS/);
-    expect(requestBody.messages[0]?.content).toMatch(/Do not turn TIERED awards into a min–max range/);
+    expect(requestBody.model).toBe("gpt-5.6-luna");
+    expect(requestBody.store).toBe(false);
+    expect(requestBody.max_output_tokens).toBe(400);
+    expect(requestBody.temperature).toBeUndefined();
+    expect(requestBody.messages).toBeUndefined();
+    expect(requestBody.response_format).toBeUndefined();
+    expect(requestBody.text.format.type).toBe("json_schema");
+    expect(requestBody.text.format.strict).toBe(true);
+    expect(requestBody.text.format.name).toBe("content_draft_claim_selection");
+    expect(requestBody.instructions).toMatch(/UNKNOWN is not PASS/);
+    expect(requestBody.instructions).toMatch(/Do not turn TIERED awards into a min–max range/);
     expect(capturedBody).not.toContain("sk-test-not-a-real-key");
     const text = `${draft.overview}\n${draft.what_you_get}\n${draft.faqs.map((faq) => faq.answer).join("\n")}`;
     expect(text).toMatch(/\$1,350/);
@@ -253,9 +275,18 @@ describe("OpenAI claim-selection provider", () => {
     );
     expect(validate(draft, evidence).passed).toBe(true);
     const metadata = llm.takeMetadata();
-    expect(metadata?.model).toBe("gpt-4o-mini");
+    expect(metadata?.model).toBe("gpt-5.6-luna");
+    expect(metadata?.usage?.input_tokens).toBe(900);
+    expect(metadata?.usage?.output_tokens).toBe(140);
     expect(metadata?.usage?.total_tokens).toBe(1040);
     expect(metadata?.request_id).toBe("req-test");
+    expect(metadata?.response_id).toBe("resp-test");
+    expect(metadata?.status).toBe("completed");
+    expect(metadata?.client_request_id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(JSON.stringify(metadata)).not.toContain("sk-test-not-a-real-key");
+    expect(JSON.stringify(metadata)).not.toMatch(/Bearer /i);
   });
 
   it("cannot invent a benefit amount or reuse a real path for invented text", async () => {
@@ -264,7 +295,7 @@ describe("OpenAI claim-selection provider", () => {
     const selection = claimIdsBySection(allowed);
     const llm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: {
             ...selection,
             what_you_get: [...selection.what_you_get, "benefit-invented-99000"],
@@ -299,7 +330,7 @@ describe("OpenAI claim-selection provider", () => {
     const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
     const llm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: claimIdsBySection(buildFactualClaims(evidence)),
           what_you_get: "$1,350 to $2,000",
         }),
@@ -325,7 +356,7 @@ describe("OpenAI claim-selection provider", () => {
     const selection = claimIdsBySection(allowed);
     const llm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: {
             ...selection,
             who_may_qualify: [...selection.who_may_qualify, "eligibility-homeowner-only"],
@@ -378,7 +409,7 @@ describe("OpenAI claim-selection provider", () => {
     expect(evidence.benefit.repayable).toBe(true);
     const llm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: claimIdsBySection(buildFactualClaims(evidence)),
           overview: "This will save you free money and lists every California program.",
         }),
@@ -408,7 +439,7 @@ describe("OpenAI claim-selection provider", () => {
     expect(unknownPair.evidence.benefit.amount_structure).toBe("UNKNOWN");
     const unknownLlm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: claimIdsBySection(buildFactualClaims(unknownPair.evidence)),
           what_you_get: "$1,350 to $2,000",
         }),
@@ -467,7 +498,7 @@ describe("OpenAI claim-selection provider", () => {
     const moved = selection.overview[0] ?? "overview-admin";
     const llm = mockProvider(async () =>
       jsonResponse(
-        completion({
+        responsesResult({
           sections: {
             ...selection,
             overview: selection.overview.filter((id) => id !== moved),
@@ -481,16 +512,78 @@ describe("OpenAI claim-selection provider", () => {
     });
   });
 
-  it("rejects malformed JSON and times out", async () => {
+  it("rejects malformed structured output, incomplete responses, refusals, and timeouts", async () => {
     const { evidence, opportunity } = await pair();
     const malformed = mockProvider(async () =>
-      jsonResponse({
-        id: "chatcmpl-test",
-        choices: [{ message: { content: "{not-json" } }],
-      }),
+      jsonResponse(
+        responsesResult("{not-json", {
+          output: [
+            {
+              type: "message",
+              role: "assistant",
+              content: [{ type: "output_text", text: "{not-json" }],
+            },
+          ],
+        }),
+      ),
     );
     await expect(malformed.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
       code: "MALFORMED_OUTPUT",
+    });
+
+    const incomplete = mockProvider(async () =>
+      jsonResponse(
+        responsesResult({ sections: claimIdsBySection(buildFactualClaims(evidence)) }, {
+          status: "incomplete",
+          incomplete_details: { reason: "max_output_tokens" },
+        }),
+      ),
+    );
+    await expect(incomplete.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
+      code: "INCOMPLETE_RESPONSE",
+    });
+
+    const refused = mockProvider(async () =>
+      jsonResponse({
+        id: "resp-test",
+        model: "gpt-5.6-luna",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "refusal", refusal: "I cannot assist with that request." }],
+          },
+        ],
+        usage: { input_tokens: 20, output_tokens: 8, total_tokens: 28 },
+      }),
+    );
+    await expect(refused.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
+      code: "REFUSED",
+    });
+
+    const missing = mockProvider(async () =>
+      jsonResponse({
+        id: "resp-test",
+        model: "gpt-5.6-luna",
+        status: "completed",
+        output: [],
+      }),
+    );
+    await expect(missing.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
+      code: "MALFORMED_OUTPUT",
+    });
+
+    const failed = mockProvider(async () =>
+      jsonResponse(
+        responsesResult({ sections: claimIdsBySection(buildFactualClaims(evidence)) }, {
+          status: "failed",
+          error: { message: "internal" },
+        }),
+      ),
+    );
+    await expect(failed.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
+      code: "PROVIDER_HTTP",
     });
 
     const hanging = mockProvider(async (_url, init) => {
@@ -509,28 +602,30 @@ describe("OpenAI claim-selection provider", () => {
     });
   });
 
-  it("retries retryable HTTP errors then fails closed without falling back to fake", async () => {
+  it("retries 429 and 5xx then fails closed without falling back to fake", async () => {
     const { evidence, opportunity } = await pair();
-    let calls = 0;
-    const retrying = new OpenAiClaimDraftProvider({
-      config: {
-        apiKey: "sk-test-not-a-real-key",
-        model: "gpt-4o-mini",
-        baseUrl: "https://api.openai.com/v1",
-        timeoutMs: 200,
-        maxOutputTokens: 400,
-        maxRetries: 1,
-      },
-      fetchImpl: async () => {
-        calls += 1;
-        return jsonResponse({ error: { message: "upstream" } }, 503);
-      },
-    });
-    await expect(retrying.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
-      code: "PROVIDER_HTTP",
-    });
-    expect(calls).toBe(2);
-    expect(retrying.id).toBe("openai");
+    for (const status of [429, 503]) {
+      let calls = 0;
+      const retrying = new OpenAiClaimDraftProvider({
+        config: {
+          apiKey: "sk-test-not-a-real-key",
+          model: "gpt-5.6-luna",
+          baseUrl: "https://api.openai.com/v1",
+          timeoutMs: 200,
+          maxOutputTokens: 400,
+          maxRetries: 1,
+        },
+        fetchImpl: async () => {
+          calls += 1;
+          return jsonResponse({ error: { message: "upstream" } }, status);
+        },
+      });
+      await expect(retrying.generateDraft({ evidence, opportunity })).rejects.toMatchObject({
+        code: "PROVIDER_HTTP",
+      });
+      expect(calls).toBe(2);
+      expect(retrying.id).toBe("openai");
+    }
   });
 
   it("does not leak the API key in provider errors", async () => {
@@ -550,6 +645,7 @@ describe("draft provider configuration", () => {
     delete process.env.CONTENT_PIPELINE_DRAFT_PROVIDER;
     delete process.env.CONTENT_PIPELINE_LLM_API_KEY;
     delete process.env.OPENAI_API_KEY;
+    delete process.env.CONTENT_PIPELINE_LLM_MODEL;
     expect(createContentDraftProvider().id).toBe("fake");
     expect(createContentDraftProvider("fake").id).toBe("fake");
     expect(() => createContentDraftProvider("openai")).toThrow(/API key/i);
@@ -558,6 +654,7 @@ describe("draft provider configuration", () => {
     expect(() => createContentDraftProvider()).toThrow(/API key/i);
     process.env.CONTENT_PIPELINE_LLM_API_KEY = "sk-test-not-a-real-key";
     expect(createContentDraftProvider().id).toBe("openai");
+    expect(getOpenAiDraftConfig().model).toBe("gpt-5.6-luna");
     process.env.CONTENT_PIPELINE_LLM_TIMEOUT_MS = "0";
     expect(() => createContentDraftProvider()).toThrow(/greater than or equal to 1/i);
   });
@@ -569,7 +666,7 @@ describe("pipeline metadata", () => {
     const { evidence, opportunity } = await pair(record);
     const allowed = buildFactualClaims(evidence);
     const llm = mockProvider(async () =>
-      jsonResponse(completion({ sections: claimIdsBySection(allowed) })),
+      jsonResponse(responsesResult({ sections: claimIdsBySection(allowed) })),
     );
     const store = new MemoryContentPipelineStore();
     const result = await runDryRunContentPipeline({
@@ -586,7 +683,7 @@ describe("pipeline metadata", () => {
     expect(result.run.status).toBe("COMPLETED");
     expect(result.validation?.passed).toBe(true);
     expect(result.run.provider_metadata?.provider).toBe("openai");
-    expect(result.run.provider_metadata?.model).toBe("gpt-4o-mini");
+    expect(result.run.provider_metadata?.model).toBe("gpt-5.6-luna");
     expect(result.run.provider_metadata?.usage?.total_tokens).toBe(1040);
     expect(JSON.stringify(result)).not.toContain("sk-test-not-a-real-key");
     void opportunity;

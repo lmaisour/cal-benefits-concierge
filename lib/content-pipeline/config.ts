@@ -66,7 +66,7 @@ export function getOpenAiDraftConfig(): OpenAiDraftConfig {
   ).replace(/\/+$/, "");
   return {
     apiKey,
-    model: process.env.CONTENT_PIPELINE_LLM_MODEL?.trim() || "gpt-4o-mini",
+    model: process.env.CONTENT_PIPELINE_LLM_MODEL?.trim() || "gpt-5.6-luna",
     baseUrl,
     timeoutMs: readPositiveInt("CONTENT_PIPELINE_LLM_TIMEOUT_MS", 20000),
     maxOutputTokens: readPositiveInt("CONTENT_PIPELINE_LLM_MAX_OUTPUT_TOKENS", 1200),

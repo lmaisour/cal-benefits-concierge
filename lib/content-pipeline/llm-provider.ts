@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   composeDraftFromSelectedClaimIds,
   LlmDraftProviderError,
@@ -34,21 +35,26 @@ export type OpenAiClaimDraftProviderOptions = {
   fetchImpl?: LlmFetch;
 };
 
-type ChatCompletionResponse = {
+type ResponsesApiJson = {
   id?: string;
   model?: string;
-  choices?: Array<{
-    finish_reason?: string | null;
-    message?: { content?: string | null };
+  status?: string | null;
+  error?: { message?: string; code?: string } | null;
+  incomplete_details?: { reason?: string | null } | null;
+  output_text?: string | null;
+  output?: Array<{
+    type?: string;
+    content?: Array<{
+      type?: string;
+      text?: string;
+      refusal?: string;
+    }>;
   }>;
   usage?: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
     input_tokens?: number;
     output_tokens?: number;
+    total_tokens?: number;
   };
-  error?: { message?: string };
 };
 
 function sleep(ms: number): Promise<void> {
@@ -71,27 +77,115 @@ function retryableStatus(status: number): boolean {
   return status === 429 || status >= 500;
 }
 
+function headerValue(headers: Headers, name: string): string | null {
+  return headers.get(name);
+}
+
 function metadataFromResponse(
   config: OpenAiDraftConfig,
-  json: ChatCompletionResponse,
+  json: ResponsesApiJson,
   requestId: string | null,
+  clientRequestId: string,
 ): Omit<ProviderMetadata, "provider" | "mode"> {
   const usage = json.usage;
-  const inputTokens = usage?.prompt_tokens ?? usage?.input_tokens ?? null;
-  const outputTokens = usage?.completion_tokens ?? usage?.output_tokens ?? null;
+  const inputTokens = usage?.input_tokens ?? null;
+  const outputTokens = usage?.output_tokens ?? null;
   const totalTokens =
     usage?.total_tokens ??
     (inputTokens != null && outputTokens != null ? inputTokens + outputTokens : null);
+  const status = json.status ?? null;
+  const incompleteReason = json.incomplete_details?.reason ?? null;
   return {
     model: json.model ?? config.model,
     request_id: requestId,
-    finish_reason: json.choices?.[0]?.finish_reason ?? null,
+    response_id: json.id ?? null,
+    client_request_id: clientRequestId,
+    status,
+    incomplete_reason: incompleteReason,
+    finish_reason: incompleteReason ?? status,
     usage: {
       input_tokens: inputTokens,
       output_tokens: outputTokens,
       total_tokens: totalTokens,
     },
   };
+}
+
+function collectRefusal(json: ResponsesApiJson): string | null {
+  for (const item of json.output ?? []) {
+    for (const content of item.content ?? []) {
+      if (content.type === "refusal" && content.refusal?.trim()) {
+        return content.refusal.trim();
+      }
+    }
+  }
+  return null;
+}
+
+function collectOutputText(json: ResponsesApiJson): string {
+  if (typeof json.output_text === "string" && json.output_text.trim().length > 0) {
+    return json.output_text;
+  }
+  const parts: string[] = [];
+  for (const item of json.output ?? []) {
+    for (const content of item.content ?? []) {
+      if (content.type === "output_text" && content.text) {
+        parts.push(content.text);
+      }
+    }
+  }
+  return parts.join("");
+}
+
+function parseStructuredPayload(json: ResponsesApiJson, apiKey: string): unknown {
+  const status = json.status?.trim() || null;
+  if (status && status !== "completed") {
+    if (status === "incomplete") {
+      throw new LlmDraftProviderError(
+        "INCOMPLETE_RESPONSE",
+        "Draft provider returned an incomplete Responses API result.",
+      );
+    }
+    throw new LlmDraftProviderError(
+      "PROVIDER_HTTP",
+      sanitizeProviderMessage(
+        json.error?.message || `OpenAI response status ${status}.`,
+        apiKey,
+      ),
+    );
+  }
+
+  const refusal = collectRefusal(json);
+  if (refusal) {
+    throw new LlmDraftProviderError(
+      "REFUSED",
+      sanitizeProviderMessage(refusal, apiKey),
+    );
+  }
+
+  if (json.error?.message) {
+    throw new LlmDraftProviderError(
+      "PROVIDER_HTTP",
+      sanitizeProviderMessage(json.error.message, apiKey),
+    );
+  }
+
+  const text = collectOutputText(json);
+  if (!text.trim()) {
+    throw new LlmDraftProviderError(
+      "MALFORMED_OUTPUT",
+      "Draft provider returned no structured output.",
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new LlmDraftProviderError(
+      "MALFORMED_OUTPUT",
+      "Draft provider returned non-JSON content.",
+    );
+  }
 }
 
 export class OpenAiClaimDraftProvider implements ContentDraftProvider {
@@ -125,20 +219,14 @@ export class OpenAiClaimDraftProvider implements ContentDraftProvider {
     }
 
     const allowed = buildFactualClaims(input.evidence);
+    // gpt-5.6-luna rejects non-default temperature on the Responses API.
+    // Structured json_schema already constrains output, so temperature is omitted.
     const body = {
       model: this.config.model,
-      temperature: 0,
-      max_tokens: this.config.maxOutputTokens,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: LLM_CLAIM_SELECTION_SCHEMA_NAME,
-          strict: true,
-          schema: LLM_CLAIM_SELECTION_SCHEMA,
-        },
-      },
-      messages: [
-        { role: "system", content: buildLlmSystemPrompt() },
+      store: false,
+      max_output_tokens: this.config.maxOutputTokens,
+      instructions: buildLlmSystemPrompt(),
+      input: [
         {
           role: "user",
           content: buildLlmUserPrompt({
@@ -148,19 +236,18 @@ export class OpenAiClaimDraftProvider implements ContentDraftProvider {
           }),
         },
       ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: LLM_CLAIM_SELECTION_SCHEMA_NAME,
+          strict: true,
+          schema: LLM_CLAIM_SELECTION_SCHEMA,
+        },
+      },
     };
 
     const json = await this.request(body);
-    const content = json.choices?.[0]?.message?.content;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content ?? "");
-    } catch {
-      throw new LlmDraftProviderError(
-        "MALFORMED_OUTPUT",
-        "Draft provider returned non-JSON content.",
-      );
-    }
+    const parsed = parseStructuredPayload(json, this.config.apiKey);
     const selection = parseClaimSelection(parsed);
     return composeDraftFromSelectedClaimIds(
       selection,
@@ -170,24 +257,33 @@ export class OpenAiClaimDraftProvider implements ContentDraftProvider {
     );
   }
 
-  private async request(body: unknown): Promise<ChatCompletionResponse> {
+  private async request(body: unknown): Promise<ResponsesApiJson> {
     let lastError: Error | null = null;
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt += 1) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.config.timeoutMs);
+      const clientRequestId = randomUUID();
       try {
-        const response = await this.fetchImpl(`${this.config.baseUrl}/chat/completions`, {
+        const response = await this.fetchImpl(`${this.config.baseUrl}/responses`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${this.config.apiKey}`,
             "Content-Type": "application/json",
+            "X-Client-Request-Id": clientRequestId,
           },
           body: JSON.stringify(body),
           signal: controller.signal,
         });
-        const requestId = response.headers.get("x-request-id");
-        const json = (await response.json().catch(() => ({}))) as ChatCompletionResponse;
-        this.metadata = metadataFromResponse(this.config, json, requestId);
+        const requestId =
+          headerValue(response.headers, "openai-request-id") ??
+          headerValue(response.headers, "x-request-id");
+        const json = (await response.json().catch(() => ({}))) as ResponsesApiJson;
+        this.metadata = metadataFromResponse(
+          this.config,
+          json,
+          requestId,
+          clientRequestId,
+        );
         if (!response.ok) {
           const message = sanitizeProviderMessage(
             json.error?.message || `OpenAI HTTP ${response.status}`,

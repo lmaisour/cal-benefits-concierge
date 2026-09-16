@@ -341,6 +341,10 @@ export type ProviderMetadata = {
   mode: ContentPipelineRunMode;
   model?: string | null;
   request_id?: string | null;
+  response_id?: string | null;
+  client_request_id?: string | null;
+  status?: string | null;
+  incomplete_reason?: string | null;
   finish_reason?: string | null;
   usage?: {
     input_tokens?: number | null;
