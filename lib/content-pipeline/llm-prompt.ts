@@ -16,7 +16,7 @@ export function buildLlmSystemPrompt(): string {
     "- Do not imply the reader is likely eligible beyond modeled rules.",
     "- Distinguish modeled rules from unmodeled required criteria when those atoms exist.",
     "- Preserve application-before-action sequencing atoms when supplied.",
-    "- Do not use purchase/buy language unless that sequencing atom is supplied.",
+    "- Do not strengthen a sequencing atom into a more specific action than supplied.",
     "- Prefer consumer_headline title atoms when present. Never invent a monetary headline.",
     "- Put detailed TIERED amounts in what_you_get, not overview.",
     "- Prefer the combined how-much FAQ over repeating per-tier FAQ atoms.",

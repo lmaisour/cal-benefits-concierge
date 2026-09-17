@@ -14,8 +14,10 @@ import {
 import { isSafeConsumerHeadline } from "@/lib/content-pipeline/headline-safety";
 import { scoreOpportunity } from "@/lib/content-pipeline/score-opportunity";
 import {
+  GENERIC_SEQUENCING_COPY,
   resolveSequencingAction,
   sequencingCopy,
+  VEHICLE_RETIREMENT_SEQUENCING_COPY,
 } from "@/lib/content-pipeline/sequencing";
 import { validateDraft } from "@/lib/content-pipeline/validate-draft";
 import type { ContentDraft, EvidencePackage, SourceClaim } from "@/lib/content-pipeline/types";
@@ -307,27 +309,47 @@ describe("consumer-quality composition", () => {
     expect(validate(unknown.draft, unknown.evidence).passed).toBe(true);
   });
 
-  it("maps purchase, installation, and vehicle-retirement sequencing from structured facts", async () => {
-    expect(resolveSequencingAction({ subcategory: "vehicle-retirement" })).toBe(
-      "vehicle_retirement",
-    );
-    expect(sequencingCopy("vehicle_retirement")).toMatch(/retiring or delivering your vehicle/);
-    expect(sequencingCopy("purchase")).toMatch(/buy the item/);
-    expect(sequencingCopy("installation")).toMatch(/installation or repair/);
+  it("resolves BAR vehicle-retirement sequencing only from strong modeled evidence", async () => {
+    expect(
+      resolveSequencingAction({ modeledFields: ["willing_to_retire_vehicle"] }),
+    ).toBe("vehicle_retirement");
+    expect(sequencingCopy("vehicle_retirement")).toBe(VEHICLE_RETIREMENT_SEQUENCING_COPY);
 
-    const purchase = await pair(
-      makeRecord({
-        program: {
-          category: "home-energy",
-          subcategory: null,
-          purchase_before_approval_allowed: false,
+    const { draft, evidence } = await pair(barRecord());
+    expect(draft.how_to_apply).toContain(VEHICLE_RETIREMENT_SEQUENCING_COPY);
+    expect(draft.how_to_apply).not.toMatch(/\bbuy\b/i);
+    expect(validate(draft, evidence).passed).toBe(true);
+  });
+
+  it("does not treat taxonomy as an action type and stays generic without modeled evidence", async () => {
+    expect(resolveSequencingAction({ modeledFields: [] })).toBe("generic");
+    expect(resolveSequencingAction({})).toBe("generic");
+    expect(sequencingCopy("generic")).toBe(GENERIC_SEQUENCING_COPY);
+
+    const taxonomyOnly = await pair(
+      barRecord(
+        { subcategory: "vehicle-retirement" },
+        {
+          rules: [
+            {
+              program_external_id: "TEST-REBATE-1",
+              field: "owns_vehicle",
+              operator: "is_true",
+              value: true,
+              rule_group: 1,
+              group_operator: "AND",
+              required: true,
+              explanation: "You must be the registered owner.",
+            },
+          ],
         },
-      }),
+      ),
     );
-    expect(purchase.draft.how_to_apply).toMatch(/buy the item/);
-    expect(purchase.draft.how_to_apply).not.toMatch(/retire/i);
+    expect(taxonomyOnly.draft.how_to_apply).toContain(GENERIC_SEQUENCING_COPY);
+    expect(taxonomyOnly.draft.how_to_apply).not.toMatch(/retiring or delivering your vehicle/i);
+    expect(taxonomyOnly.draft.how_to_apply).not.toMatch(/\bbuy the item\b/i);
 
-    const installation = await pair(
+    const installationLooking = await pair(
       makeRecord({
         program: {
           category: "home-energy",
@@ -336,10 +358,12 @@ describe("consumer-quality composition", () => {
         },
       }),
     );
-    expect(installation.draft.how_to_apply).toMatch(/installation or repair work begins/);
-    expect(installation.draft.how_to_apply).not.toMatch(/\bbuy\b/i);
+    expect(installationLooking.draft.how_to_apply).toContain(GENERIC_SEQUENCING_COPY);
+    expect(installationLooking.draft.how_to_apply).not.toMatch(/installation or repair/i);
+    expect(installationLooking.draft.how_to_apply).not.toMatch(/\bbuy the item\b/i);
+    expect(installationLooking.draft.who_may_qualify).not.toMatch(/installation or repair/i);
 
-    const project = await pair(
+    const projectLooking = await pair(
       makeRecord({
         program: {
           category: "home-energy",
@@ -348,7 +372,27 @@ describe("consumer-quality composition", () => {
         },
       }),
     );
-    expect(project.draft.how_to_apply).toMatch(/before the project starts/);
+    expect(projectLooking.draft.how_to_apply).toContain(GENERIC_SEQUENCING_COPY);
+    expect(projectLooking.draft.how_to_apply).not.toMatch(/before the project starts/i);
+    expect(projectLooking.draft.how_to_apply).not.toMatch(/\bbuy the item\b/i);
+
+    const unknownCategory = await pair(
+      makeRecord({
+        program: {
+          category: "home-energy",
+          subcategory: null,
+          purchase_before_approval_allowed: false,
+        },
+      }),
+    );
+    expect(unknownCategory.draft.how_to_apply).toContain(GENERIC_SEQUENCING_COPY);
+    expect(unknownCategory.draft.how_to_apply).not.toMatch(/\bbuy the item\b/i);
+    expect(unknownCategory.draft.source_claims.some((claim) => claim.claim_id === "how-to-apply-before-action")).toBe(
+      true,
+    );
+    expect(validate(installationLooking.draft, installationLooking.evidence).passed).toBe(true);
+    expect(validate(projectLooking.draft, projectLooking.evidence).passed).toBe(true);
+    expect(validate(unknownCategory.draft, unknownCategory.evidence).passed).toBe(true);
   });
 
   it("builds equivalent FAQ atoms for every modeled tier", async () => {
@@ -504,5 +548,54 @@ describe("malicious tier FAQ mutations", () => {
           error.code === "TITLE_OVERSTATES_ELIGIBILITY",
       ),
     ).toBe(true);
+  });
+
+  it("cannot strengthen generic sequencing into an unsupported specific action", async () => {
+    const { draft, evidence, opportunity } = await pair(
+      makeRecord({
+        program: {
+          category: "home-energy",
+          subcategory: "charger-installation",
+          purchase_before_approval_allowed: false,
+        },
+      }),
+    );
+    const original = draft.source_claims.find(
+      (item) => item.claim_id === "how-to-apply-before-action",
+    );
+    expect(original?.text).toBe(GENERIC_SEQUENCING_COPY);
+
+    const allowed = buildFactualClaims(evidence);
+    const selection = claimIdsBySection(allowed);
+    expect(() =>
+      composeDraftFromSelectedClaimIds(
+        {
+          ...selection,
+          how_to_apply: [...selection.how_to_apply, "how-to-apply-before-purchase"],
+        },
+        allowed,
+        evidence,
+        opportunity,
+      ),
+    ).toThrow(/unknown claim/i);
+
+    const strengthened: ContentDraft = {
+      ...draft,
+      source_claims: draft.source_claims.map((item) =>
+        item.claim_id === "how-to-apply-before-action"
+          ? {
+              ...item,
+              text: VEHICLE_RETIREMENT_SEQUENCING_COPY,
+            }
+          : item,
+      ),
+      how_to_apply: draft.how_to_apply.replace(
+        GENERIC_SEQUENCING_COPY,
+        VEHICLE_RETIREMENT_SEQUENCING_COPY,
+      ),
+    };
+    const result = validate(strengthened, evidence);
+    expect(result.passed).toBe(false);
+    expect(result.errors.some((error) => error.code === "UNSUPPORTED_SOURCE_CLAIM")).toBe(true);
   });
 });
