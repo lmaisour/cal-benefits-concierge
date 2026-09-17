@@ -37,6 +37,14 @@ const knownRoutes = [
 const BAR_LIKE = {
   name: "BAR Consumer Assistance Program Vehicle Retirement",
   slug: "test-home-rebate",
+  consumer_headline: null,
+  category: "vehicles" as const,
+  subcategory: "vehicle-retirement",
+  short_description:
+    "Cash to retire an eligible vehicle at a BAR-contracted dismantler after you receive a letter of eligibility.",
+  administrator: "California Bureau of Automotive Repair",
+  preapproval_required: true,
+  application_deadline: null,
   benefit_summary:
     "$1,350, $1,500, or $2,000 to retire an eligible vehicle, depending on income and Smog Check status",
   benefit_min: 1350,
@@ -263,7 +271,8 @@ describe("OpenAI claim-selection provider", () => {
     expect(text).toMatch(/\$2,000/);
     expect(text).not.toMatch(/\$1,350 to \$2,000/);
     expect(text).not.toMatch(/\$1,350–\$2,000/);
-    expect(draft.how_to_apply).toMatch(/Apply before you buy/);
+    expect(draft.how_to_apply).toMatch(/retiring or delivering your vehicle/i);
+    expect(draft.how_to_apply).not.toMatch(/\bbuy\b/i);
     expect(draft.source_claims.some((claim) => claim.claim_id === "benefit-tier-0")).toBe(
       true,
     );
@@ -489,6 +498,17 @@ describe("OpenAI claim-selection provider", () => {
     expect(() => composeDraftFromSelectedClaimIds(selection, allowed, evidence, opportunity)).toThrow(
       /omitted required claim/i,
     );
+  });
+
+  it("can omit per-tier FAQ atoms while still including every what-you-get tier", async () => {
+    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const allowed = buildFactualClaims(evidence);
+    const selection = claimIdsBySection(allowed);
+    selection.faqs = selection.faqs.filter((id) => !/^faq-[qa]-tier-\d+$/.test(id));
+    const draft = composeDraftFromSelectedClaimIds(selection, allowed, evidence, opportunity);
+    expect(draft.source_claims.some((claim) => claim.claim_id === "benefit-tier-2")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(true);
+    expect(validate(draft, evidence).passed).toBe(true);
   });
 
   it("cannot relocate a real claim ID into another factual section", async () => {

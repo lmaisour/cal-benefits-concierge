@@ -8,15 +8,15 @@ export const FACTUAL_SECTION_JOIN: Record<
   Exclude<FactualDraftSection, "faqs">,
   string
 > = {
-  seo_title: "",
+  seo_title: " | ",
   meta_description: "",
   h1: "",
   dek: " ",
-  overview: " ",
-  what_you_get: " ",
+  overview: "\n\n",
+  what_you_get: "\n\n",
   who_may_qualify: "\n",
-  how_to_apply: " ",
-  documents: " ",
+  how_to_apply: "\n\n",
+  documents: "\n",
   important_notes: "\n\n",
 };
 

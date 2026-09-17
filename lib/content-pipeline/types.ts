@@ -172,6 +172,10 @@ export type EvidencePackage = {
   external_id: string;
   official_name: string;
   consumer_headline: string | null;
+  administrator_display_name: string | null;
+  category: string;
+  subcategory: string | null;
+  short_description: string | null;
   status: ProgramStatus;
   active: boolean;
   administrator: string | null;
@@ -236,9 +240,13 @@ export type EvidencePackage = {
     faq_who_may_qualify: string;
     faq_how_to_apply: string;
     faq_documents: string;
+    faq_how_much: string;
+    faq_deadline: string;
     faq_only_consider: string;
     unknown_amount_guidance: string;
     tiered_amount_guidance: string;
+    overview_tiered_guidance: string;
+    qualify_intro: string;
   };
 };
 
@@ -251,6 +259,11 @@ export type SuggestedInternalLink = {
   href: string;
   label: string;
   required: boolean;
+};
+
+export type SuggestedOfficialCta = {
+  href: string;
+  label: string;
 };
 
 export const FACTUAL_DRAFT_SECTIONS = [
@@ -290,6 +303,7 @@ export type ContentDraft = {
   important_notes: string;
   faqs: DraftFaq[];
   suggested_internal_links: SuggestedInternalLink[];
+  suggested_official_cta: SuggestedOfficialCta | null;
   source_claims: SourceClaim[];
 };
 

@@ -151,9 +151,10 @@ describe("benefit amount presentation", () => {
 
   it("passes a TIERED benefit rendered with individually backed tiers", async () => {
     const { draft, evidence } = await pair(makeRecord({ program: TIERED_PROGRAM }));
-    expect(draft.what_you_get).toMatch(/Standard award: \$1,350/);
-    expect(draft.what_you_get).toMatch(/Higher award: \$2,000/);
-    expect(draft.what_you_get).toMatch(/Condition: Higher award when the income test/);
+    expect(draft.what_you_get).toMatch(/\$1,350/);
+    expect(draft.what_you_get).toMatch(/\$2,000/);
+    expect(draft.what_you_get).toMatch(/Standard path when income is not in the higher-award band/);
+    expect(draft.what_you_get).toMatch(/Higher award when the income test/);
     expect(draft.what_you_get).not.toMatch(/\$1,350 to \$2,000/);
     expect(validate(draft, evidence).passed).toBe(true);
   });

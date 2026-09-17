@@ -54,6 +54,10 @@ export function buildEvidencePackage(
     external_id: program.external_id || record.program_id,
     official_name: program.name,
     consumer_headline: program.consumer_headline,
+    administrator_display_name: program.administrator_display_name,
+    category: program.category,
+    subcategory: program.subcategory,
+    short_description: program.short_description,
     status: program.status,
     active: program.active,
     administrator: program.administrator,
@@ -135,11 +139,15 @@ export function buildEvidencePackage(
       faq_who_may_qualify: "Who may qualify?",
       faq_how_to_apply: "How do I apply?",
       faq_documents: "What documents might I need?",
+      faq_how_much: "How much could I receive?",
+      faq_deadline: "Is there an application deadline?",
       faq_only_consider: "Is this the only California benefit I should consider?",
       unknown_amount_guidance:
         "Award amounts depend on program conditions. Confirm the current award on the official source.",
       tiered_amount_guidance:
-        "Awards are condition-dependent. Each listed amount applies only when its stated condition is met.",
+        "You may qualify for one of the following awards, depending on the structured conditions below. Each listed amount applies only when its stated condition is met.",
+      overview_tiered_guidance: "Award amounts are condition-dependent.",
+      qualify_intro: "You may qualify if you meet the requirements below.",
     },
   };
 }

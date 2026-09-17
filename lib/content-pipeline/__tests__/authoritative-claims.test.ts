@@ -4,6 +4,7 @@ import { discoverOpportunities } from "@/lib/content-pipeline/discover-opportuni
 import {
   FakeContentDraftProvider,
   buildFactualClaims,
+  selectDefaultClaims,
 } from "@/lib/content-pipeline/generate-draft";
 import { scoreOpportunity } from "@/lib/content-pipeline/score-opportunity";
 import { validateDraft } from "@/lib/content-pipeline/validate-draft";
@@ -179,16 +180,16 @@ describe("authoritative source claims", () => {
   it("fails when a provider changes a deadline claim but keeps the deadline path", async () => {
     const { draft, evidence } = await pair();
     const original = draft.source_claims.find(
-      (item) => item.claim_id === "overview-deadline-date",
+      (item) => item.claim_id === "notes-deadline-date",
     );
     expect(original).toBeTruthy();
     expect(original?.evidence_path).toBe("deadline.application_deadline");
     draft.source_claims = draft.source_claims.map((item) =>
-      item.claim_id === "overview-deadline-date"
+      item.claim_id === "notes-deadline-date"
         ? { ...item, text: "The structured application deadline is January 1, 1999." }
         : item,
     );
-    draft.overview = draft.overview.replace(
+    draft.important_notes = draft.important_notes.replace(
       original?.text ?? "",
       "The structured application deadline is January 1, 1999.",
     );
@@ -232,7 +233,7 @@ describe("authoritative source claims", () => {
   it("still passes the normal fake-provider draft", async () => {
     const { draft, evidence } = await pair();
     const allowed = buildFactualClaims(evidence);
-    expect(draft.source_claims.length).toBe(allowed.length);
+    expect(draft.source_claims.length).toBe(selectDefaultClaims(allowed).length);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 

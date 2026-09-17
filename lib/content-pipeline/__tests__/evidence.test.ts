@@ -10,6 +10,8 @@ describe("buildEvidencePackage", () => {
       true,
     );
     expect(evidence.official_name).toBe("Test Home Rebate");
+    expect(evidence.category).toBe("home-energy");
+    expect(evidence.short_description).toBe("A test rebate.");
     expect(evidence.eligibility.tags_are_not_eligibility).toBe(true);
     expect(evidence.eligibility.unknown_is_not_a_fact).toBe(true);
     expect(evidence.benefit.amounts_are_structured_facts).toBe(true);

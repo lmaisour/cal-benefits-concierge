@@ -15,7 +15,11 @@ export function buildLlmSystemPrompt(): string {
     "- Do not claim Benefits Concierge or this catalog has exhaustive coverage.",
     "- Do not imply the reader is likely eligible beyond modeled rules.",
     "- Distinguish modeled rules from unmodeled required criteria when those atoms exist.",
-    "- Preserve application-before-purchase or retire-after-approval atoms when supplied.",
+    "- Preserve application-before-action sequencing atoms when supplied.",
+    "- Do not use purchase/buy language unless that sequencing atom is supplied.",
+    "- Prefer consumer_headline title atoms when present. Never invent a monetary headline.",
+    "- Put detailed TIERED amounts in what_you_get, not overview.",
+    "- Prefer the combined how-much FAQ over repeating per-tier FAQ atoms.",
     "- Keep each claim_id in the section the server assigned.",
     "- Return JSON that matches the schema. Do not add extra keys or prose fields.",
   ].join("\n");

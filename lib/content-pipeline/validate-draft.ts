@@ -14,6 +14,10 @@ import {
 } from "@/lib/content-pipeline/claims";
 import { buildFactualClaims } from "@/lib/content-pipeline/generate-draft";
 import {
+  extractUpToAmounts,
+  maxAttainableAmount,
+} from "@/lib/content-pipeline/headline-safety";
+import {
   FACTUAL_DRAFT_SECTIONS,
   type ContentDraft,
   type DuplicateIndex,
@@ -458,6 +462,55 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
         "Title or H1 materially overstates eligibility.",
       ),
     );
+  }
+
+  const maxAmount = maxAttainableAmount(evidence);
+  for (const amount of extractUpToAmounts(titleText)) {
+    if (maxAmount === null || String(amount) !== String(maxAmount)) {
+      errors.push(
+        issue(
+          evidence.benefit.amount_structure === "TIERED"
+            ? "UNSUPPORTED_TIER_AMOUNT"
+            : "TITLE_OVERSTATES_ELIGIBILITY",
+          `Title uses “up to $${amount}” which is not the maximum attainable structured amount.`,
+          "consumer_headline",
+        ),
+      );
+    }
+  }
+  if (
+    evidence.benefit.amount_structure === "TIERED" &&
+    evidence.benefit.tiers.filter((tier) => tier.amount !== null).length > 1 &&
+    /\$\s*[\d,]+/.test(titleText) &&
+    extractUpToAmounts(titleText).length === 0 &&
+    !looksLikeSynthesizedRange(titleText)
+  ) {
+    errors.push(
+      issue(
+        "TITLE_OVERSTATES_ELIGIBILITY",
+        "TIERED monetary titles must use “up to” the maximum attainable tier rather than a single unqualified amount.",
+        "consumer_headline",
+      ),
+    );
+  }
+
+  if (draft.suggested_official_cta) {
+    const allowedCtaUrls = new Set(
+      [
+        evidence.application.application_url,
+        evidence.application.official_url,
+        ...evidence.official_sources.map((source) => source.url),
+      ].filter((url): url is string => Boolean(url)),
+    );
+    if (!allowedCtaUrls.has(draft.suggested_official_cta.href)) {
+      errors.push(
+        issue(
+          "INVALID_SOURCE_URL",
+          "Official application CTA is not a server-owned evidence URL.",
+          "application.official_url",
+        ),
+      );
+    }
   }
 
   if (QUALIFY_DEFINITE.test(text)) {

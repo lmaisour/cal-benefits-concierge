@@ -184,9 +184,8 @@ function isRequiredSelectedClaim(claim: SourceClaim): boolean {
   return (
     claim.claim_id === "eligibility-unmodeled" ||
     claim.claim_id === "notes-unmodeled" ||
-    claim.claim_id === "how-to-apply-before-purchase" ||
+    claim.claim_id === "how-to-apply-before-action" ||
     claim.claim_id === "notes-not-exhaustive" ||
-    /(?:^|-)tier-\d+$/.test(claim.claim_id) ||
-    /^benefit\.tiers\.\d+/.test(claim.evidence_path)
+    (claim.section === "what_you_get" && /^benefit-tier-\d+$/.test(claim.claim_id))
   );
 }
