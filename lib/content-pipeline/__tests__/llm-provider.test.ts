@@ -37,6 +37,14 @@ const knownRoutes = [
 const BAR_LIKE = {
   name: "BAR Consumer Assistance Program Vehicle Retirement",
   slug: "test-home-rebate",
+  consumer_headline: null,
+  category: "vehicles" as const,
+  subcategory: "vehicle-retirement",
+  short_description:
+    "Cash to retire an eligible vehicle at a BAR-contracted dismantler after you receive a letter of eligibility.",
+  administrator: "California Bureau of Automotive Repair",
+  preapproval_required: true,
+  application_deadline: null,
   benefit_summary:
     "$1,350, $1,500, or $2,000 to retire an eligible vehicle, depending on income and Smog Check status",
   benefit_min: 1350,
@@ -71,6 +79,36 @@ const BAR_LIKE = {
     },
   ],
 };
+
+const BAR_LIKE_RULES = [
+  {
+    program_external_id: "TEST-REBATE-1",
+    field: "owns_vehicle" as const,
+    operator: "is_true" as const,
+    value: true,
+    rule_group: 1,
+    group_operator: "AND" as const,
+    required: true,
+    explanation: "You must be the registered owner.",
+  },
+  {
+    program_external_id: "TEST-REBATE-1",
+    field: "willing_to_retire_vehicle" as const,
+    operator: "is_true" as const,
+    value: true,
+    rule_group: 1,
+    group_operator: "AND" as const,
+    required: true,
+    explanation: "The award is paid only if you retire the vehicle after approval.",
+  },
+];
+
+function barLikeRecord(programOverrides: Partial<typeof BAR_LIKE> = {}) {
+  return makeRecord({
+    program: { ...BAR_LIKE, ...programOverrides },
+    rules: BAR_LIKE_RULES,
+  });
+}
 
 async function pair(record = makeRecord()) {
   const discovered = discoverOpportunities({ records: [record], now: NOW }).candidates[0];
@@ -217,7 +255,7 @@ describe("claim-ID composition", () => {
 
 describe("OpenAI claim-selection provider", () => {
   it("composes a valid BAR-like TIERED draft from selected claim IDs", async () => {
-    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const { evidence, opportunity } = await pair(barLikeRecord());
     expect(evidence.benefit.amount_structure).toBe("TIERED");
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
@@ -263,7 +301,8 @@ describe("OpenAI claim-selection provider", () => {
     expect(text).toMatch(/\$2,000/);
     expect(text).not.toMatch(/\$1,350 to \$2,000/);
     expect(text).not.toMatch(/\$1,350–\$2,000/);
-    expect(draft.how_to_apply).toMatch(/Apply before you buy/);
+    expect(draft.how_to_apply).toMatch(/retiring or delivering your vehicle/i);
+    expect(draft.how_to_apply).not.toMatch(/\bbuy\b/i);
     expect(draft.source_claims.some((claim) => claim.claim_id === "benefit-tier-0")).toBe(
       true,
     );
@@ -290,7 +329,7 @@ describe("OpenAI claim-selection provider", () => {
   });
 
   it("cannot invent a benefit amount or reuse a real path for invented text", async () => {
-    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const { evidence, opportunity } = await pair(barLikeRecord());
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
     const llm = mockProvider(async () =>
@@ -327,7 +366,7 @@ describe("OpenAI claim-selection provider", () => {
   });
 
   it("cannot flatten TIERED awards into a continuous range", async () => {
-    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const { evidence, opportunity } = await pair(barLikeRecord());
     const llm = mockProvider(async () =>
       jsonResponse(
         responsesResult({
@@ -348,9 +387,7 @@ describe("OpenAI claim-selection provider", () => {
 
   it("cannot invent eligibility or a deadline", async () => {
     const { evidence, opportunity } = await pair(
-      makeRecord({
-        program: { ...BAR_LIKE, application_deadline: null },
-      }),
+      barLikeRecord({ application_deadline: null }),
     );
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
@@ -482,7 +519,7 @@ describe("OpenAI claim-selection provider", () => {
   });
 
   it("cannot omit a BAR TIERED award path by dropping its claim ID", async () => {
-    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const { evidence, opportunity } = await pair(barLikeRecord());
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
     selection.what_you_get = selection.what_you_get.filter((id) => id !== "benefit-tier-1");
@@ -491,8 +528,19 @@ describe("OpenAI claim-selection provider", () => {
     );
   });
 
+  it("can omit per-tier FAQ atoms while still including every what-you-get tier", async () => {
+    const { evidence, opportunity } = await pair(barLikeRecord());
+    const allowed = buildFactualClaims(evidence);
+    const selection = claimIdsBySection(allowed);
+    selection.faqs = selection.faqs.filter((id) => !/^faq-[qa]-tier-\d+$/.test(id));
+    const draft = composeDraftFromSelectedClaimIds(selection, allowed, evidence, opportunity);
+    expect(draft.source_claims.some((claim) => claim.claim_id === "benefit-tier-2")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(true);
+    expect(validate(draft, evidence).passed).toBe(true);
+  });
+
   it("cannot relocate a real claim ID into another factual section", async () => {
-    const { evidence, opportunity } = await pair(makeRecord({ program: BAR_LIKE }));
+    const { evidence, opportunity } = await pair(barLikeRecord());
     const allowed = buildFactualClaims(evidence);
     const selection = claimIdsBySection(allowed);
     const moved = selection.overview[0] ?? "overview-admin";
@@ -662,7 +710,7 @@ describe("draft provider configuration", () => {
 
 describe("pipeline metadata", () => {
   it("records openai model usage on the dry-run without publishing", async () => {
-    const record = makeRecord({ program: BAR_LIKE });
+    const record = barLikeRecord();
     const { evidence, opportunity } = await pair(record);
     const allowed = buildFactualClaims(evidence);
     const llm = mockProvider(async () =>

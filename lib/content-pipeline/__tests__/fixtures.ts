@@ -1,4 +1,4 @@
-import type { CatalogProgram, CatalogSource } from "@/lib/programs/import/types";
+import type { CatalogProgram, CatalogRule, CatalogLocation, CatalogSource } from "@/lib/programs/import/types";
 import type { DiscoveryRecord, EditorialContent, EditorialFaq } from "@/lib/content-pipeline/types";
 
 export const NOW = new Date("2026-09-14T00:00:00.000Z");
@@ -85,13 +85,15 @@ export function makeRecord(
     sources?: CatalogSource[];
     content?: EditorialContent | null;
     faqs?: EditorialFaq[];
+    rules?: CatalogRule[];
+    locations?: CatalogLocation[];
   } = {},
 ): DiscoveryRecord {
   const program = makeCatalogProgram(overrides.program);
   return {
     program_id: overrides.program_id ?? FIXTURE_PROGRAM_ID,
     program,
-    rules: [
+    rules: overrides.rules ?? [
       {
         program_external_id: program.external_id,
         field: "household_income",
@@ -103,7 +105,7 @@ export function makeRecord(
         explanation: "Household income may need to be at or below the published limit.",
       },
     ],
-    locations: [
+    locations: overrides.locations ?? [
       {
         program_external_id: program.external_id,
         location_type: "STATE",

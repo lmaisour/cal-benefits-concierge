@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildEvidencePackage } from "@/lib/content-pipeline/build-evidence-package";
-import { FakeContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
+import { FakeContentDraftProvider, buildFactualClaims } from "@/lib/content-pipeline/generate-draft";
 import { discoverOpportunities } from "@/lib/content-pipeline/discover-opportunities";
 import { scoreOpportunity } from "@/lib/content-pipeline/score-opportunity";
 import { validateDraft } from "@/lib/content-pipeline/validate-draft";
@@ -36,7 +36,8 @@ describe("FAQ question safety", () => {
     const questions = draft.faqs.map((faq) => faq.question);
     expect(questions).toContain("How do I apply?");
     expect(questions).toContain("What documents might I need?");
-    expect(questions.some((question) => question.startsWith("Who may qualify"))).toBe(true);
+    expect(questions).toContain("Who may qualify?");
+    expect(questions).toContain("How much could I receive?");
     expect(validate(draft, evidence).passed).toBe(true);
   });
 
@@ -91,32 +92,36 @@ describe("FAQ question safety", () => {
   });
 
   it("accepts an evidence-backed factual FAQ question", async () => {
-    const { draft, evidence } = await pair(
-      makeRecord({
-        program: {
-          benefit_min: 1350,
-          benefit_max: 2000,
-          benefit_amount_structure: "TIERED",
-          benefit_tiers: [
-            {
-              amount: 1350,
-              label: "Standard award",
-              condition_summary: "Standard path when the higher-award income test is not met.",
-              evidence_path: "benefit.tiers.0",
-            },
-            {
-              amount: 2000,
-              label: "Higher award",
-              condition_summary: "Higher award when the income test for that path is met.",
-              evidence_path: "benefit.tiers.1",
-            },
-          ],
-        },
-      }),
+    const record = makeRecord({
+      program: {
+        benefit_min: 1350,
+        benefit_max: 2000,
+        benefit_amount_structure: "TIERED",
+        benefit_tiers: [
+          {
+            amount: 1350,
+            label: "Standard award",
+            condition_summary: "Standard path when the higher-award income test is not met.",
+            evidence_path: "benefit.tiers.0",
+          },
+          {
+            amount: 2000,
+            label: "Higher award",
+            condition_summary: "Higher award when the income test for that path is met.",
+            evidence_path: "benefit.tiers.1",
+          },
+        ],
+      },
+    });
+    const { draft, evidence } = await pair(record);
+    const allowed = buildFactualClaims(evidence);
+    expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question.includes("Standard award"))).toBe(false);
+    expect(allowed.some((claim) => claim.claim_id === "faq-q-tier-0")).toBe(true);
+    expect(allowed.some((claim) => claim.claim_id === "faq-q-tier-1")).toBe(true);
+    expect(allowed.find((claim) => claim.claim_id === "faq-q-tier-0")?.text).toBe(
+      "What award applies for Standard award?",
     );
-    const backed = draft.faqs.find((faq) => faq.question.includes("Standard award"));
-    expect(backed).toBeTruthy();
-    expect(backed?.question).toBe("What award applies for Standard award?");
     expect(validate(draft, evidence).passed).toBe(true);
   });
 });
