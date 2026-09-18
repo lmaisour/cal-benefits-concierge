@@ -16,7 +16,7 @@ type GuideQuery = {
   update: (row: Record<string, unknown>) => GuideQuery;
   delete: () => GuideQuery;
   eq: (column: string, value: unknown) => GuideQuery;
-  maybeSingle: () => Promise<{ data: GuideRow | { id: string } | null; error: QueryError }>;
+  maybeSingle: () => Promise<{ data: GuideRow | null; error: QueryError }>;
   single: () => Promise<{ data: GuideRow | null; error: QueryError }>;
   then: (
     resolve: (value: { data: unknown; error: QueryError }) => unknown,

@@ -28,7 +28,7 @@ export type PipelineStoreClient = {
     select: (columns?: string) => unknown;
     insert: (row: Record<string, unknown> | Record<string, unknown>[]) => unknown;
     update: (row: Record<string, unknown>) => unknown;
-    delete?: () => unknown;
+    delete: () => unknown;
   };
 };
 
