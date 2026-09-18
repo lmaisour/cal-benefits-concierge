@@ -271,7 +271,7 @@ function routeExists(href: string, knownRoutes: string[]): boolean {
   }
 }
 
-function eligibilityCorpus(evidence: EvidencePackage): string {
+export function eligibilityCorpus(evidence: EvidencePackage): string {
   return [
     ...evidence.eligibility.modeled_rules.map((rule) =>
       [rule.field, rule.explanation ?? "", JSON.stringify(rule.value)].join(" "),
@@ -279,11 +279,12 @@ function eligibilityCorpus(evidence: EvidencePackage): string {
     evidence.eligibility.unmodeled_summary ?? "",
     evidence.benefit.summary ?? "",
     evidence.official_name,
+    evidence.short_description ?? "",
     ...authoritativeVerifiedEvidence(evidence).map((item) => item.row.claim),
-    ...evidence.faqs.map((faq) => `${faq.question}\n${faq.answer}`),
     evidence.existing_content?.benefit_explanation ?? "",
     evidence.existing_content?.how_to_apply ?? "",
     evidence.existing_content?.documents_needed ?? "",
+    evidence.existing_content?.important_notes ?? "",
   ].join("\n");
 }
 

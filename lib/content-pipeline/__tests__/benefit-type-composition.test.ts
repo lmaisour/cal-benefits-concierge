@@ -355,7 +355,7 @@ describe("verified researched facts", () => {
     expect(validate(draft, evidence).passed).toBe(true);
   });
 
-  it("omits verified program FAQs that would claim the reader definitely qualifies", async () => {
+  it("omits program FAQs that would claim the reader definitely qualifies", async () => {
     const { draft, evidence } = await pair(
       makeRecord({
         program: {
@@ -368,19 +368,15 @@ describe("verified researched facts", () => {
             question: "What happens after I apply?",
             answer: "If you are eligible, you are notified by email.",
           },
-          {
-            question: "Who qualifies for this program?",
-            answer: "You may qualify if you meet the requirements on this page.",
-          },
         ],
       }),
     );
     expect(draft.faqs.some((faq) => faq.question === "What happens after I apply?")).toBe(false);
-    expect(draft.faqs.some((faq) => faq.question === "Who qualifies for this program?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(true);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 
-  it("uses verified program FAQs instead of dumping documents into the documents FAQ", async () => {
+  it("uses independently grounded program FAQs instead of dumping documents into the documents FAQ", async () => {
     const { draft, evidence } = await pair(
       makeRecord({
         program: {
@@ -395,12 +391,9 @@ describe("verified researched facts", () => {
         },
         faqs: [
           {
-            question: "Who qualifies for this program?",
-            answer: "You may qualify if you meet the requirements on this page.",
-          },
-          {
             question: "What photos or documents do I need?",
-            answer: "Prepare the official checklist before you start.",
+            answer:
+              "Prepare an owner-permission letter and five photos of the existing front-yard landscape.",
           },
         ],
       }),
@@ -408,13 +401,11 @@ describe("verified researched facts", () => {
     expect(draft.documents).toMatch(/Five photos of the existing front-yard landscape/);
     expect(
       draft.faqs.find((faq) => faq.question === "What photos or documents do I need?")?.answer,
-    ).toBe("Prepare the official checklist before you start.");
-    expect(
-      draft.faqs.some((faq) =>
-        faq.answer.includes("Five photos of the existing front-yard landscape"),
-      ),
-    ).toBe(false);
-    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(false);
+    ).toBe(
+      "Prepare an owner-permission letter and five photos of the existing front-yard landscape.",
+    );
+    expect(draft.faqs.some((faq) => faq.question === "What documents might I need?")).toBe(false);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(true);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 });

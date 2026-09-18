@@ -22,11 +22,10 @@ import {
   sequencingCopy,
 } from "@/lib/content-pipeline/sequencing";
 import {
+  authoritativeProgramFaqs,
   isCoveredByExisting,
   normalizeFactText,
-  programFaqIsSafeForDraft,
   programFaqsCoverQuestion,
-  programFaqsWithAnswers,
   verifiedFactsForSection,
 } from "@/lib/content-pipeline/verified-facts";
 import type {
@@ -918,7 +917,7 @@ function faqClaims(
   const applyAnswer = applyCta
     ? asSentence(applyCta.label)
     : "Review the official program page before applying.";
-  const programFaqs = programFaqsWithAnswers(evidence.faqs).filter(programFaqIsSafeForDraft);
+  const programFaqs = authoritativeProgramFaqs(evidence);
   const claims: SourceClaim[] = [];
 
   programFaqs.forEach((faq, index) => {
