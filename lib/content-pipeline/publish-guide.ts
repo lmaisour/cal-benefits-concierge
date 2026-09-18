@@ -172,75 +172,42 @@ export async function publishGuide(input: PublishGuideInput): Promise<PublishGui
 
   const now = (input.now ?? new Date()).toISOString();
   const guideId = opportunity.guide_id ?? publishedGuideId(opportunity.id);
-  let created = false;
-  let guide: PublishedGuideRecord;
 
-  if (opportunity.guide_id) {
-    const existing = await input.store.getGuide(opportunity.guide_id);
-    if (!existing) {
-      throw new PublishGuideError(
-        "guide_missing",
-        "Opportunity points at a guide that no longer exists.",
-      );
-    }
-    guide = await input.store.updateGuide(existing.id, {
+  try {
+    const persisted = await input.store.persistPublishedGuide({
+      id: guideId,
+      opportunity_id: opportunity.id,
+      program_id: opportunity.program_id,
       title: mapped.title,
       slug: mapped.slug,
       seo_title: mapped.seo_title,
       meta_description: mapped.meta_description,
       excerpt: mapped.excerpt,
       body: mapped.body,
-      published: true,
+      published_at: now,
     });
-  } else {
-    try {
-      guide = await input.store.insertGuide({
-        id: guideId,
-        title: mapped.title,
-        slug: mapped.slug,
-        seo_title: mapped.seo_title,
-        meta_description: mapped.meta_description,
-        excerpt: mapped.excerpt,
-        body: mapped.body,
-        published: true,
-        published_at: now,
-      });
-      created = true;
-    } catch (error) {
-      if (error instanceof PublishConflictError && error.code === "guide_id_conflict") {
-        const existing = await input.store.getGuide(guideId);
-        if (!existing) {
-          throw new PublishGuideError("guide_missing", "Conflicting guide could not be loaded.");
-        }
-        guide = await input.store.updateGuide(existing.id, {
-          title: mapped.title,
-          slug: mapped.slug,
-          seo_title: mapped.seo_title,
-          meta_description: mapped.meta_description,
-          excerpt: mapped.excerpt,
-          body: mapped.body,
-          published: true,
-        });
-      } else if (error instanceof PublishConflictError) {
-        throw new PublishGuideError(
-          "guide_slug_conflict",
-          "A different guide already uses this slug.",
-        );
-      } else {
-        throw error;
-      }
+    return {
+      guide: persisted.guide,
+      created: persisted.created,
+      program_id: opportunity.program_id,
+      run_id: run.id,
+      opportunity_id: opportunity.id,
+    };
+  } catch (error) {
+    if (error instanceof PublishConflictError && error.code === "guide_slug_conflict") {
+      throw new PublishGuideError(
+        "guide_slug_conflict",
+        "A different guide already uses this slug.",
+      );
     }
-    await input.store.attachOpportunityGuide(opportunity.id, guide.id);
+    if (error instanceof PublishConflictError && error.code === "guide_missing") {
+      throw new PublishGuideError(
+        "guide_missing",
+        "Opportunity points at a guide that no longer exists.",
+      );
+    }
+    throw error;
   }
-
-  await input.store.replaceGuidePrograms(guide.id, [opportunity.program_id]);
-  return {
-    guide,
-    created,
-    program_id: opportunity.program_id,
-    run_id: run.id,
-    opportunity_id: opportunity.id,
-  };
 }
 
 function assertRunReady(run: ContentPipelineRunRecord): void {

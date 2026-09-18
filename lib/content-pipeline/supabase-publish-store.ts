@@ -1,53 +1,119 @@
-import type { GuideRow } from "@/types/database";
 import type { PipelineStoreClient } from "@/lib/content-pipeline/supabase-store";
 import { SupabaseContentPipelineStore } from "@/lib/content-pipeline/supabase-store";
 import type {
   GuidePublishStore,
-  GuideWriteRow,
+  PublishGuideWrite,
+  PublishGuideWriteResult,
   PublishedGuideRecord,
 } from "@/lib/content-pipeline/publish-store";
 import { PublishConflictError } from "@/lib/content-pipeline/publish-store";
 
 type QueryError = { message: string; code?: string } | null;
 
-type GuideQuery = {
-  select: (columns?: string) => GuideQuery;
-  insert: (row: Record<string, unknown> | Record<string, unknown>[]) => GuideQuery;
-  update: (row: Record<string, unknown>) => GuideQuery;
-  delete: () => GuideQuery;
-  eq: (column: string, value: unknown) => GuideQuery;
-  maybeSingle: () => Promise<{ data: GuideRow | null; error: QueryError }>;
-  single: () => Promise<{ data: GuideRow | null; error: QueryError }>;
-  then: (
-    resolve: (value: { data: unknown; error: QueryError }) => unknown,
-    reject?: (reason: unknown) => unknown,
-  ) => Promise<unknown>;
+export type PublishContentGuideArgs = {
+  p_guide_id: string;
+  p_opportunity_id: string;
+  p_program_id: string;
+  p_title: string;
+  p_slug: string;
+  p_seo_title: string | null;
+  p_meta_description: string | null;
+  p_excerpt: string | null;
+  p_body: string;
+  p_published_at: string;
+  p_fail_at?: string | null;
 };
 
-function isUniqueViolation(error: QueryError): boolean {
-  return error?.code === "23505";
+export type PublishStoreClient = PipelineStoreClient & {
+  rpc(
+    fn: "publish_content_guide",
+    args: PublishContentGuideArgs,
+  ): PromiseLike<{ data: unknown; error: QueryError }>;
+};
+
+type ProgramQuery = {
+  select: (columns?: string) => ProgramQuery;
+  eq: (column: string, value: unknown) => ProgramQuery;
+  maybeSingle: () => Promise<{ data: { id: string } | null; error: QueryError }>;
+};
+
+function isIso(value: unknown): string | null {
+  if (value == null) {
+    return null;
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  return String(value);
 }
 
-function mapGuide(row: GuideRow): PublishedGuideRecord {
+function asObject(value: unknown): Record<string, unknown> | null {
+  if (typeof value === "string") {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      return asObject(parsed);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return null;
+}
+
+function mapRpcGuide(row: Record<string, unknown>): PublishedGuideRecord {
   return {
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    seo_title: row.seo_title,
-    meta_description: row.meta_description,
-    excerpt: row.excerpt,
-    body: row.body,
-    published: row.published,
-    published_at: row.published_at,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    id: String(row.id),
+    title: String(row.title),
+    slug: String(row.slug),
+    seo_title: row.seo_title == null ? null : String(row.seo_title),
+    meta_description: row.meta_description == null ? null : String(row.meta_description),
+    excerpt: row.excerpt == null ? null : String(row.excerpt),
+    body: String(row.body ?? ""),
+    published: Boolean(row.published),
+    published_at: isIso(row.published_at),
+    created_at: isIso(row.created_at) ?? "",
+    updated_at: isIso(row.updated_at) ?? "",
   };
+}
+
+function parsePublishResult(data: unknown): PublishGuideWriteResult {
+  const payload = asObject(data);
+  const guidePayload = asObject(payload?.guide);
+  if (!payload || !guidePayload?.id) {
+    throw new Error("Publish RPC returned no data.");
+  }
+  return {
+    created: Boolean(payload.created),
+    guide: mapRpcGuide(guidePayload),
+  };
+}
+
+function throwRpcError(error: QueryError): never {
+  const message = error?.message ?? "Failed to persist published guide.";
+  if (
+    message.includes("guide_slug_conflict") ||
+    message.includes("guides_slug_key")
+  ) {
+    throw new PublishConflictError(
+      "guide_slug_conflict",
+      "A different guide already uses this slug.",
+    );
+  }
+  if (message.includes("guide_missing")) {
+    throw new PublishConflictError(
+      "guide_missing",
+      "Opportunity points at a guide that no longer exists.",
+    );
+  }
+  throw new Error(message);
 }
 
 export class SupabaseGuidePublishStore implements GuidePublishStore {
   private readonly pipeline: SupabaseContentPipelineStore;
 
-  constructor(private readonly client: PipelineStoreClient) {
+  constructor(private readonly client: PublishStoreClient) {
     this.pipeline = new SupabaseContentPipelineStore(client);
   }
 
@@ -61,7 +127,7 @@ export class SupabaseGuidePublishStore implements GuidePublishStore {
 
   async programExists(programId: string): Promise<boolean> {
     const { data, error } = await (
-      this.client.from("programs").select("id") as GuideQuery
+      this.client.from("programs").select("id") as ProgramQuery
     )
       .eq("id", programId)
       .maybeSingle();
@@ -71,75 +137,22 @@ export class SupabaseGuidePublishStore implements GuidePublishStore {
     return Boolean(data);
   }
 
-  async getGuide(id: string): Promise<PublishedGuideRecord | null> {
-    const { data, error } = await (
-      this.client.from("guides").select("*") as GuideQuery
-    )
-      .eq("id", id)
-      .maybeSingle();
+  async persistPublishedGuide(write: PublishGuideWrite): Promise<PublishGuideWriteResult> {
+    const { data, error } = await this.client.rpc("publish_content_guide", {
+      p_guide_id: write.id,
+      p_opportunity_id: write.opportunity_id,
+      p_program_id: write.program_id,
+      p_title: write.title,
+      p_slug: write.slug,
+      p_seo_title: write.seo_title,
+      p_meta_description: write.meta_description,
+      p_excerpt: write.excerpt,
+      p_body: write.body,
+      p_published_at: write.published_at,
+    });
     if (error) {
-      throw new Error(error.message);
+      throwRpcError(error);
     }
-    return data ? mapGuide(data) : null;
-  }
-
-  async insertGuide(row: GuideWriteRow): Promise<PublishedGuideRecord> {
-    const { data, error } = await (
-      this.client.from("guides").insert(row) as GuideQuery
-    )
-      .select("*")
-      .single();
-    if (error || !data) {
-      if (isUniqueViolation(error)) {
-        const existing = await this.getGuide(row.id);
-        throw new PublishConflictError(
-          existing ? "guide_id_conflict" : "guide_slug_conflict",
-          error?.message ?? "Guide conflict",
-        );
-      }
-      throw new Error(error?.message ?? "Failed to insert guide.");
-    }
-    return mapGuide(data);
-  }
-
-  async updateGuide(
-    id: string,
-    patch: Omit<GuideWriteRow, "id" | "published_at"> & { published_at?: string },
-  ): Promise<PublishedGuideRecord> {
-    const { data, error } = await (
-      this.client.from("guides").update(patch) as GuideQuery
-    )
-      .eq("id", id)
-      .select("*")
-      .single();
-    if (error || !data) {
-      if (isUniqueViolation(error)) {
-        throw new PublishConflictError("guide_slug_conflict", error?.message ?? "Guide conflict");
-      }
-      throw new Error(error?.message ?? `Failed to update guide ${id}.`);
-    }
-    return mapGuide(data);
-  }
-
-  async replaceGuidePrograms(guideId: string, programIds: string[]): Promise<void> {
-    const { error: deleteError } = await (
-      this.client.from("guide_programs").delete() as GuideQuery
-    ).eq("guide_id", guideId);
-    if (deleteError) {
-      throw new Error(deleteError.message);
-    }
-    if (programIds.length === 0) {
-      return;
-    }
-    const inserted = (await this.client.from("guide_programs").insert(
-      programIds.map((program_id) => ({ guide_id: guideId, program_id })),
-    )) as { data?: unknown; error?: QueryError };
-    if (inserted.error) {
-      throw new Error(inserted.error.message);
-    }
-  }
-
-  async attachOpportunityGuide(opportunityId: string, guideId: string) {
-    return this.pipeline.updateOpportunity(opportunityId, { guide_id: guideId });
+    return parsePublishResult(data);
   }
 }

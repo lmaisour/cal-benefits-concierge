@@ -22,6 +22,9 @@ export function isContentPipelinePublishEnabled(): boolean {
 /**
  * Auto-publish / cron remains unused. Manual and future autonomous
  * publishing both call publishGuide() behind the kill switch above.
+ * Publication writes go through public.publish_content_guide() so the
+ * guide row, guide_programs relationship, and opportunity.guide_id
+ * commit or roll back together.
  */
 export function isAutoPublishEnabled(): boolean {
   return false;

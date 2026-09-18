@@ -84,9 +84,9 @@ export async function handleContentPipelinePublishRequest(
         { status: ERROR_STATUS[error.code] ?? 409 },
       );
     }
-    const message = error instanceof Error ? error.message : "content_pipeline_publish_failed";
+    console.error("content_pipeline_publish_failed", error);
     return Response.json(
-      { error: message, published: false },
+      { error: "content_pipeline_publish_failed", published: false },
       { status: 500 },
     );
   }

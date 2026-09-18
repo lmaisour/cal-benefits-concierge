@@ -123,4 +123,26 @@ describe("content pipeline publish endpoint", () => {
     expect(route).not.toContain("MemoryGuidePublishStore");
     expect(route).not.toContain("getMemoryContentPipelineStore");
   });
+
+  it("does not return raw database errors to the HTTP client", async () => {
+    process.env.CONTENT_PIPELINE_ENABLED = "true";
+    process.env.CONTENT_PIPELINE_SECRET = "test-secret";
+    process.env.CONTENT_PIPELINE_PUBLISH_ENABLED = "true";
+    const { result, store } = await runtime();
+    store.persistPublishedGuide = async () => {
+      throw new Error(
+        'duplicate key value violates unique constraint "guides_slug_key"',
+      );
+    };
+    const response = await handleContentPipelinePublishRequest(
+      request({ run_id: result.run.id }, { authorization: "Bearer test-secret" }),
+      async () => store,
+    );
+    expect(response.status).toBe(500);
+    const json = await response.json();
+    expect(json.published).toBe(false);
+    expect(json.error).toBe("content_pipeline_publish_failed");
+    expect(JSON.stringify(json)).not.toContain("guides_slug_key");
+    expect(JSON.stringify(json)).not.toContain("duplicate key");
+  });
 });

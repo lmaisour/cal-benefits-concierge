@@ -19,17 +19,32 @@ export type PublishedGuideRecord = Pick<
   | "updated_at"
 >;
 
-export type GuideWriteRow = Pick<
+export type PublishGuideWrite = Pick<
   GuideRow,
-  "id" | "title" | "slug" | "seo_title" | "meta_description" | "excerpt" | "body" | "published"
+  "id" | "title" | "slug" | "seo_title" | "meta_description" | "excerpt" | "body"
 > & {
+  opportunity_id: string;
+  program_id: string;
   published_at: string;
 };
 
-export class PublishConflictError extends Error {
-  readonly code: "guide_slug_conflict" | "guide_id_conflict";
+export type PublishGuideWriteResult = {
+  guide: PublishedGuideRecord;
+  created: boolean;
+};
 
-  constructor(code: "guide_slug_conflict" | "guide_id_conflict", message: string) {
+export type PublishFailAt =
+  | "guide_programs"
+  | "guide_programs_insert"
+  | "opportunity_attach";
+
+export class PublishConflictError extends Error {
+  readonly code: "guide_slug_conflict" | "guide_id_conflict" | "guide_missing";
+
+  constructor(
+    code: "guide_slug_conflict" | "guide_id_conflict" | "guide_missing",
+    message: string,
+  ) {
     super(message);
     this.name = "PublishConflictError";
     this.code = code;
@@ -40,15 +55,5 @@ export interface GuidePublishStore {
   getRun(id: string): Promise<ContentPipelineRunRecord | null>;
   getOpportunity(id: string): Promise<ContentOpportunityRecord | null>;
   programExists(programId: string): Promise<boolean>;
-  getGuide(id: string): Promise<PublishedGuideRecord | null>;
-  insertGuide(row: GuideWriteRow): Promise<PublishedGuideRecord>;
-  updateGuide(
-    id: string,
-    patch: Omit<GuideWriteRow, "id" | "published_at"> & { published_at?: string },
-  ): Promise<PublishedGuideRecord>;
-  replaceGuidePrograms(guideId: string, programIds: string[]): Promise<void>;
-  attachOpportunityGuide(
-    opportunityId: string,
-    guideId: string,
-  ): Promise<ContentOpportunityRecord>;
+  persistPublishedGuide(write: PublishGuideWrite): Promise<PublishGuideWriteResult>;
 }

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
 import { siteConfig } from "@/lib/config/site";
 import { FakeContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
@@ -414,5 +416,68 @@ describe("publishGuide", () => {
     });
     expect(retry.created).toBe(false);
     expect(client.tables.guides).toHaveLength(1);
+  });
+
+  it("keeps publication behind one persistPublishedGuide write", () => {
+    const publisher = readFileSync(
+      path.resolve(__dirname, "../publish-guide.ts"),
+      "utf8",
+    );
+    expect(publisher).toContain("persistPublishedGuide");
+    expect(publisher).not.toContain("replaceGuidePrograms");
+    expect(publisher).not.toContain("insertGuide");
+    expect(publisher).not.toContain("attachOpportunityGuide");
+    const supabaseStore = readFileSync(
+      path.resolve(__dirname, "../supabase-publish-store.ts"),
+      "utf8",
+    );
+    expect(supabaseStore).toContain("publish_content_guide");
+    expect(supabaseStore).toContain(".rpc(");
+    expect(supabaseStore).not.toContain("guide_programs");
+  });
+
+  it("does not leave a published guide when the write transaction fails", async () => {
+    const { store, result } = await completedRun();
+    const publisher = publishStore(store);
+    publisher.injectFailure = "guide_programs";
+    await expect(
+      publishGuide({
+        runId: result.run.id,
+        store: publisher,
+        now: NOW,
+        enabled: true,
+      }),
+    ).rejects.toThrow(/injected_failure_guide_programs/);
+    expect(publisher.guides.size).toBe(0);
+    expect(publisher.guidePrograms.size).toBe(0);
+    expect([...store.opportunities.values()][0]?.guide_id).toBeNull();
+  });
+
+  it("rejects a slug that already belongs to another guide", async () => {
+    const { store, result } = await completedRun();
+    const publisher = publishStore(store);
+    publisher.guides.set(EXTRA_GUIDE_ID, {
+      id: EXTRA_GUIDE_ID,
+      title: "Manual guide",
+      slug: result.opportunity!.proposed_slug,
+      seo_title: "Manual",
+      meta_description: "Manual excerpt",
+      excerpt: "Manual excerpt",
+      body: "Do not touch",
+      published: true,
+      published_at: "2026-01-01T00:00:00.000Z",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    });
+    await expect(
+      publishGuide({
+        runId: result.run.id,
+        store: publisher,
+        now: NOW,
+        enabled: true,
+      }),
+    ).rejects.toMatchObject({ code: "guide_slug_conflict" });
+    expect(publisher.guides.size).toBe(1);
+    expect([...store.opportunities.values()][0]?.guide_id).toBeNull();
   });
 });

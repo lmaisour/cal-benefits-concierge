@@ -1,3 +1,11 @@
+import type { GuideRow } from "@/types/database";
+import { persistPublishedGuideTransaction } from "@/lib/content-pipeline/publish-transaction";
+import { PublishConflictError } from "@/lib/content-pipeline/publish-store";
+import type {
+  PublishFailAt,
+  PublishGuideWrite,
+} from "@/lib/content-pipeline/publish-store";
+
 type Row = Record<string, unknown>;
 type QueryError = { message: string; code?: string };
 
@@ -199,5 +207,83 @@ export function createFakeSupabase(options: FakeSupabaseOptions = {}) {
     return query;
   }
 
-  return { from, tables };
+  async function rpc(fn: string, args: Record<string, unknown> = {}) {
+    if (fn !== "publish_content_guide") {
+      return { data: null, error: { message: `Unknown rpc ${fn}` } };
+    }
+    const write: PublishGuideWrite = {
+      id: String(args.p_guide_id),
+      opportunity_id: String(args.p_opportunity_id),
+      program_id: String(args.p_program_id),
+      title: String(args.p_title),
+      slug: String(args.p_slug),
+      seo_title: args.p_seo_title == null ? null : String(args.p_seo_title),
+      meta_description:
+        args.p_meta_description == null ? null : String(args.p_meta_description),
+      excerpt: args.p_excerpt == null ? null : String(args.p_excerpt),
+      body: String(args.p_body ?? ""),
+      published_at: String(args.p_published_at),
+    };
+    const failAt =
+      typeof args.p_fail_at === "string" ? (args.p_fail_at as PublishFailAt) : null;
+    const guidePrograms = new Map<string, string[]>();
+    for (const row of tables.guide_programs ?? []) {
+      const guideId = String(row.guide_id);
+      const programIds = guidePrograms.get(guideId) ?? [];
+      programIds.push(String(row.program_id));
+      guidePrograms.set(guideId, programIds);
+    }
+    const state = {
+      guides: new Map(
+        (tables.guides ?? []).map((row) => [String(row.id), { ...row } as GuideRow]),
+      ),
+      guidePrograms,
+      opportunityGuideIds: new Map(
+        (tables.content_opportunities ?? []).map((row) => [
+          String(row.id),
+          (row.guide_id as string | null) ?? null,
+        ]),
+      ),
+    };
+    try {
+      const result = persistPublishedGuideTransaction(state, write, {
+        failAt,
+        now: write.published_at,
+      });
+      tables.guides = [...state.guides.values()];
+      tables.guide_programs = [...state.guidePrograms.entries()].flatMap(
+        ([guide_id, programIds]) =>
+          programIds.map((program_id) => ({
+            guide_id,
+            program_id,
+            created_at: write.published_at,
+          })),
+      );
+      tables.content_opportunities = (tables.content_opportunities ?? []).map((row) => ({
+        ...row,
+        guide_id: state.opportunityGuideIds.has(String(row.id))
+          ? state.opportunityGuideIds.get(String(row.id)) ?? null
+          : row.guide_id,
+      }));
+      return { data: { created: result.created, guide: result.guide }, error: null };
+    } catch (error) {
+      if (error instanceof PublishConflictError) {
+        return {
+          data: null,
+          error: {
+            message: error.code,
+            code: error.code === "guide_slug_conflict" ? "23505" : "P0002",
+          },
+        };
+      }
+      return {
+        data: null,
+        error: {
+          message: error instanceof Error ? error.message : "publish failed",
+        },
+      };
+    }
+  }
+
+  return { from, tables, rpc };
 }
