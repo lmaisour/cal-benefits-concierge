@@ -56,4 +56,19 @@ describe("SupabaseContentPipelineStore", () => {
     expect(second.score).toBe(81);
     expect(client.tables.content_opportunities).toHaveLength(1);
   });
+
+  it("does not clear an attached published guide id on later upserts", async () => {
+    const client = createFakeSupabase();
+    const store = new SupabaseContentPipelineStore(client);
+    const first = await store.upsertOpportunity(opportunityInput());
+    await store.updateOpportunity(first.id, {
+      guide_id: "77777777-7777-4777-8777-777777777777",
+    });
+    const second = await store.upsertOpportunity({
+      ...opportunityInput(),
+      guide_id: null,
+      status: "READY_FOR_REVIEW",
+    });
+    expect(second.guide_id).toBe("77777777-7777-4777-8777-777777777777");
+  });
 });

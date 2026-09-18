@@ -24,3 +24,7 @@ export function opportunityId(opportunityType: string, programId: string): strin
 export function newRunId(): string {
   return crypto.randomUUID();
 }
+
+export function publishedGuideId(opportunityId: string): string {
+  return deterministicUuid(`published-guide:${opportunityId}`);
+}
