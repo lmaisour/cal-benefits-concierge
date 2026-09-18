@@ -243,6 +243,7 @@ export type EvidencePackage = {
     faq_how_much: string;
     faq_deadline: string;
     faq_only_consider: string;
+    faq_documents_pointer: string;
     unknown_amount_guidance: string;
     tiered_amount_guidance: string;
     overview_tiered_guidance: string;
@@ -329,7 +330,8 @@ export type ValidationIssueCode =
   | "BROKEN_INTERNAL_LINK"
   | "INVALID_SOURCE_URL"
   | "STALE_TIME_SENSITIVE"
-  | "UNMODELED_CRITERIA_OMITTED";
+  | "UNMODELED_CRITERIA_OMITTED"
+  | "NON_MONETARY_FRAMED_AS_AWARD";
 
 export type ValidationIssue = {
   passed: false;

@@ -5,6 +5,14 @@ import {
 } from "@/lib/programs/calendar";
 import { looksLikeSynthesizedRange } from "@/lib/content-pipeline/amount-structure";
 import {
+  financingFraming,
+  freeInKindFraming,
+  isFinancingBenefitType,
+  isFreeInKindBenefitType,
+  isMonetaryBenefitType,
+  shouldIncludeAmountFaq,
+} from "@/lib/content-pipeline/benefit-presentation";
+import {
   renderFaqs,
   renderFactualSection,
 } from "@/lib/content-pipeline/claims";
@@ -13,6 +21,14 @@ import {
   sequencingActionFromEvidence,
   sequencingCopy,
 } from "@/lib/content-pipeline/sequencing";
+import {
+  isCoveredByExisting,
+  normalizeFactText,
+  programFaqIsSafeForDraft,
+  programFaqsCoverQuestion,
+  programFaqsWithAnswers,
+  verifiedFactsForSection,
+} from "@/lib/content-pipeline/verified-facts";
 import type {
   ContentDraft,
   ContentDraftProvider,
@@ -132,6 +148,60 @@ export function isOptionalDefaultClaim(claim: SourceClaim): boolean {
 
 export function selectDefaultClaims(allowed: SourceClaim[]): SourceClaim[] {
   return allowed.filter((item) => !isOptionalDefaultClaim(item));
+}
+
+function sameFact(left: string | null | undefined, right: string | null | undefined): boolean {
+  if (!left?.trim() || !right?.trim()) {
+    return false;
+  }
+  return normalizeFactText(left) === normalizeFactText(right);
+}
+
+function verifiedClaimText(item: {
+  index: number;
+  row: { claim: string };
+  draft_section: FactualDraftSection;
+}): string {
+  const text = item.row.claim.trim();
+  if (item.draft_section === "who_may_qualify") {
+    return text.startsWith("- ") ? text : `- ${text}`;
+  }
+  return asSentence(text);
+}
+
+function pushVerifiedFacts(
+  claims: SourceClaim[],
+  evidence: EvidencePackage,
+  section: FactualDraftSection,
+  existingTexts: Array<string | null | undefined>,
+): void {
+  const covered = [...existingTexts, ...claims.map((item) => item.text)];
+  for (const item of verifiedFactsForSection(evidence, section)) {
+    const text = verifiedClaimText(item);
+    if (isCoveredByExisting(text, covered)) {
+      continue;
+    }
+    const claimIdPrefix =
+      section === "who_may_qualify"
+        ? "eligibility-verified"
+        : section === "what_you_get"
+          ? "benefit-verified"
+          : section === "how_to_apply"
+            ? "how-to-apply-verified"
+            : section === "documents"
+              ? "documents-verified"
+              : "notes-verified";
+    claims.push(
+      claim(
+        `${claimIdPrefix}-${item.index}`,
+        text,
+        `content_evidence.${item.index}.claim`,
+        item.row.source_url,
+        section,
+      ),
+    );
+    covered.push(text);
+  }
 }
 
 function canUseBenefitSummary(
@@ -283,22 +353,29 @@ function overviewClaims(
     geographyClaim(evidence, sourceUrl),
   );
 
-  if (evidence.benefit.repayable) {
-    claims.push(
-      claim(
-        "overview-benefit-repayable",
-        `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`,
-        "benefit.repayable",
-        sourceUrl,
-        "overview",
-      ),
-    );
+  if (evidence.benefit.repayable || isFinancingBenefitType(evidence.benefit.type)) {
+    const framing =
+      evidence.benefit.repayable
+        ? `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`
+        : financingFraming(evidence.benefit.type);
+    if (framing) {
+      claims.push(
+        claim(
+          "overview-benefit-repayable",
+          framing,
+          evidence.benefit.repayable ? "benefit.repayable" : "benefit.type",
+          sourceUrl,
+          "overview",
+        ),
+      );
+    }
     return claims;
   }
 
   const structure = evidence.benefit.amount_structure;
   const summary = evidence.benefit.summary?.trim() ?? "";
-  if (structure === "TIERED") {
+  const headline = safeConsumerHeadline(evidence);
+  if (structure === "TIERED" && !isFreeInKindBenefitType(evidence.benefit.type)) {
     claims.push(
       claim(
         "overview-benefit-guidance",
@@ -308,7 +385,11 @@ function overviewClaims(
         "overview",
       ),
     );
-  } else if (canUseBenefitSummary(evidence, summary)) {
+  } else if (
+    canUseBenefitSummary(evidence, summary) &&
+    !sameFact(summary, headline) &&
+    !sameFact(summary, description)
+  ) {
     claims.push(
       claim(
         "overview-benefit-summary",
@@ -318,7 +399,11 @@ function overviewClaims(
         "overview",
       ),
     );
-  } else if (structure === "UNKNOWN") {
+  } else if (
+    structure === "UNKNOWN" &&
+    isMonetaryBenefitType(evidence.benefit.type) &&
+    !canUseBenefitSummary(evidence, summary)
+  ) {
     claims.push(
       claim(
         "overview-benefit-unknown",
@@ -328,7 +413,11 @@ function overviewClaims(
         "overview",
       ),
     );
-  } else {
+  } else if (
+    !isFreeInKindBenefitType(evidence.benefit.type) &&
+    !canUseBenefitSummary(evidence, summary) &&
+    structure !== "UNKNOWN"
+  ) {
     claims.push(
       claim(
         "overview-benefit-type",
@@ -348,21 +437,73 @@ function whatYouGetClaims(
   sourceUrl: string | null,
 ): SourceClaim[] {
   const claims: SourceClaim[] = [];
-  if (evidence.benefit.repayable) {
-    claims.push(
-      claim(
-        "benefit-repayable",
-        `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`,
-        "benefit.repayable",
-        sourceUrl,
-        "what_you_get",
-      ),
-    );
+  const structure = evidence.benefit.amount_structure;
+  const summary = evidence.benefit.summary?.trim() ?? "";
+  const headline = safeConsumerHeadline(evidence);
+  const explanation = evidence.existing_content?.benefit_explanation?.trim() ?? "";
+
+  if (isFreeInKindBenefitType(evidence.benefit.type)) {
+    const framing = freeInKindFraming(evidence.benefit.type);
+    if (framing) {
+      claims.push(
+        claim(
+          "benefit-type-framing",
+          framing,
+          "benefit.type",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    }
+    if (explanation) {
+      claims.push(
+        claim(
+          "benefit-explanation",
+          explanation,
+          "existing_content.benefit_explanation",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    } else if (canUseBenefitSummary(evidence, summary)) {
+      claims.push(
+        claim(
+          "benefit-summary",
+          asSentence(summary),
+          "benefit.summary",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    }
+    pushVerifiedFacts(claims, evidence, "what_you_get", [
+      framing,
+      explanation,
+      summary,
+      headline,
+    ]);
     return claims;
   }
 
-  const structure = evidence.benefit.amount_structure;
-  const summary = evidence.benefit.summary?.trim() ?? "";
+  if (evidence.benefit.repayable || isFinancingBenefitType(evidence.benefit.type)) {
+    const framing =
+      evidence.benefit.repayable
+        ? `${evidence.official_name} is ${benefitTypeLabel(evidence.benefit.type).toLowerCase()}, which must be repaid. Treat it as financing, not a grant or cash award.`
+        : financingFraming(evidence.benefit.type);
+    if (framing) {
+      claims.push(
+        claim(
+          "benefit-repayable",
+          framing,
+          evidence.benefit.repayable ? "benefit.repayable" : "benefit.type",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    }
+    pushStructuredAmountClaims(claims, evidence, sourceUrl);
+    return claims;
+  }
 
   if (structure === "TIERED") {
     claims.push(
@@ -400,6 +541,57 @@ function whatYouGetClaims(
     );
   }
 
+  if (!pushStructuredAmountClaims(claims, evidence, sourceUrl)) {
+    if (
+      structure === "UNKNOWN" &&
+      isMonetaryBenefitType(evidence.benefit.type) &&
+      !canUseBenefitSummary(evidence, summary)
+    ) {
+      claims.push(
+        claim(
+          "benefit-unknown-guidance",
+          evidence.boilerplate.unknown_amount_guidance,
+          "boilerplate.unknown_amount_guidance",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    } else if (
+      structure === "UNKNOWN" &&
+      evidence.benefit.type === "OTHER" &&
+      !canUseBenefitSummary(evidence, summary)
+    ) {
+      claims.push(
+        claim(
+          "benefit-type",
+          evidence.boilerplate.unknown_amount_guidance,
+          "boilerplate.unknown_amount_guidance",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    } else if (!canUseBenefitSummary(evidence, summary) && structure !== "UNKNOWN") {
+      claims.push(
+        claim(
+          "benefit-type",
+          `This is a ${benefitTypeLabel(evidence.benefit.type).toLowerCase()} program.`,
+          "benefit.type",
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    }
+  }
+
+  return claims;
+}
+
+function pushStructuredAmountClaims(
+  claims: SourceClaim[],
+  evidence: EvidencePackage,
+  sourceUrl: string | null,
+): boolean {
+  const structure = evidence.benefit.amount_structure;
   if (structure === "SINGLE" && evidence.benefit.amounts_are_structured_facts) {
     const amount = evidence.benefit.min ?? evidence.benefit.max;
     const path = evidence.benefit.min !== null ? "benefit.min" : "benefit.max";
@@ -413,8 +605,10 @@ function whatYouGetClaims(
           "what_you_get",
         ),
       );
+      return true;
     }
-  } else if (
+  }
+  if (
     structure === "RANGE" &&
     evidence.benefit.min !== null &&
     evidence.benefit.max !== null
@@ -428,29 +622,23 @@ function whatYouGetClaims(
         "what_you_get",
       ),
     );
-  } else if (structure === "UNKNOWN") {
-    claims.push(
-      claim(
-        "benefit-unknown-guidance",
-        evidence.boilerplate.unknown_amount_guidance,
-        "boilerplate.unknown_amount_guidance",
-        sourceUrl,
-        "what_you_get",
-      ),
-    );
-  } else if (!canUseBenefitSummary(evidence, summary)) {
-    claims.push(
-      claim(
-        "benefit-type",
-        `This is a ${benefitTypeLabel(evidence.benefit.type).toLowerCase()} program.`,
-        "benefit.type",
-        sourceUrl,
-        "what_you_get",
-      ),
-    );
+    return true;
   }
-
-  return claims;
+  if (structure === "TIERED") {
+    evidence.benefit.tiers.forEach((tier, index) => {
+      claims.push(
+        claim(
+          `benefit-tier-${index}`,
+          formatTierEntry(tier),
+          `benefit.tiers.${index}.condition_summary`,
+          sourceUrl,
+          "what_you_get",
+        ),
+      );
+    });
+    return evidence.benefit.tiers.length > 0;
+  }
+  return false;
 }
 
 function eligibilityClaims(
@@ -494,6 +682,16 @@ function eligibilityClaims(
       ),
     );
   }
+
+  pushVerifiedFacts(
+    claims,
+    evidence,
+    "who_may_qualify",
+    [
+      ...evidence.eligibility.modeled_rules.map((rule) => rule.explanation),
+      evidence.eligibility.unmodeled_summary,
+    ],
+  );
 
   if (evidence.eligibility.unmodeled_required) {
     const extra =
@@ -594,6 +792,10 @@ function howToApplyClaims(
       "how_to_apply",
     ),
   );
+
+  if (!howToApply) {
+    pushVerifiedFacts(claims, evidence, "how_to_apply", claims.map((item) => item.text));
+  }
   return claims;
 }
 
@@ -602,7 +804,7 @@ function documentClaims(
   sourceUrl: string | null,
 ): SourceClaim[] {
   const documents = evidence.application.documents?.trim();
-  return [
+  const claims: SourceClaim[] = [
     claim(
       "documents",
       documents || evidence.boilerplate.documents_unlisted,
@@ -611,6 +813,10 @@ function documentClaims(
       "documents",
     ),
   ];
+  if (!documents) {
+    pushVerifiedFacts(claims, evidence, "documents", claims.map((item) => item.text));
+  }
+  return claims;
 }
 
 function importantNotesClaims(
@@ -618,7 +824,14 @@ function importantNotesClaims(
   sourceUrl: string | null,
 ): SourceClaim[] {
   const claims: SourceClaim[] = [];
+  const unmodeledSummary = evidence.eligibility.unmodeled_summary?.trim() ?? "";
   evidence.warnings.forEach((warning, index) => {
+    if (unmodeledSummary && isCoveredByExisting(warning, [unmodeledSummary])) {
+      return;
+    }
+    if (/\brepayable financing\b/i.test(warning) && isFinancingBenefitType(evidence.benefit.type)) {
+      return;
+    }
     claims.push(
       claim(
         `warning-${index}`,
@@ -660,6 +873,12 @@ function importantNotesClaims(
     );
   }
 
+  pushVerifiedFacts(claims, evidence, "important_notes", [
+    unmodeledSummary,
+    ...evidence.warnings,
+    ...claims.map((item) => item.text),
+  ]);
+
   claims.push(
     claim(
       "notes-not-exhaustive",
@@ -699,57 +918,98 @@ function faqClaims(
   const applyAnswer = applyCta
     ? asSentence(applyCta.label)
     : "Review the official program page before applying.";
-  const claims: SourceClaim[] = [
-    claim(
-      "faq-q-qualify",
-      evidence.boilerplate.faq_who_may_qualify,
-      "boilerplate.faq_who_may_qualify",
-      sourceUrl,
-      "faqs",
-    ),
-    claim(
-      "faq-a-qualify",
-      "You may qualify if you meet the requirements on this page. This page cannot determine personal eligibility.",
-      "boilerplate.cannot_determine_personal_eligibility",
-      sourceUrl,
-      "faqs",
-    ),
-    claim(
-      "faq-q-apply",
-      evidence.boilerplate.faq_how_to_apply,
-      "boilerplate.faq_how_to_apply",
-      sourceUrl,
-      "faqs",
-    ),
-    claim(
-      "faq-a-apply",
-      applyAnswer,
-      evidence.application.application_url
-        ? "application.application_url"
-        : "application.official_url",
-      sourceUrl,
-      "faqs",
-    ),
-    claim(
-      "faq-q-documents",
-      evidence.boilerplate.faq_documents,
-      "boilerplate.faq_documents",
-      sourceUrl,
-      "faqs",
-    ),
-    claim(
-      "faq-a-documents",
-      documentsText,
-      evidence.application.documents?.trim()
-        ? "application.documents"
-        : "boilerplate.documents_unlisted",
-      sourceUrl,
-      "faqs",
-    ),
-  ];
+  const programFaqs = programFaqsWithAnswers(evidence.faqs).filter(programFaqIsSafeForDraft);
+  const claims: SourceClaim[] = [];
+
+  programFaqs.forEach((faq, index) => {
+    const originalIndex = evidence.faqs.indexOf(faq);
+    const pathIndex = originalIndex >= 0 ? originalIndex : index;
+    claims.push(
+      claim(
+        `faq-q-program-${pathIndex}`,
+        faq.question.trim(),
+        `faqs.${pathIndex}.question`,
+        sourceUrl,
+        "faqs",
+      ),
+      claim(
+        `faq-a-program-${pathIndex}`,
+        faq.answer.trim(),
+        `faqs.${pathIndex}.answer`,
+        sourceUrl,
+        "faqs",
+      ),
+    );
+  });
+
+  if (!programFaqsCoverQuestion(programFaqs, /who (may |can )?qualif/i)) {
+    claims.push(
+      claim(
+        "faq-q-qualify",
+        evidence.boilerplate.faq_who_may_qualify,
+        "boilerplate.faq_who_may_qualify",
+        sourceUrl,
+        "faqs",
+      ),
+      claim(
+        "faq-a-qualify",
+        "You may qualify if you meet the requirements on this page. This page cannot determine personal eligibility.",
+        "boilerplate.cannot_determine_personal_eligibility",
+        sourceUrl,
+        "faqs",
+      ),
+    );
+  }
+
+  if (!programFaqsCoverQuestion(programFaqs, /how (do i |to )?apply/i)) {
+    claims.push(
+      claim(
+        "faq-q-apply",
+        evidence.boilerplate.faq_how_to_apply,
+        "boilerplate.faq_how_to_apply",
+        sourceUrl,
+        "faqs",
+      ),
+      claim(
+        "faq-a-apply",
+        applyAnswer,
+        evidence.application.application_url
+          ? "application.application_url"
+          : "application.official_url",
+        sourceUrl,
+        "faqs",
+      ),
+    );
+  }
+
+  const documentsListed = Boolean(evidence.application.documents?.trim());
+  if (!programFaqsCoverQuestion(programFaqs, /\b(documents?|photos?)\b/i)) {
+    claims.push(
+      claim(
+        "faq-q-documents",
+        evidence.boilerplate.faq_documents,
+        "boilerplate.faq_documents",
+        sourceUrl,
+        "faqs",
+      ),
+      claim(
+        "faq-a-documents",
+        documentsListed
+          ? evidence.boilerplate.faq_documents_pointer
+          : documentsText,
+        documentsListed
+          ? "boilerplate.faq_documents_pointer"
+          : evidence.application.documents?.trim()
+            ? "application.documents"
+            : "boilerplate.documents_unlisted",
+        sourceUrl,
+        "faqs",
+      ),
+    );
+  }
 
   const structure = evidence.benefit.amount_structure;
-  if (!evidence.benefit.repayable) {
+  if (shouldIncludeAmountFaq(evidence.benefit.type, structure)) {
     claims.push(
       claim(
         "faq-q-amount",
@@ -816,7 +1076,11 @@ function faqClaims(
   }
 
   const deadline = parseUtcCalendarDate(evidence.deadline.application_deadline);
-  if (deadline && evidence.deadline.application_deadline) {
+  if (
+    deadline &&
+    evidence.deadline.application_deadline &&
+    !programFaqsCoverQuestion(programFaqs, /deadline/i)
+  ) {
     claims.push(
       claim(
         "faq-q-deadline",

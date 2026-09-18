@@ -302,6 +302,12 @@ describe("consumer-quality composition", () => {
     expect(listed.draft.documents).toMatch(/Proof of vehicle registration/);
     expect(listed.draft.documents).toMatch(/Income documentation/);
     expect(listed.draft.documents).not.toMatch(/not fully listed/);
+    expect(
+      listed.draft.faqs.find((faq) => faq.question === "What documents might I need?")?.answer,
+    ).toMatch(/See the documents listed on this page/);
+    expect(
+      listed.draft.faqs.some((faq) => faq.answer.includes("Proof of vehicle registration")),
+    ).toBe(false);
     expect(validate(listed.draft, listed.evidence).passed).toBe(true);
 
     const unknown = await pair(barRecord());

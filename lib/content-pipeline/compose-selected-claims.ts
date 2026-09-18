@@ -186,6 +186,8 @@ function isRequiredSelectedClaim(claim: SourceClaim): boolean {
     claim.claim_id === "notes-unmodeled" ||
     claim.claim_id === "how-to-apply-before-action" ||
     claim.claim_id === "notes-not-exhaustive" ||
+    claim.claim_id === "benefit-type-framing" ||
+    claim.claim_id === "benefit-repayable" ||
     (claim.section === "what_you_get" && /^benefit-tier-\d+$/.test(claim.claim_id))
   );
 }

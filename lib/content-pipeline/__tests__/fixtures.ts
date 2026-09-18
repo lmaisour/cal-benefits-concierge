@@ -1,5 +1,11 @@
 import type { CatalogProgram, CatalogRule, CatalogLocation, CatalogSource } from "@/lib/programs/import/types";
-import type { DiscoveryRecord, EditorialContent, EditorialFaq } from "@/lib/content-pipeline/types";
+import type {
+  DiscoveryRecord,
+  EditorialBrief,
+  EditorialContent,
+  EditorialEvidenceRow,
+  EditorialFaq,
+} from "@/lib/content-pipeline/types";
 
 export const NOW = new Date("2026-09-14T00:00:00.000Z");
 
@@ -85,6 +91,8 @@ export function makeRecord(
     sources?: CatalogSource[];
     content?: EditorialContent | null;
     faqs?: EditorialFaq[];
+    brief?: EditorialBrief | null;
+    evidence_rows?: EditorialEvidenceRow[];
     rules?: CatalogRule[];
     locations?: CatalogLocation[];
   } = {},
@@ -117,7 +125,7 @@ export function makeRecord(
     ],
     content: overrides.content === undefined ? null : overrides.content,
     faqs: overrides.faqs ?? [],
-    brief: null,
-    evidence_rows: [],
+    brief: overrides.brief ?? null,
+    evidence_rows: overrides.evidence_rows ?? [],
   };
 }
