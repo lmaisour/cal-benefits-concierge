@@ -18,6 +18,12 @@ import {
   maxAttainableAmount,
 } from "@/lib/content-pipeline/headline-safety";
 import {
+  AWARD_FRAMING_PATTERN,
+  isFinancingBenefitType,
+  isFreeInKindBenefitType,
+} from "@/lib/content-pipeline/benefit-presentation";
+import { authoritativeVerifiedEvidence } from "@/lib/content-pipeline/verified-facts";
+import {
   FACTUAL_DRAFT_SECTIONS,
   type ContentDraft,
   type DuplicateIndex,
@@ -265,7 +271,7 @@ function routeExists(href: string, knownRoutes: string[]): boolean {
   }
 }
 
-function eligibilityCorpus(evidence: EvidencePackage): string {
+export function eligibilityCorpus(evidence: EvidencePackage): string {
   return [
     ...evidence.eligibility.modeled_rules.map((rule) =>
       [rule.field, rule.explanation ?? "", JSON.stringify(rule.value)].join(" "),
@@ -273,6 +279,12 @@ function eligibilityCorpus(evidence: EvidencePackage): string {
     evidence.eligibility.unmodeled_summary ?? "",
     evidence.benefit.summary ?? "",
     evidence.official_name,
+    evidence.short_description ?? "",
+    ...authoritativeVerifiedEvidence(evidence).map((item) => item.row.claim),
+    evidence.existing_content?.benefit_explanation ?? "",
+    evidence.existing_content?.how_to_apply ?? "",
+    evidence.existing_content?.documents_needed ?? "",
+    evidence.existing_content?.important_notes ?? "",
   ].join("\n");
 }
 
@@ -433,12 +445,25 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
     );
   }
 
-  if (evidence.benefit.repayable && LOAN_AS_SAVINGS.test(text)) {
+  if (
+    (evidence.benefit.repayable || isFinancingBenefitType(evidence.benefit.type)) &&
+    LOAN_AS_SAVINGS.test(text)
+  ) {
     errors.push(
       issue(
         "LOAN_FRAMED_AS_SAVINGS",
         "Loan or financing is framed as free savings.",
         "benefit.repayable",
+      ),
+    );
+  }
+
+  if (isFreeInKindBenefitType(evidence.benefit.type) && AWARD_FRAMING_PATTERN.test(text)) {
+    errors.push(
+      issue(
+        "NON_MONETARY_FRAMED_AS_AWARD",
+        "A free service or free product is framed as a cash award.",
+        "benefit.type",
       ),
     );
   }

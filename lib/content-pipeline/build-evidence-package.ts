@@ -3,6 +3,13 @@ import {
   normalizeBenefitTiers,
   resolveBenefitAmountStructure,
 } from "@/lib/content-pipeline/amount-structure";
+import {
+  amountFaqQuestion,
+  metaDescriptionSuffix,
+  overviewTieredGuidance,
+  tieredAmountGuidance,
+  unknownAmountGuidance,
+} from "@/lib/content-pipeline/benefit-presentation";
 import { isStaleVerification } from "@/lib/content-pipeline/freshness";
 import { collectOfficialSources } from "@/lib/content-pipeline/official-sources";
 import type { DiscoveryRecord, EvidencePackage } from "@/lib/content-pipeline/types";
@@ -31,7 +38,7 @@ export function buildEvidencePackage(
 
   if (repayable) {
     warnings.push(
-      "This benefit is repayable financing. Do not describe it as free savings, a grant, or cash you keep.",
+      "This benefit is repayable financing. Do not describe it as a grant or as cash the household keeps.",
     );
   }
   if (program.has_unmodeled_required_criteria) {
@@ -134,19 +141,18 @@ export function buildEvidencePackage(
         "Modeled eligibility rules are limited. Confirm requirements on the official source.",
       seo_title_suffix: ": who may qualify and how to apply",
       h1_qualify_suffix: " — who may qualify",
-      meta_description_suffix:
-        " may help qualifying households. See who may qualify, what you may receive, and how to apply. Confirm details on the official source.",
+      meta_description_suffix: metaDescriptionSuffix(program.benefit_type),
       faq_who_may_qualify: "Who may qualify?",
       faq_how_to_apply: "How do I apply?",
       faq_documents: "What documents might I need?",
-      faq_how_much: "How much could I receive?",
+      faq_how_much: amountFaqQuestion(program.benefit_type),
       faq_deadline: "Is there an application deadline?",
       faq_only_consider: "Is this the only California benefit I should consider?",
-      unknown_amount_guidance:
-        "Award amounts depend on program conditions. Confirm the current award on the official source.",
-      tiered_amount_guidance:
-        "You may qualify for one of the following awards, depending on the structured conditions below. Each listed amount applies only when its stated condition is met.",
-      overview_tiered_guidance: "Award amounts are condition-dependent.",
+      faq_documents_pointer:
+        "See the documents listed on this page. Confirm the current checklist on the official source.",
+      unknown_amount_guidance: unknownAmountGuidance(program.benefit_type),
+      tiered_amount_guidance: tieredAmountGuidance(program.benefit_type),
+      overview_tiered_guidance: overviewTieredGuidance(program.benefit_type),
       qualify_intro: "You may qualify if you meet the requirements below.",
     },
   };

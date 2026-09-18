@@ -12,6 +12,7 @@ export function buildLlmSystemPrompt(): string {
     "- Do not turn TIERED awards into a min–max range such as $1,350–$2,000.",
     "- Preserve every modeled TIERED award as its own conditional amount.",
     "- Do not present repayable financing as savings, a grant, or free money.",
+    "- Do not present a free service or free product as a cash award, rebate, or “how much could I receive?” amount.",
     "- Do not claim Benefits Concierge or this catalog has exhaustive coverage.",
     "- Do not imply the reader is likely eligible beyond modeled rules.",
     "- Distinguish modeled rules from unmodeled required criteria when those atoms exist.",
@@ -40,6 +41,7 @@ export function buildLlmUserPrompt(input: {
   const context = {
     official_name: evidence.official_name,
     status: evidence.status,
+    benefit_type: evidence.benefit.type,
     amount_structure: evidence.benefit.amount_structure,
     repayable: evidence.benefit.repayable,
     unmodeled_required: evidence.eligibility.unmodeled_required,
@@ -49,7 +51,8 @@ export function buildLlmUserPrompt(input: {
   };
   return [
     "Arrange a complete draft by selecting allowed claim IDs per section.",
-    "Include safety atoms (not exhaustive, cannot determine personal eligibility, unmodeled criteria, repayable framing, tier conditions) when they appear in the catalog.",
+    "- Include safety atoms (not exhaustive, cannot determine personal eligibility, unmodeled criteria, repayable framing, free-service framing, tier conditions) when they appear in the catalog.",
+    "- Prefer verified program FAQ atoms over generic FAQ atoms when both exist.",
     `Context: ${JSON.stringify(context)}`,
     `Allowed factual atoms: ${JSON.stringify(catalog)}`,
   ].join("\n");
