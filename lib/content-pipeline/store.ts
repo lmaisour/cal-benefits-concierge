@@ -38,10 +38,15 @@ export interface ContentPipelineStore {
   createRun(input: CreateRunInput): Promise<ContentPipelineRunRecord>;
   updateRun(id: string, patch: UpdateRunInput): Promise<ContentPipelineRunRecord>;
   upsertOpportunity(input: UpsertOpportunityInput): Promise<ContentOpportunityRecord>;
+  getRun(id: string): Promise<ContentPipelineRunRecord | null>;
+  getOpportunity(id: string): Promise<ContentOpportunityRecord | null>;
   updateOpportunity(
     id: string,
     patch: Partial<
-      Pick<ContentOpportunityRecord, "status" | "score" | "score_breakdown" | "next_eligible_at">
+      Pick<
+        ContentOpportunityRecord,
+        "status" | "score" | "score_breakdown" | "next_eligible_at" | "guide_id"
+      >
     >,
   ): Promise<ContentOpportunityRecord>;
   getOpportunityByProgram(
@@ -78,6 +83,19 @@ export class MemoryContentPipelineStore implements ContentPipelineStore {
     return run;
   }
 
+  async getRun(id: string): Promise<ContentPipelineRunRecord | null> {
+    return this.runs.get(id) ?? null;
+  }
+
+  async getOpportunity(id: string): Promise<ContentOpportunityRecord | null> {
+    for (const record of this.opportunities.values()) {
+      if (record.id === id) {
+        return record;
+      }
+    }
+    return null;
+  }
+
   async updateRun(id: string, patch: UpdateRunInput): Promise<ContentPipelineRunRecord> {
     const existing = this.runs.get(id);
     if (!existing) {
@@ -95,6 +113,7 @@ export class MemoryContentPipelineStore implements ContentPipelineStore {
     const record: ContentOpportunityRecord = {
       ...input,
       id: existing?.id ?? input.id ?? opportunityId(input.opportunity_type, input.program_id),
+      guide_id: input.guide_id ?? existing?.guide_id ?? null,
       created_at: existing?.created_at ?? input.created_at ?? now,
       updated_at: now,
     };
@@ -105,7 +124,10 @@ export class MemoryContentPipelineStore implements ContentPipelineStore {
   async updateOpportunity(
     id: string,
     patch: Partial<
-      Pick<ContentOpportunityRecord, "status" | "score" | "score_breakdown" | "next_eligible_at">
+      Pick<
+        ContentOpportunityRecord,
+        "status" | "score" | "score_breakdown" | "next_eligible_at" | "guide_id"
+      >
     >,
   ): Promise<ContentOpportunityRecord> {
     for (const [key, record] of this.opportunities) {

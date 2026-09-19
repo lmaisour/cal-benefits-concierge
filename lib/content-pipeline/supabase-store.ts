@@ -26,8 +26,9 @@ export type PipelineStoreClient = {
   // Real PostgREST builders and test doubles only share a `from()` surface.
   from: (table: string) => {
     select: (columns?: string) => unknown;
-    insert: (row: Record<string, unknown>) => unknown;
+    insert: (row: Record<string, unknown> | Record<string, unknown>[]) => unknown;
     update: (row: Record<string, unknown>) => unknown;
+    delete: () => unknown;
   };
 };
 
@@ -144,6 +145,30 @@ export class SupabaseContentPipelineStore implements ContentPipelineStore {
     return mapRun(data as ContentPipelineRunRow);
   }
 
+  async getRun(id: string): Promise<ContentPipelineRunRecord | null> {
+    const { data, error } = await (
+      this.client.from("content_pipeline_runs").select("*") as StoreQuery
+    )
+      .eq("id", id)
+      .maybeSingle();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data ? mapRun(data as ContentPipelineRunRow) : null;
+  }
+
+  async getOpportunity(id: string): Promise<ContentOpportunityRecord | null> {
+    const { data, error } = await (
+      this.client.from("content_opportunities").select("*") as StoreQuery
+    )
+      .eq("id", id)
+      .maybeSingle();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data ? mapOpportunity(data as ContentOpportunityRow) : null;
+  }
+
   async getOpportunityByProgram(
     opportunityType: string,
     programId: string,
@@ -168,7 +193,7 @@ export class SupabaseContentPipelineStore implements ContentPipelineStore {
     const payload = {
       opportunity_type: input.opportunity_type,
       program_id: input.program_id,
-      guide_id: input.guide_id,
+      guide_id: input.guide_id ?? existing?.guide_id ?? null,
       proposed_slug: input.proposed_slug,
       proposed_title: input.proposed_title,
       primary_keyword: input.primary_keyword,
@@ -231,7 +256,10 @@ export class SupabaseContentPipelineStore implements ContentPipelineStore {
   async updateOpportunity(
     id: string,
     patch: Partial<
-      Pick<ContentOpportunityRecord, "status" | "score" | "score_breakdown" | "next_eligible_at">
+      Pick<
+        ContentOpportunityRecord,
+        "status" | "score" | "score_breakdown" | "next_eligible_at" | "guide_id"
+      >
     >,
   ): Promise<ContentOpportunityRecord> {
     const payload: Record<string, unknown> = {};
@@ -243,6 +271,7 @@ export class SupabaseContentPipelineStore implements ContentPipelineStore {
     if (patch.next_eligible_at !== undefined) {
       payload.next_eligible_at = patch.next_eligible_at;
     }
+    if (patch.guide_id !== undefined) payload.guide_id = patch.guide_id;
     const { data, error } = await (
       this.client.from("content_opportunities").update(payload) as StoreQuery
     )

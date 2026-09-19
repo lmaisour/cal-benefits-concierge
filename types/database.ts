@@ -586,7 +586,24 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      publish_content_guide: {
+        Args: {
+          p_guide_id: string;
+          p_opportunity_id: string;
+          p_program_id: string;
+          p_title: string;
+          p_slug: string;
+          p_seo_title: string | null;
+          p_meta_description: string | null;
+          p_excerpt: string | null;
+          p_body: string;
+          p_published_at: string;
+          p_fail_at?: string | null;
+        };
+        Returns: Json;
+      };
+    };
     // Constrained values are TEXT + CHECK in SQL, not PostgreSQL enum types.
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

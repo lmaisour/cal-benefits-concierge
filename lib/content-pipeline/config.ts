@@ -12,7 +12,19 @@ export function getContentPipelineSecret(): string {
 }
 
 /**
- * Future-safe flag. Publication is not implemented and must stay unused.
+ * Manual/autonomous publication kill switch. Default disabled.
+ * The future autonomous publisher must use this same flag.
+ */
+export function isContentPipelinePublishEnabled(): boolean {
+  return process.env.CONTENT_PIPELINE_PUBLISH_ENABLED === "true";
+}
+
+/**
+ * Auto-publish / cron remains unused. Manual and future autonomous
+ * publishing both call publishGuide() behind the kill switch above.
+ * Publication writes go through public.publish_content_guide() so the
+ * guide row, guide_programs relationship, and opportunity.guide_id
+ * commit or roll back together.
  */
 export function isAutoPublishEnabled(): boolean {
   return false;

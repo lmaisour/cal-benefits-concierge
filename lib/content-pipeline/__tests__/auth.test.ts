@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
-import { isAutoPublishEnabled } from "@/lib/content-pipeline/config";
+import { isAutoPublishEnabled, isContentPipelinePublishEnabled } from "@/lib/content-pipeline/config";
 import { buildCatalogContext } from "@/lib/content-pipeline/catalog";
 import { handleContentPipelineDryRunRequest } from "@/lib/content-pipeline/dry-run-request";
 import { FakeContentDraftProvider } from "@/lib/content-pipeline/generate-draft";
@@ -59,6 +59,19 @@ describe("content pipeline endpoint auth", () => {
       delete process.env.AUTO_PUBLISH_ENABLED;
     } else {
       process.env.AUTO_PUBLISH_ENABLED = previous;
+    }
+  });
+
+  it("keeps the publish kill switch off by default", () => {
+    const previous = process.env.CONTENT_PIPELINE_PUBLISH_ENABLED;
+    delete process.env.CONTENT_PIPELINE_PUBLISH_ENABLED;
+    expect(isContentPipelinePublishEnabled()).toBe(false);
+    process.env.CONTENT_PIPELINE_PUBLISH_ENABLED = "true";
+    expect(isContentPipelinePublishEnabled()).toBe(true);
+    if (previous === undefined) {
+      delete process.env.CONTENT_PIPELINE_PUBLISH_ENABLED;
+    } else {
+      process.env.CONTENT_PIPELINE_PUBLISH_ENABLED = previous;
     }
   });
 
