@@ -17,6 +17,7 @@ export { validateDraft } from "@/lib/content-pipeline/validate-draft";
 export { runDryRunContentPipeline } from "@/lib/content-pipeline/run-pipeline";
 export { runContentAutomation } from "@/lib/content-pipeline/run-automation";
 export { assertAutomationLeaseOwned } from "@/lib/content-pipeline/automation-lease";
+export { publishGuide } from "@/lib/content-pipeline/publish-guide";
 export { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
 export { authorizeContentAutomationRequest } from "@/lib/content-pipeline/automation-auth";
 export { toDryRunSummary } from "@/lib/content-pipeline/summary";

@@ -488,6 +488,8 @@ export const CONTENT_AUTOMATION_STATUSES = [
   "BLOCKED",
   "ERROR",
   "COMPLETED_DRY_RUN",
+  "PUBLISHED",
+  "RECONCILED",
 ] as const;
 
 export type ContentAutomationStatus = (typeof CONTENT_AUTOMATION_STATUSES)[number];
@@ -525,6 +527,7 @@ export type ContentAutomationExecutionRow = {
   publish_attempted: boolean;
   publish_succeeded: boolean;
   guide_id: string | null;
+  published_at: string | null;
   error_code: string | null;
   error_message: string | null;
   provider_usage: Json | null;

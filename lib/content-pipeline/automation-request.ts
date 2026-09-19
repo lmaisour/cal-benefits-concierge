@@ -4,6 +4,7 @@ import { runContentAutomation } from "@/lib/content-pipeline/run-automation";
 import { AutomationError } from "@/lib/content-pipeline/automation-types";
 import type { AutomationTrigger } from "@/lib/content-pipeline/automation-types";
 import type { ContentAutomationStore } from "@/lib/content-pipeline/automation-store";
+import type { GuidePublishStore } from "@/lib/content-pipeline/publish-store";
 import type { PipelineCatalogContext } from "@/lib/content-pipeline/types";
 import type { ContentDraftProvider } from "@/lib/content-pipeline/types";
 
@@ -15,11 +16,13 @@ export type CreateAutomationRuntime = () => Promise<{
   store: ContentAutomationStore;
   loadContext: () => Promise<PipelineCatalogContext>;
   provider?: ContentDraftProvider;
+  publishStore?: GuidePublishStore;
 }>;
 
 const ERROR_STATUS: Record<string, number> = {
   automation_disabled: 403,
   automation_unauthorized: 401,
+  invalid_provider: 500,
 };
 
 export async function handleContentAutomationRequest(
@@ -50,6 +53,7 @@ export async function handleContentAutomationRequest(
       store: runtime.store,
       loadContext: runtime.loadContext,
       provider: runtime.provider,
+      publishStore: runtime.publishStore,
       trigger,
       leaseSeconds: getContentAutomationLeaseSeconds(),
     });
@@ -61,8 +65,10 @@ export async function handleContentAutomationRequest(
       opportunity_id: result.execution.opportunity_id,
       program_id: result.execution.program_id,
       provider: result.execution.provider,
-      publish_attempted: false,
-      publish_succeeded: false,
+      publish_attempted: result.publish_attempted,
+      publish_succeeded: result.publish_succeeded,
+      guide_id: result.execution.guide_id,
+      published_at: result.execution.published_at,
       error: result.execution.error_code,
     });
   } catch (error) {

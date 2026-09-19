@@ -33,6 +33,7 @@ export interface ContentAutomationStore {
     id: string,
     patch: UpdateAutomationExecutionInput,
   ): Promise<AutomationExecutionRecord>;
+  listExecutions(): Promise<AutomationExecutionRecord[]>;
   listPublishedProgramIds(): Promise<string[]>;
 }
 
@@ -162,6 +163,7 @@ export class MemoryContentAutomationStore implements ContentAutomationStore {
       publish_attempted: false,
       publish_succeeded: false,
       guide_id: null,
+      published_at: null,
       error_code: null,
       error_message: null,
       provider_usage: null,
@@ -183,6 +185,12 @@ export class MemoryContentAutomationStore implements ContentAutomationStore {
     const next = { ...existing, ...patch, updated_at: new Date().toISOString() };
     this.executions.set(id, next);
     return { ...next };
+  }
+
+  async listExecutions(): Promise<AutomationExecutionRecord[]> {
+    return [...this.executions.values()]
+      .map((record) => ({ ...record }))
+      .sort((left, right) => right.started_at.localeCompare(left.started_at));
   }
 
   async listPublishedProgramIds(): Promise<string[]> {

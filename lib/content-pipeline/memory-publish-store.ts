@@ -2,6 +2,7 @@ import type { GuideRow } from "@/types/database";
 import type { MemoryContentPipelineStore } from "@/lib/content-pipeline/store";
 import type {
   GuidePublishStore,
+  PublishedGuideRecord,
   PublishFailAt,
   PublishGuideWrite,
   PublishGuideWriteResult,
@@ -28,6 +29,10 @@ export class MemoryGuidePublishStore implements GuidePublishStore {
 
   async getOpportunity(id: string) {
     return this.pipeline.getOpportunity(id);
+  }
+
+  async getGuide(id: string): Promise<PublishedGuideRecord | null> {
+    return this.guides.get(id) ?? null;
   }
 
   async programExists(programId: string): Promise<boolean> {

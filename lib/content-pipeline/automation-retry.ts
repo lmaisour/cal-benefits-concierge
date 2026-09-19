@@ -44,6 +44,11 @@ const NEVER_RETRY_CODES = new Set([
   "missing_authoritative_fingerprint",
   "invalid_provider",
   "lease_lost",
+  "automation_publish_disabled",
+  "publish_disabled",
+  "already_published",
+  "identity_mismatch",
+  "publish_failed",
 ]);
 
 export function classifyRetryability(error: unknown): "transient" | "permanent" {

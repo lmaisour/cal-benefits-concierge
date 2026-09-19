@@ -20,14 +20,13 @@ export function isContentPipelinePublishEnabled(): boolean {
 }
 
 /**
- * Auto-publish / cron remains unused. Manual and future autonomous
- * publishing both call publishGuide() behind the kill switch above.
- * Publication writes go through public.publish_content_guide() so the
- * guide row, guide_programs relationship, and opportunity.guide_id
- * commit or roll back together.
+ * Autonomous publication switch. Default disabled.
+ * Distinct from CONTENT_AUTOMATION_ENABLED (whether a cycle may run)
+ * and CONTENT_PIPELINE_PUBLISH_ENABLED (whether publishGuide may write).
+ * Autonomous publishing requires all applicable switches.
  */
 export function isAutoPublishEnabled(): boolean {
-  return false;
+  return process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED === "true";
 }
 
 export function getDraftProviderId(): string {
