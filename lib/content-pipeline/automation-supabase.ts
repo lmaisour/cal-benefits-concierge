@@ -27,10 +27,25 @@ type TableQuery = {
   ) => Promise<unknown>;
 };
 
+export type AcquireAutomationLockArgs = {
+  p_lock_key: string;
+  p_owner_id: string;
+  p_lease_seconds: number;
+};
+
+export type ReleaseAutomationLockArgs = {
+  p_lock_key: string;
+  p_owner_id: string;
+};
+
 export type AutomationStoreClient = PipelineStoreClient & {
   rpc(
-    fn: "acquire_content_automation_lock" | "release_content_automation_lock",
-    args: Record<string, unknown>,
+    fn: "acquire_content_automation_lock",
+    args: AcquireAutomationLockArgs,
+  ): PromiseLike<{ data: unknown; error: QueryError }>;
+  rpc(
+    fn: "release_content_automation_lock",
+    args: ReleaseAutomationLockArgs,
   ): PromiseLike<{ data: unknown; error: QueryError }>;
 };
 
