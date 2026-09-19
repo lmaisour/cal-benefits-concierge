@@ -20,6 +20,7 @@ export { assertAutomationLeaseOwned } from "@/lib/content-pipeline/automation-le
 export { publishGuide } from "@/lib/content-pipeline/publish-guide";
 export { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
 export { authorizeContentAutomationRequest } from "@/lib/content-pipeline/automation-auth";
+export { authorizeContentAutomationCronRequest } from "@/lib/content-pipeline/automation-cron-auth";
 export { toDryRunSummary } from "@/lib/content-pipeline/summary";
 export { loadLivePipelineContext, recordsFromLiveRows } from "@/lib/content-pipeline/live-context";
 export { SupabaseContentPipelineStore } from "@/lib/content-pipeline/supabase-store";
