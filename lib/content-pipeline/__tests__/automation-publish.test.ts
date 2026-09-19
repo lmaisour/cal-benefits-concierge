@@ -511,9 +511,15 @@ describe("autonomous article publication", () => {
       leaseSeconds: 180,
     });
     expect(first.execution.status).toBe("PUBLISHED");
+    expect(first.publish_attempted).toBe(true);
+    expect(first.publish_succeeded).toBe(true);
     store.schedule.last_successful_publish_at = null;
     store.schedule.next_publish_at = AUTOMATION_NOW.toISOString();
     const counted = openaiCountingProvider();
+    publishStore.persistPublishedGuide = async () => {
+      throw new Error("publishGuide must not be called during reconciliation");
+    };
+    const guideCountBefore = publishStore.guides.size;
     const retry = await runContentAutomation({
       store,
       publishStore,
@@ -523,11 +529,29 @@ describe("autonomous article publication", () => {
       leaseSeconds: 180,
     });
     expect(counted.calls()).toBe(0);
-    expect(retry.execution.status).toBe("PUBLISHED");
-    expect(retry.publish_succeeded).toBe(true);
+    expect(retry.execution.status).toBe("RECONCILED");
+    expect(retry.publish_attempted).toBe(false);
+    expect(retry.publish_succeeded).toBe(false);
+    expect(retry.execution.publish_attempted).toBe(false);
+    expect(retry.execution.publish_succeeded).toBe(false);
+    expect(retry.execution.drafts_generated).toBe(0);
     expect(retry.execution.guide_id).toBe(first.execution.guide_id);
+    expect(retry.execution.published_at).toBe(first.execution.published_at);
+    expect(retry.execution.opportunity_id).toBe(first.execution.opportunity_id);
+    expect(retry.execution.program_id).toBe(first.execution.program_id);
+    expect(retry.execution.pipeline_run_id).toBe(first.execution.pipeline_run_id);
+    expect(publishStore.guides.size).toBe(guideCountBefore);
     expect(publishStore.guides.size).toBe(1);
     expect(store.schedule.last_successful_publish_at).toBe(first.execution.published_at);
+    expect(store.schedule.next_publish_at).toBe(
+      expectedNextPublishAt(first.execution.published_at ?? ""),
+    );
+    const attempted = [...store.executions.values()].filter(
+      (execution) => execution.publish_attempted,
+    );
+    expect(attempted).toHaveLength(1);
+    expect(attempted[0]?.id).toBe(first.execution.id);
+    expect(attempted[0]?.status).toBe("PUBLISHED");
   });
 
   it("does not publish a second guide if schedule reconciliation fails after publication", async () => {
@@ -548,13 +572,18 @@ describe("autonomous article publication", () => {
     });
     expect(first.execution.status).toBe("ERROR");
     expect(first.publish_attempted).toBe(true);
-    expect(first.publish_succeeded).toBe(false);
+    expect(first.publish_succeeded).toBe(true);
     expect(first.execution.guide_id).toBeTruthy();
+    expect(first.execution.published_at).toBeTruthy();
     expect(publishStore.guides.size).toBe(1);
     expect(store.schedule.last_successful_publish_at).toBeNull();
 
     store.markSuccessfulPublication = originalMark;
     const counted = openaiCountingProvider();
+    const guideCountBefore = publishStore.guides.size;
+    publishStore.persistPublishedGuide = async () => {
+      throw new Error("publishGuide must not be called during reconciliation");
+    };
     const retry = await runContentAutomation({
       store,
       publishStore,
@@ -564,10 +593,23 @@ describe("autonomous article publication", () => {
       leaseSeconds: 180,
     });
     expect(counted.calls()).toBe(0);
-    expect(retry.execution.status).toBe("PUBLISHED");
+    expect(retry.execution.status).toBe("RECONCILED");
+    expect(retry.publish_attempted).toBe(false);
+    expect(retry.publish_succeeded).toBe(false);
     expect(retry.execution.guide_id).toBe(first.execution.guide_id);
-    expect(publishStore.guides.size).toBe(1);
+    expect(retry.execution.published_at).toBe(first.execution.published_at);
+    expect(publishStore.guides.size).toBe(guideCountBefore);
     expect(store.schedule.last_successful_publish_at).toBe(first.execution.published_at);
+    expect(store.schedule.next_publish_at).toBe(
+      expectedNextPublishAt(first.execution.published_at ?? ""),
+    );
+    const attempted = [...store.executions.values()].filter(
+      (execution) => execution.publish_attempted,
+    );
+    expect(attempted).toHaveLength(1);
+    expect(attempted[0]?.id).toBe(first.execution.id);
+    expect(attempted[0]?.status).toBe("ERROR");
+    expect(attempted[0]?.publish_succeeded).toBe(true);
   });
 
   it("lets only one concurrent execution publish", async () => {
@@ -797,6 +839,12 @@ describe("postgres autonomous publication locking", () => {
         id, status, trigger, publish_attempted, publish_succeeded, guide_id, published_at
       ) VALUES ($1, 'PUBLISHED', 'MANUAL', TRUE, TRUE, $2, $3)`,
       ["55555555-5555-4555-8555-555555555555", otherGuide, publishedAt],
+    );
+    await db.query(
+      `INSERT INTO public.content_automation_executions (
+        id, status, trigger, publish_attempted, publish_succeeded, guide_id, published_at
+      ) VALUES ($1, 'RECONCILED', 'MANUAL', FALSE, FALSE, $2, $3)`,
+      ["77777777-7777-4777-8777-777777777777", otherGuide, publishedAt],
     );
 
     await expect(

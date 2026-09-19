@@ -489,6 +489,7 @@ export const CONTENT_AUTOMATION_STATUSES = [
   "ERROR",
   "COMPLETED_DRY_RUN",
   "PUBLISHED",
+  "RECONCILED",
 ] as const;
 
 export type ContentAutomationStatus = (typeof CONTENT_AUTOMATION_STATUSES)[number];

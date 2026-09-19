@@ -120,8 +120,9 @@ const AUTOMATION_PUBLISH_MIGRATION = path.resolve(
 describe("content automation publish migration", () => {
   const sql = readFileSync(AUTOMATION_PUBLISH_MIGRATION, "utf8");
 
-  it("adds PUBLISHED execution status and published_at without enabling publication", () => {
+  it("adds PUBLISHED and RECONCILED execution statuses and published_at without enabling publication", () => {
     expect(sql).toContain("'PUBLISHED'");
+    expect(sql).toContain("'RECONCILED'");
     expect(sql).toContain("ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ");
     expect(sql).not.toContain("CONTENT_AUTOMATION_PUBLISH_ENABLED");
     expect(sql).not.toContain("publishGuide");

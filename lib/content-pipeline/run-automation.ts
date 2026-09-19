@@ -172,15 +172,13 @@ export async function runContentAutomation(
       );
     }
     await input.store.markSuccessfulPublication(publishedAt, nextPublishAtFrom(publishedAt));
-    return finish("PUBLISHED", {
+    return finish("RECONCILED", {
       due: true,
       pipeline_run_id: recovered.pipeline_run_id,
       opportunity_id: recovered.opportunity_id || null,
       program_id: recovered.program_id,
-      drafts_generated: 0,
-      validation_passed: true,
-      publish_attempted: true,
-      publish_succeeded: true,
+      publish_attempted: false,
+      publish_succeeded: false,
       guide_id: recovered.guide.id,
       published_at: publishedAt,
       error_code: null,
@@ -444,12 +442,18 @@ export async function runContentAutomation(
     }
 
     const publishedAt = published.guide.published_at ?? publishTime.toISOString();
+    execution = await input.store.updateExecution(execution.id, {
+      publish_attempted: true,
+      publish_succeeded: true,
+      guide_id: published.guide.id,
+      published_at: publishedAt,
+    });
     try {
       await input.store.markSuccessfulPublication(publishedAt, nextPublishAtFrom(publishedAt));
     } catch (error) {
       return finish("ERROR", {
         publish_attempted: true,
-        publish_succeeded: false,
+        publish_succeeded: true,
         guide_id: published.guide.id,
         published_at: publishedAt,
         error_code: mapPublishFailureCode(error),
@@ -481,7 +485,7 @@ export async function runContentAutomation(
       error_code: code,
       error_message: error instanceof Error ? error.message : "Content automation failed.",
       publish_attempted: execution.publish_attempted,
-      publish_succeeded: false,
+      publish_succeeded: execution.publish_succeeded,
       guide_id: execution.guide_id,
       published_at: execution.published_at,
     });

@@ -19,6 +19,7 @@ export const AUTOMATION_STATUSES = [
   "ERROR",
   "COMPLETED_DRY_RUN",
   "PUBLISHED",
+  "RECONCILED",
 ] as const;
 export type AutomationStatus = (typeof AUTOMATION_STATUSES)[number];
 
