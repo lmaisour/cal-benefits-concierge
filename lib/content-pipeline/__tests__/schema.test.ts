@@ -57,7 +57,13 @@ describe("content automation orchestrator migration", () => {
     expect(sql).toContain("CREATE TABLE public.content_automation_locks");
     expect(sql).toContain("CREATE TABLE public.content_automation_executions");
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.acquire_content_automation_lock");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.renew_content_automation_lock");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.owns_content_automation_lock");
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.release_content_automation_lock");
+    expect(sql).toContain("WHERE public.content_automation_locks.expires_at <= v_now");
+    expect(sql).not.toMatch(
+      /expires_at <= v_now\s+OR public\.content_automation_locks\.owner_id = EXCLUDED\.owner_id/,
+    );
     expect(sql).toContain("last_successful_publish_at");
     expect(sql).toContain("next_publish_at");
     expect(sql).toContain("COMPLETED_DRY_RUN");
@@ -73,7 +79,13 @@ describe("content automation orchestrator migration", () => {
       "REVOKE ALL ON FUNCTION public.release_content_automation_lock(text, uuid) FROM PUBLIC",
     );
     expect(sql).toContain(
+      "REVOKE ALL ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) FROM PUBLIC",
+    );
+    expect(sql).toContain(
       "GRANT EXECUTE ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) TO service_role",
+    );
+    expect(sql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) TO service_role",
     );
     expect(sql).toContain(
       "REVOKE ALL ON TABLE public.content_automation_schedule FROM PUBLIC, anon, authenticated",

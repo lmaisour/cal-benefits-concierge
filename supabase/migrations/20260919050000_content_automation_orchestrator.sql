@@ -78,7 +78,6 @@ BEGIN
         acquired_at = EXCLUDED.acquired_at,
         expires_at = EXCLUDED.expires_at
     WHERE public.content_automation_locks.expires_at <= v_now
-       OR public.content_automation_locks.owner_id = EXCLUDED.owner_id
   RETURNING * INTO v_row;
 
   IF NOT FOUND THEN
@@ -89,6 +88,75 @@ BEGIN
     'acquired', true,
     'owner_id', v_row.owner_id,
     'expires_at', v_row.expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.renew_content_automation_lock(
+  p_lock_key text,
+  p_owner_id uuid,
+  p_lease_seconds integer
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_now timestamptz := clock_timestamp();
+  v_expires timestamptz;
+  v_row public.content_automation_locks%ROWTYPE;
+BEGIN
+  IF p_lock_key IS NULL OR length(btrim(p_lock_key)) = 0 THEN
+    RAISE EXCEPTION 'invalid_lock_key' USING ERRCODE = 'P0001';
+  END IF;
+  IF p_owner_id IS NULL THEN
+    RAISE EXCEPTION 'invalid_lock_owner' USING ERRCODE = 'P0001';
+  END IF;
+  IF p_lease_seconds IS NULL OR p_lease_seconds < 1 OR p_lease_seconds > 3600 THEN
+    RAISE EXCEPTION 'invalid_lock_lease' USING ERRCODE = 'P0001';
+  END IF;
+
+  v_expires := v_now + make_interval(secs => p_lease_seconds);
+
+  UPDATE public.content_automation_locks
+  SET expires_at = v_expires
+  WHERE lock_key = btrim(p_lock_key)
+    AND owner_id = p_owner_id
+  RETURNING * INTO v_row;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('renewed', false);
+  END IF;
+
+  RETURN jsonb_build_object(
+    'renewed', true,
+    'owner_id', v_row.owner_id,
+    'expires_at', v_row.expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.owns_content_automation_lock(
+  p_lock_key text,
+  p_owner_id uuid
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF p_lock_key IS NULL OR p_owner_id IS NULL THEN
+    RETURN false;
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1
+    FROM public.content_automation_locks
+    WHERE lock_key = btrim(p_lock_key)
+      AND owner_id = p_owner_id
+      AND expires_at > clock_timestamp()
   );
 END;
 $$;
@@ -189,20 +257,28 @@ GRANT ALL ON TABLE public.content_automation_locks TO service_role;
 GRANT ALL ON TABLE public.content_automation_executions TO service_role;
 
 REVOKE ALL ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.owns_content_automation_lock(text, uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.release_content_automation_lock(text, uuid) FROM PUBLIC;
 
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
     REVOKE ALL ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) FROM anon;
+    REVOKE ALL ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) FROM anon;
+    REVOKE ALL ON FUNCTION public.owns_content_automation_lock(text, uuid) FROM anon;
     REVOKE ALL ON FUNCTION public.release_content_automation_lock(text, uuid) FROM anon;
   END IF;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
     REVOKE ALL ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) FROM authenticated;
+    REVOKE ALL ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) FROM authenticated;
+    REVOKE ALL ON FUNCTION public.owns_content_automation_lock(text, uuid) FROM authenticated;
     REVOKE ALL ON FUNCTION public.release_content_automation_lock(text, uuid) FROM authenticated;
   END IF;
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
     GRANT EXECUTE ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) TO service_role;
+    GRANT EXECUTE ON FUNCTION public.renew_content_automation_lock(text, uuid, integer) TO service_role;
+    GRANT EXECUTE ON FUNCTION public.owns_content_automation_lock(text, uuid) TO service_role;
     GRANT EXECUTE ON FUNCTION public.release_content_automation_lock(text, uuid) TO service_role;
   END IF;
 END

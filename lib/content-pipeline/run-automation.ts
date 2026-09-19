@@ -7,6 +7,7 @@ import {
   fingerprintAuthoritativeState,
 } from "@/lib/content-pipeline/automation-fingerprint";
 import { withTransientRetries, type RetrySleep } from "@/lib/content-pipeline/automation-retry";
+import { AutomationLeaseSession } from "@/lib/content-pipeline/automation-lease";
 import {
   AUTOMATION_CADENCE_MS,
   AUTOMATION_LOCK_KEY,
@@ -32,6 +33,8 @@ export type RunContentAutomationInput = {
   now?: Date;
   trigger?: AutomationTrigger;
   leaseSeconds: number;
+  renewEveryMs?: number;
+  lockClock?: () => Date;
   sleep?: RetrySleep;
   random?: () => number;
 };
@@ -115,11 +118,12 @@ export async function runContentAutomation(
     };
   };
 
+  const lockClock = input.lockClock ?? (() => new Date());
   const lock = await input.store.acquireLock({
     lockKey: AUTOMATION_LOCK_KEY,
     ownerId,
     leaseSeconds: input.leaseSeconds,
-    now,
+    now: lockClock(),
   });
   if (!lock.acquired) {
     return finish("LOCKED", {
@@ -130,7 +134,18 @@ export async function runContentAutomation(
     });
   }
 
+  const lease = new AutomationLeaseSession({
+    store: input.store,
+    lockKey: AUTOMATION_LOCK_KEY,
+    ownerId,
+    leaseSeconds: input.leaseSeconds,
+    renewEveryMs: input.renewEveryMs,
+    clock: lockClock,
+  });
+  lease.start();
+
   try {
+    await lease.ensureHeld();
     const schedule = await input.store.getSchedule();
     const due = isCycleDue(schedule.next_publish_at, now);
     execution = await input.store.updateExecution(execution.id, { due, lock_owner: ownerId });
@@ -142,6 +157,7 @@ export async function runContentAutomation(
       });
     }
 
+    await lease.ensureHeld();
     let loadAttempts = 0;
     const loaded = await withTransientRetries(input.loadContext, {
       sleep: input.sleep,
@@ -154,6 +170,7 @@ export async function runContentAutomation(
       attempt_count: loadAttempts,
     });
 
+    await lease.ensureHeld();
     const publishedProgramIds = await input.store.listPublishedProgramIds();
     const pipeline = await runDryRunContentPipeline({
       context: loaded,
@@ -163,6 +180,7 @@ export async function runContentAutomation(
       publishedProgramIds,
     });
 
+    await lease.ensureHeld();
     const opportunity = pipeline.opportunity;
     const programId = opportunity?.program_id ?? null;
     const generationRecord = recordByProgram(loaded.records, programId);
@@ -236,6 +254,9 @@ export async function runContentAutomation(
       });
     }
 
+    // Future publication boundary: #23 must call this immediately before publication.
+    await lease.assertOwned();
+
     return finish("COMPLETED_DRY_RUN", {
       due: true,
       error_code: null,
@@ -249,6 +270,7 @@ export async function runContentAutomation(
       error_message: error instanceof Error ? error.message : "Content automation failed.",
     });
   } finally {
+    await lease.stop();
     await input.store.releaseLock(AUTOMATION_LOCK_KEY, ownerId);
   }
 }

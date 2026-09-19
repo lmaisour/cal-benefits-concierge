@@ -32,6 +32,7 @@ export type AutomationErrorCode =
   | "missing_authoritative_fingerprint"
   | "invalid_provider"
   | "generation_failed"
+  | "lease_lost"
   | "transient_exhausted"
   | "content_automation_failed";
 
@@ -44,6 +45,12 @@ export type AutomationScheduleState = {
 
 export type AutomationLockResult = {
   acquired: boolean;
+  owner_id?: string;
+  expires_at?: string;
+};
+
+export type AutomationRenewResult = {
+  renewed: boolean;
   owner_id?: string;
   expires_at?: string;
 };

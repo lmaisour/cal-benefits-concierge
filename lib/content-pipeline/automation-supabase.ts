@@ -6,6 +6,7 @@ import { AUTOMATION_SCHEDULE_ID } from "@/lib/content-pipeline/automation-types"
 import type {
   AutomationExecutionRecord,
   AutomationLockResult,
+  AutomationRenewResult,
   AutomationScheduleState,
   CreateAutomationExecutionInput,
   UpdateAutomationExecutionInput,
@@ -38,10 +39,29 @@ export type ReleaseAutomationLockArgs = {
   p_owner_id: string;
 };
 
+export type RenewAutomationLockArgs = {
+  p_lock_key: string;
+  p_owner_id: string;
+  p_lease_seconds: number;
+};
+
+export type OwnsAutomationLockArgs = {
+  p_lock_key: string;
+  p_owner_id: string;
+};
+
 export type AutomationStoreClient = PipelineStoreClient & {
   rpc(
     fn: "acquire_content_automation_lock",
     args: AcquireAutomationLockArgs,
+  ): PromiseLike<{ data: unknown; error: QueryError }>;
+  rpc(
+    fn: "renew_content_automation_lock",
+    args: RenewAutomationLockArgs,
+  ): PromiseLike<{ data: unknown; error: QueryError }>;
+  rpc(
+    fn: "owns_content_automation_lock",
+    args: OwnsAutomationLockArgs,
   ): PromiseLike<{ data: unknown; error: QueryError }>;
   rpc(
     fn: "release_content_automation_lock",
@@ -160,6 +180,38 @@ export class SupabaseContentAutomationStore implements ContentAutomationStore {
       owner_id: payload?.owner_id ? String(payload.owner_id) : undefined,
       expires_at: payload?.expires_at ? String(payload.expires_at) : undefined,
     };
+  }
+
+  async renewLock(input: {
+    lockKey: string;
+    ownerId: string;
+    leaseSeconds: number;
+  }): Promise<AutomationRenewResult> {
+    const { data, error } = await this.client.rpc("renew_content_automation_lock", {
+      p_lock_key: input.lockKey,
+      p_owner_id: input.ownerId,
+      p_lease_seconds: input.leaseSeconds,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    const payload = asObject(data);
+    return {
+      renewed: Boolean(payload?.renewed),
+      owner_id: payload?.owner_id ? String(payload.owner_id) : undefined,
+      expires_at: payload?.expires_at ? String(payload.expires_at) : undefined,
+    };
+  }
+
+  async ownsLock(input: { lockKey: string; ownerId: string }): Promise<boolean> {
+    const { data, error } = await this.client.rpc("owns_content_automation_lock", {
+      p_lock_key: input.lockKey,
+      p_owner_id: input.ownerId,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return Boolean(data);
   }
 
   async releaseLock(lockKey: string, ownerId: string): Promise<boolean> {

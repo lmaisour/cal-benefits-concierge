@@ -2,6 +2,7 @@ import { AUTOMATION_SCHEDULE_ID } from "@/lib/content-pipeline/automation-types"
 import type {
   AutomationExecutionRecord,
   AutomationLockResult,
+  AutomationRenewResult,
   AutomationScheduleState,
   CreateAutomationExecutionInput,
   UpdateAutomationExecutionInput,
@@ -19,6 +20,13 @@ export interface ContentAutomationStore {
     leaseSeconds: number;
     now?: Date;
   }): Promise<AutomationLockResult>;
+  renewLock(input: {
+    lockKey: string;
+    ownerId: string;
+    leaseSeconds: number;
+    now?: Date;
+  }): Promise<AutomationRenewResult>;
+  ownsLock(input: { lockKey: string; ownerId: string; now?: Date }): Promise<boolean>;
   releaseLock(lockKey: string, ownerId: string): Promise<boolean>;
   createExecution(input: CreateAutomationExecutionInput): Promise<AutomationExecutionRecord>;
   updateExecution(
@@ -85,11 +93,7 @@ export class MemoryContentAutomationStore implements ContentAutomationStore {
     const now = input.now ?? new Date();
     const expiresAt = new Date(now.getTime() + input.leaseSeconds * 1000).toISOString();
     const existing = this.locks.get(input.lockKey);
-    if (
-      existing &&
-      existing.owner_id !== input.ownerId &&
-      new Date(existing.expires_at).getTime() > now.getTime()
-    ) {
+    if (existing && new Date(existing.expires_at).getTime() > now.getTime()) {
       return { acquired: false };
     }
     this.locks.set(input.lockKey, {
@@ -98,6 +102,35 @@ export class MemoryContentAutomationStore implements ContentAutomationStore {
       expires_at: expiresAt,
     });
     return { acquired: true, owner_id: input.ownerId, expires_at: expiresAt };
+  }
+
+  async renewLock(input: {
+    lockKey: string;
+    ownerId: string;
+    leaseSeconds: number;
+    now?: Date;
+  }): Promise<AutomationRenewResult> {
+    const now = input.now ?? new Date();
+    const existing = this.locks.get(input.lockKey);
+    if (!existing || existing.owner_id !== input.ownerId) {
+      return { renewed: false };
+    }
+    const expiresAt = new Date(now.getTime() + input.leaseSeconds * 1000).toISOString();
+    this.locks.set(input.lockKey, {
+      ...existing,
+      expires_at: expiresAt,
+    });
+    return { renewed: true, owner_id: input.ownerId, expires_at: expiresAt };
+  }
+
+  async ownsLock(input: { lockKey: string; ownerId: string; now?: Date }): Promise<boolean> {
+    const now = input.now ?? new Date();
+    const existing = this.locks.get(input.lockKey);
+    return Boolean(
+      existing &&
+        existing.owner_id === input.ownerId &&
+        new Date(existing.expires_at).getTime() > now.getTime(),
+    );
   }
 
   async releaseLock(lockKey: string, ownerId: string): Promise<boolean> {

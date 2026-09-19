@@ -687,6 +687,21 @@ export type Database = {
         };
         Returns: Json;
       };
+      renew_content_automation_lock: {
+        Args: {
+          p_lock_key: string;
+          p_owner_id: string;
+          p_lease_seconds: number;
+        };
+        Returns: Json;
+      };
+      owns_content_automation_lock: {
+        Args: {
+          p_lock_key: string;
+          p_owner_id: string;
+        };
+        Returns: boolean;
+      };
       release_content_automation_lock: {
         Args: {
           p_lock_key: string;

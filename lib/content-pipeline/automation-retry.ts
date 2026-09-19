@@ -43,6 +43,7 @@ const NEVER_RETRY_CODES = new Set([
   "stale_authoritative_state",
   "missing_authoritative_fingerprint",
   "invalid_provider",
+  "lease_lost",
 ]);
 
 export function classifyRetryability(error: unknown): "transient" | "permanent" {

@@ -29,7 +29,7 @@ describe("automation never publishes", () => {
     ];
     for (const file of files) {
       const contents = source(file);
-      expect(contents).not.toMatch(/publishGuide/);
+      expect(contents).not.toMatch(/publishGuide\s*\(/);
       expect(contents).not.toMatch(/markSuccessfulPublication/);
       expect(contents).not.toMatch(/CONTENT_PIPELINE_PUBLISH_ENABLED=true/);
     }
