@@ -51,14 +51,23 @@ describe("content pipeline endpoint auth", () => {
     resetMemoryContentPipelineStore();
   });
 
-  it("keeps auto-publish false and unused", () => {
-    const previous = process.env.AUTO_PUBLISH_ENABLED;
+  it("keeps auto-publish false unless CONTENT_AUTOMATION_PUBLISH_ENABLED is true", () => {
+    const previousUnused = process.env.AUTO_PUBLISH_ENABLED;
+    const previousAuto = process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED;
     process.env.AUTO_PUBLISH_ENABLED = "true";
+    delete process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED;
     expect(isAutoPublishEnabled()).toBe(false);
-    if (previous === undefined) {
+    process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED = "true";
+    expect(isAutoPublishEnabled()).toBe(true);
+    if (previousUnused === undefined) {
       delete process.env.AUTO_PUBLISH_ENABLED;
     } else {
-      process.env.AUTO_PUBLISH_ENABLED = previous;
+      process.env.AUTO_PUBLISH_ENABLED = previousUnused;
+    }
+    if (previousAuto === undefined) {
+      delete process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED;
+    } else {
+      process.env.CONTENT_AUTOMATION_PUBLISH_ENABLED = previousAuto;
     }
   });
 

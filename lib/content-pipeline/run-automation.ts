@@ -1,7 +1,12 @@
 import { createContentDraftProvider } from "@/lib/content-pipeline/create-draft-provider";
-import { getDraftProviderId } from "@/lib/content-pipeline/config";
+import {
+  getDraftProviderId,
+  isAutoPublishEnabled,
+  isContentPipelinePublishEnabled,
+} from "@/lib/content-pipeline/config";
 import { sanitizeProviderMessage } from "@/lib/content-pipeline/compose-selected-claims";
 import { runDryRunContentPipeline } from "@/lib/content-pipeline/run-pipeline";
+import { publishGuide } from "@/lib/content-pipeline/publish-guide";
 import {
   assertAutonomousPublicationEligible,
   fingerprintAuthoritativeState,
@@ -20,6 +25,17 @@ import type {
   AutomationTrigger,
 } from "@/lib/content-pipeline/automation-types";
 import type { ContentAutomationStore } from "@/lib/content-pipeline/automation-store";
+import type { GuidePublishStore } from "@/lib/content-pipeline/publish-store";
+import {
+  PRODUCTION_BAR_PROGRAM_ID,
+  assertAutonomousPublishGates,
+  assertPublishIdentity,
+  assertValidationStillPasses,
+  findUnreconciledPublication,
+  mapPublishFailureCode,
+  nextPublishAtFrom,
+  type UnreconciledPublication,
+} from "@/lib/content-pipeline/autonomous-publish";
 import type {
   ContentDraftProvider,
   DiscoveryRecord,
@@ -30,6 +46,7 @@ export type RunContentAutomationInput = {
   store: ContentAutomationStore;
   loadContext: () => Promise<PipelineCatalogContext>;
   provider?: ContentDraftProvider;
+  publishStore?: GuidePublishStore;
   now?: Date;
   trigger?: AutomationTrigger;
   leaseSeconds: number;
@@ -42,8 +59,8 @@ export type RunContentAutomationInput = {
 export type ContentAutomationResult = {
   execution: AutomationExecutionRecord;
   due: boolean;
-  publish_attempted: false;
-  publish_succeeded: false;
+  publish_attempted: boolean;
+  publish_succeeded: boolean;
 };
 
 function completeAt(now: Date): string {
@@ -101,8 +118,8 @@ export async function runContentAutomation(
       ...patch,
       status,
       completed_at: patch.completed_at ?? completeAt(new Date()),
-      publish_attempted: false,
-      publish_succeeded: false,
+      publish_attempted: patch.publish_attempted ?? false,
+      publish_succeeded: patch.publish_succeeded ?? false,
     };
     if (patch.error_message === undefined) {
       delete nextPatch.error_message;
@@ -113,8 +130,8 @@ export async function runContentAutomation(
     return {
       execution,
       due: Boolean(execution.due),
-      publish_attempted: false,
-      publish_succeeded: false,
+      publish_attempted: execution.publish_attempted,
+      publish_succeeded: execution.publish_succeeded,
     };
   };
 
@@ -144,6 +161,33 @@ export async function runContentAutomation(
   });
   lease.start();
 
+  const recordReconciledPublication = async (
+    recovered: UnreconciledPublication,
+  ): Promise<ContentAutomationResult> => {
+    const publishedAt = recovered.guide.published_at;
+    if (!publishedAt) {
+      throw new AutomationError(
+        "publish_failed",
+        "Recovered guide is missing a publication timestamp.",
+      );
+    }
+    await input.store.markSuccessfulPublication(publishedAt, nextPublishAtFrom(publishedAt));
+    return finish("PUBLISHED", {
+      due: true,
+      pipeline_run_id: recovered.pipeline_run_id,
+      opportunity_id: recovered.opportunity_id || null,
+      program_id: recovered.program_id,
+      drafts_generated: 0,
+      validation_passed: true,
+      publish_attempted: true,
+      publish_succeeded: true,
+      guide_id: recovered.guide.id,
+      published_at: publishedAt,
+      error_code: null,
+      error_message: null,
+    });
+  };
+
   try {
     await lease.ensureHeld();
     const schedule = await input.store.getSchedule();
@@ -155,6 +199,36 @@ export async function runContentAutomation(
         error_code: "not_due",
         error_message: "Publication cadence is not due.",
       });
+    }
+
+    const autoPublish = isAutoPublishEnabled();
+    if (autoPublish) {
+      try {
+        assertAutonomousPublishGates(provider.id);
+      } catch (error) {
+        const code: AutomationErrorCode =
+          error instanceof AutomationError ? error.code : "invalid_provider";
+        return finish(code === "invalid_provider" ? "ERROR" : "BLOCKED", {
+          error_code: code,
+          error_message: error instanceof Error ? error.message : "Autonomous publication is blocked.",
+        });
+      }
+      if (!input.publishStore) {
+        return finish("ERROR", {
+          error_code: "publish_failed",
+          error_message: "Autonomous publication requires the existing guide publication store.",
+        });
+      }
+      await lease.ensureHeld();
+      const recovered = await findUnreconciledPublication({
+        store: input.store,
+        publishStore: input.publishStore,
+        schedule,
+        currentExecutionId: execution.id,
+      });
+      if (recovered) {
+        return recordReconciledPublication(recovered);
+      }
     }
 
     await lease.ensureHeld();
@@ -183,19 +257,7 @@ export async function runContentAutomation(
     await lease.ensureHeld();
     const opportunity = pipeline.opportunity;
     const programId = opportunity?.program_id ?? null;
-    const generationRecord = recordByProgram(loaded.records, programId);
-    const generationFingerprint =
-      pipeline.run.authoritative_state_fingerprint ??
-      (generationRecord ? fingerprintAuthoritativeState(generationRecord) : null);
-
-    if (pipeline.run.id && generationFingerprint && !pipeline.run.authoritative_state_fingerprint) {
-      await input.store.pipeline.updateRun(pipeline.run.id, {
-        evidence_snapshot: pipeline.evidence
-          ? { ...pipeline.evidence, authoritative_state_fingerprint: generationFingerprint }
-          : pipeline.evidence,
-        authoritative_state_fingerprint: generationFingerprint,
-      });
-    }
+    const generationFingerprint = pipeline.run.authoritative_state_fingerprint ?? null;
 
     const draftsGenerated = pipeline.draft ? 1 : 0;
     execution = await input.store.updateExecution(execution.id, {
@@ -234,6 +296,12 @@ export async function runContentAutomation(
         error_message: "Generated run is missing an authoritative fingerprint.",
       });
     }
+    if (programId === PRODUCTION_BAR_PROGRAM_ID) {
+      return finish("BLOCKED", {
+        error_code: "already_published",
+        error_message: "The existing BAR guide is excluded from autonomous publication.",
+      });
+    }
 
     const currentContext = await withTransientRetries(input.loadContext, {
       sleep: input.sleep,
@@ -254,11 +322,155 @@ export async function runContentAutomation(
       });
     }
 
-    // Future publication boundary: #23 must call this immediately before publication.
     await lease.assertOwned();
 
-    return finish("COMPLETED_DRY_RUN", {
+    if (!autoPublish) {
+      return finish("COMPLETED_DRY_RUN", {
+        due: true,
+        error_code: null,
+        error_message: null,
+      });
+    }
+
+    const publishStore = input.publishStore;
+    if (!publishStore) {
+      return finish("ERROR", {
+        error_code: "publish_failed",
+        error_message: "Autonomous publication requires the existing guide publication store.",
+      });
+    }
+
+    try {
+      assertAutonomousPublishGates(provider.id);
+    } catch (error) {
+      const code: AutomationErrorCode =
+        error instanceof AutomationError ? error.code : "invalid_provider";
+      return finish(code === "invalid_provider" ? "ERROR" : "BLOCKED", {
+        error_code: code,
+        error_message: error instanceof Error ? error.message : "Autonomous publication is blocked.",
+      });
+    }
+
+    const latestRun = await publishStore.getRun(pipeline.run.id);
+    const latestOpportunity = await publishStore.getOpportunity(opportunity.id);
+    if (!latestRun || !latestOpportunity) {
+      return finish("BLOCKED", {
+        error_code: "identity_mismatch",
+        error_message: "Generated run or opportunity is no longer available.",
+      });
+    }
+    try {
+      assertPublishIdentity({
+        run: latestRun,
+        opportunity: latestOpportunity,
+        executionRunId: execution.pipeline_run_id,
+        executionOpportunityId: execution.opportunity_id,
+        executionProgramId: execution.program_id,
+      });
+      assertValidationStillPasses(latestRun);
+    } catch (error) {
+      const code: AutomationErrorCode =
+        error instanceof AutomationError ? error.code : "identity_mismatch";
+      return finish("BLOCKED", {
+        error_code: code,
+        error_message: error instanceof Error ? error.message : "Publication preconditions failed.",
+      });
+    }
+
+    const stillPublishedIds = await input.store.listPublishedProgramIds();
+    if (latestOpportunity.guide_id || stillPublishedIds.includes(latestOpportunity.program_id)) {
+      if (latestOpportunity.guide_id) {
+        const existingGuide = await publishStore.getGuide(latestOpportunity.guide_id);
+        if (existingGuide?.published) {
+          return recordReconciledPublication({
+            guide: existingGuide,
+            opportunity_id: latestOpportunity.id,
+            program_id: latestOpportunity.program_id,
+            pipeline_run_id: latestRun.id,
+          });
+        }
+      }
+      return finish("BLOCKED", {
+        error_code: "already_published",
+        error_message: "Candidate is already represented by a published guide.",
+      });
+    }
+
+    const currentAgain = recordByProgram(
+      (
+        await withTransientRetries(input.loadContext, {
+          sleep: input.sleep,
+          random: input.random,
+        }).then((result) => result.value)
+      ).records,
+      latestOpportunity.program_id,
+    );
+    const prePublishFingerprint = currentAgain
+      ? fingerprintAuthoritativeState(currentAgain)
+      : null;
+    try {
+      assertAutonomousPublicationEligible(generationFingerprint, prePublishFingerprint);
+    } catch (error) {
+      const code =
+        error instanceof AutomationError ? error.code : "stale_authoritative_state";
+      return finish("BLOCKED", {
+        error_code: code,
+        error_message: error instanceof Error ? error.message : "Authoritative state is stale.",
+      });
+    }
+
+    await lease.assertOwned();
+
+    execution = await input.store.updateExecution(execution.id, {
+      publish_attempted: true,
+    });
+
+    const publishTime = input.now ?? new Date();
+    let published;
+    try {
+      published = await publishGuide({
+        runId: latestRun.id,
+        store: publishStore,
+        now: publishTime,
+        enabled: isContentPipelinePublishEnabled(),
+      });
+    } catch (error) {
+      return finish("ERROR", {
+        publish_attempted: true,
+        publish_succeeded: false,
+        error_code: mapPublishFailureCode(error),
+        error_message: error instanceof Error ? error.message : "Guide publication failed.",
+      });
+    }
+
+    const publishedAt = published.guide.published_at ?? publishTime.toISOString();
+    try {
+      await input.store.markSuccessfulPublication(publishedAt, nextPublishAtFrom(publishedAt));
+    } catch (error) {
+      return finish("ERROR", {
+        publish_attempted: true,
+        publish_succeeded: false,
+        guide_id: published.guide.id,
+        published_at: publishedAt,
+        error_code: mapPublishFailureCode(error),
+        error_message:
+          error instanceof Error
+            ? error.message
+            : "Publication succeeded but schedule reconciliation failed.",
+      });
+    }
+
+    return finish("PUBLISHED", {
       due: true,
+      pipeline_run_id: published.run_id,
+      opportunity_id: published.opportunity_id,
+      program_id: published.program_id,
+      drafts_generated: 1,
+      validation_passed: true,
+      publish_attempted: true,
+      publish_succeeded: true,
+      guide_id: published.guide.id,
+      published_at: publishedAt,
       error_code: null,
       error_message: null,
     });
@@ -268,6 +480,10 @@ export async function runContentAutomation(
     return finish("ERROR", {
       error_code: code,
       error_message: error instanceof Error ? error.message : "Content automation failed.",
+      publish_attempted: execution.publish_attempted,
+      publish_succeeded: false,
+      guide_id: execution.guide_id,
+      published_at: execution.published_at,
     });
   } finally {
     await lease.stop();

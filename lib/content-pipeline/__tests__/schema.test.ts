@@ -111,3 +111,20 @@ describe("content pipeline benefit-tier migration", () => {
     expect(sql).toContain("GRANT SELECT ON TABLE public.program_benefit_tiers TO anon, authenticated");
   });
 });
+
+const AUTOMATION_PUBLISH_MIGRATION = path.resolve(
+  __dirname,
+  "../../../supabase/migrations/20260919180000_content_automation_publish.sql",
+);
+
+describe("content automation publish migration", () => {
+  const sql = readFileSync(AUTOMATION_PUBLISH_MIGRATION, "utf8");
+
+  it("adds PUBLISHED execution status and published_at without enabling publication", () => {
+    expect(sql).toContain("'PUBLISHED'");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ");
+    expect(sql).not.toContain("CONTENT_AUTOMATION_PUBLISH_ENABLED");
+    expect(sql).not.toContain("publishGuide");
+    expect(sql).not.toMatch(/CA-VEH-BAR-RETIRE|426de613-e070-4a05-8eb5-b274f76d350e/);
+  });
+});

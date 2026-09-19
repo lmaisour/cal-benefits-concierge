@@ -114,6 +114,7 @@ function mapExecution(row: Record<string, unknown>): AutomationExecutionRecord {
     publish_attempted: Boolean(row.publish_attempted),
     publish_succeeded: Boolean(row.publish_succeeded),
     guide_id: (row.guide_id as string | null) ?? null,
+    published_at: (row.published_at as string | null) ?? null,
     error_code: (row.error_code as string | null) ?? null,
     error_message: (row.error_message as string | null) ?? null,
     provider_usage: (row.provider_usage as Json | null) ?? null,
@@ -236,6 +237,7 @@ export class SupabaseContentAutomationStore implements ContentAutomationStore {
         provider: input.provider ?? null,
         publish_attempted: false,
         publish_succeeded: false,
+        published_at: null,
       }) as TableQuery
     )
       .select("*")
@@ -260,6 +262,18 @@ export class SupabaseContentAutomationStore implements ContentAutomationStore {
       throw new Error(error?.message ?? `Failed to update automation execution ${id}.`);
     }
     return mapExecution(data);
+  }
+
+  async listExecutions(): Promise<AutomationExecutionRecord[]> {
+    const result = (await Promise.resolve(
+      this.client.from("content_automation_executions").select("*"),
+    )) as { data: Array<Record<string, unknown>> | null; error: QueryError };
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+    return (result.data ?? [])
+      .map(mapExecution)
+      .sort((left, right) => right.started_at.localeCompare(left.started_at));
   }
 
   async listPublishedProgramIds(): Promise<string[]> {

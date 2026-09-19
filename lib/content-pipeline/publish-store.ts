@@ -54,6 +54,7 @@ export class PublishConflictError extends Error {
 export interface GuidePublishStore {
   getRun(id: string): Promise<ContentPipelineRunRecord | null>;
   getOpportunity(id: string): Promise<ContentOpportunityRecord | null>;
+  getGuide(id: string): Promise<PublishedGuideRecord | null>;
   programExists(programId: string): Promise<boolean>;
   persistPublishedGuide(write: PublishGuideWrite): Promise<PublishGuideWriteResult>;
 }

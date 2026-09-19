@@ -13,8 +13,8 @@ export type AutomationLeaseSessionInput = {
 };
 
 /**
- * Positive ownership check for the future publication boundary.
- * PR #23 should call this immediately before publication.
+ * Positive ownership check for the publication boundary.
+ * Call immediately before publication.
  */
 export async function assertAutomationLeaseOwned(
   store: Pick<ContentAutomationStore, "ownsLock">,

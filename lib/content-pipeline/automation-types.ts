@@ -18,6 +18,7 @@ export const AUTOMATION_STATUSES = [
   "BLOCKED",
   "ERROR",
   "COMPLETED_DRY_RUN",
+  "PUBLISHED",
 ] as const;
 export type AutomationStatus = (typeof AUTOMATION_STATUSES)[number];
 
@@ -33,6 +34,11 @@ export type AutomationErrorCode =
   | "invalid_provider"
   | "generation_failed"
   | "lease_lost"
+  | "automation_publish_disabled"
+  | "publish_disabled"
+  | "already_published"
+  | "identity_mismatch"
+  | "publish_failed"
   | "transient_exhausted"
   | "content_automation_failed";
 
@@ -74,6 +80,7 @@ export type AutomationExecutionRecord = {
   publish_attempted: boolean;
   publish_succeeded: boolean;
   guide_id: string | null;
+  published_at: string | null;
   error_code: string | null;
   error_message: string | null;
   provider_usage: ProviderMetadata | Json | null;

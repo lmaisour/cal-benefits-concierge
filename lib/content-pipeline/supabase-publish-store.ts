@@ -37,6 +37,12 @@ type ProgramQuery = {
   maybeSingle: () => Promise<{ data: { id: string } | null; error: QueryError }>;
 };
 
+type GuideQuery = {
+  select: (columns?: string) => GuideQuery;
+  eq: (column: string, value: unknown) => GuideQuery;
+  maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: QueryError }>;
+};
+
 function isIso(value: unknown): string | null {
   if (value == null) {
     return null;
@@ -123,6 +129,33 @@ export class SupabaseGuidePublishStore implements GuidePublishStore {
 
   getOpportunity(id: string) {
     return this.pipeline.getOpportunity(id);
+  }
+
+  async getGuide(id: string): Promise<PublishedGuideRecord | null> {
+    const { data, error } = await (
+      this.client.from("guides").select("*") as GuideQuery
+    )
+      .eq("id", id)
+      .maybeSingle();
+    if (error) {
+      throw new Error(error.message);
+    }
+    if (!data) {
+      return null;
+    }
+    return {
+      id: String(data.id),
+      title: String(data.title ?? ""),
+      slug: String(data.slug ?? ""),
+      seo_title: data.seo_title == null ? null : String(data.seo_title),
+      meta_description: data.meta_description == null ? null : String(data.meta_description),
+      excerpt: data.excerpt == null ? null : String(data.excerpt),
+      body: String(data.body ?? ""),
+      published: Boolean(data.published),
+      published_at: isIso(data.published_at),
+      created_at: isIso(data.created_at) ?? "",
+      updated_at: isIso(data.updated_at) ?? "",
+    };
   }
 
   async programExists(programId: string): Promise<boolean> {
