@@ -24,6 +24,7 @@ export type UpdateRunInput = {
   validation_snapshot?: ValidationResult | null;
   error_message?: string | null;
   provider_metadata?: ProviderMetadata | null;
+  authoritative_state_fingerprint?: string | null;
 };
 
 export type UpsertOpportunityInput = Omit<
@@ -77,6 +78,7 @@ export class MemoryContentPipelineStore implements ContentPipelineStore {
       validation_snapshot: null,
       error_message: null,
       provider_metadata: null,
+      authoritative_state_fingerprint: null,
       created_at: input.started_at,
     };
     this.runs.set(run.id, run);

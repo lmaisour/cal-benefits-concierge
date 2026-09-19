@@ -83,6 +83,7 @@ function mapRun(row: ContentPipelineRunRow): ContentPipelineRunRecord {
     validation_snapshot: row.validation_snapshot as ValidationResult | null,
     error_message: row.error_message,
     provider_metadata: row.provider_metadata as ProviderMetadata | null,
+    authoritative_state_fingerprint: row.authoritative_state_fingerprint ?? null,
     created_at: row.created_at,
   };
 }
@@ -131,6 +132,9 @@ export class SupabaseContentPipelineStore implements ContentPipelineStore {
       payload.provider_metadata = patch.provider_metadata
         ? asJson(patch.provider_metadata)
         : null;
+    }
+    if (patch.authoritative_state_fingerprint !== undefined) {
+      payload.authoritative_state_fingerprint = patch.authoritative_state_fingerprint;
     }
 
     const { data, error } = await (

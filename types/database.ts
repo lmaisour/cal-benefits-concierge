@@ -472,7 +472,64 @@ export type ContentPipelineRunRow = {
   validation_snapshot: Json | null;
   error_message: string | null;
   provider_metadata: Json | null;
+  authoritative_state_fingerprint: string | null;
   created_at: string;
+};
+
+export const CONTENT_AUTOMATION_TRIGGERS = ["MANUAL", "CRON"] as const;
+
+export type ContentAutomationTrigger = (typeof CONTENT_AUTOMATION_TRIGGERS)[number];
+
+export const CONTENT_AUTOMATION_STATUSES = [
+  "STARTED",
+  "NOT_DUE",
+  "LOCKED",
+  "GENERATED",
+  "BLOCKED",
+  "ERROR",
+  "COMPLETED_DRY_RUN",
+] as const;
+
+export type ContentAutomationStatus = (typeof CONTENT_AUTOMATION_STATUSES)[number];
+
+export type ContentAutomationScheduleRow = {
+  id: "default";
+  last_successful_publish_at: string | null;
+  next_publish_at: string;
+  updated_at: string;
+};
+
+export type ContentAutomationLockRow = {
+  lock_key: string;
+  owner_id: string;
+  acquired_at: string;
+  expires_at: string;
+};
+
+export type ContentAutomationExecutionRow = {
+  id: string;
+  started_at: string;
+  completed_at: string | null;
+  status: ContentAutomationStatus;
+  trigger: ContentAutomationTrigger;
+  due: boolean | null;
+  lock_owner: string | null;
+  pipeline_run_id: string | null;
+  opportunity_id: string | null;
+  program_id: string | null;
+  provider: string | null;
+  attempt_count: number;
+  drafts_generated: number;
+  validation_passed: boolean | null;
+  authoritative_state_fingerprint: string | null;
+  publish_attempted: boolean;
+  publish_succeeded: boolean;
+  guide_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  provider_usage: Json | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type ContentPipelineRunInsert = Pick<ContentPipelineRunRow, "status"> &
@@ -584,6 +641,25 @@ export type Database = {
         Update: Partial<ContentPipelineRunRow>;
         Relationships: [];
       };
+      content_automation_schedule: {
+        Row: ContentAutomationScheduleRow;
+        Insert: ContentAutomationScheduleRow;
+        Update: Partial<ContentAutomationScheduleRow>;
+        Relationships: [];
+      };
+      content_automation_locks: {
+        Row: ContentAutomationLockRow;
+        Insert: ContentAutomationLockRow;
+        Update: Partial<ContentAutomationLockRow>;
+        Relationships: [];
+      };
+      content_automation_executions: {
+        Row: ContentAutomationExecutionRow;
+        Insert: Pick<ContentAutomationExecutionRow, "id" | "status" | "trigger"> &
+          Partial<Omit<ContentAutomationExecutionRow, "id" | "status" | "trigger">>;
+        Update: Partial<ContentAutomationExecutionRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -602,6 +678,21 @@ export type Database = {
           p_fail_at?: string | null;
         };
         Returns: Json;
+      };
+      acquire_content_automation_lock: {
+        Args: {
+          p_lock_key: string;
+          p_owner_id: string;
+          p_lease_seconds: number;
+        };
+        Returns: Json;
+      };
+      release_content_automation_lock: {
+        Args: {
+          p_lock_key: string;
+          p_owner_id: string;
+        };
+        Returns: boolean;
       };
     };
     // Constrained values are TEXT + CHECK in SQL, not PostgreSQL enum types.

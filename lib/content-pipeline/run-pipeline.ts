@@ -1,3 +1,4 @@
+import { fingerprintAuthoritativeState } from "@/lib/content-pipeline/automation-fingerprint";
 import { buildEvidencePackage } from "@/lib/content-pipeline/build-evidence-package";
 import { discoverOpportunities } from "@/lib/content-pipeline/discover-opportunities";
 import { sanitizeProviderMessage } from "@/lib/content-pipeline/compose-selected-claims";
@@ -24,6 +25,7 @@ export type RunDryRunContentPipelineInput = {
   provider: ContentDraftProvider;
   store?: ContentPipelineStore;
   now?: Date;
+  publishedProgramIds?: readonly string[];
 };
 
 function iso(date: Date): string {
@@ -55,6 +57,7 @@ export async function runDryRunContentPipeline(
     const discovered = discoverOpportunities({
       records: input.context.records,
       now,
+      publishedProgramIds: input.publishedProgramIds,
     });
     const scored = scoreOpportunities(discovered.candidates, {
       now,
@@ -105,7 +108,17 @@ export async function runDryRunContentPipeline(
     });
 
     await store.updateOpportunity(opportunity.id, { status: "RESEARCHING" });
-    const evidence = buildEvidencePackage(selected.record, now);
+    const authoritativeStateFingerprint = fingerprintAuthoritativeState(selected.record);
+    const evidence = {
+      ...buildEvidencePackage(selected.record, now),
+      authoritative_state_fingerprint: authoritativeStateFingerprint,
+    };
+    run = await store.updateRun(run.id, {
+      opportunity_id: opportunity.id,
+      selected_reason: selectedReason,
+      status: "STARTED",
+      authoritative_state_fingerprint: authoritativeStateFingerprint,
+    });
 
     let draft;
     const metadataFromProvider = (): ProviderMetadata => ({
@@ -132,6 +145,7 @@ export async function runDryRunContentPipeline(
           evidence_snapshot: evidence,
           error_message: message,
           provider_metadata: metadataFromProvider(),
+          authoritative_state_fingerprint: authoritativeStateFingerprint,
         },
         {
           opportunity: failed,
@@ -176,6 +190,7 @@ export async function runDryRunContentPipeline(
           ? null
           : validation.errors.map((error) => error.code).join(", "),
         provider_metadata: metadataFromProvider(),
+        authoritative_state_fingerprint: authoritativeStateFingerprint,
       },
       {
         opportunity: updated,

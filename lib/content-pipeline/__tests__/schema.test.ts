@@ -43,6 +43,47 @@ describe("content pipeline migration", () => {
   });
 });
 
+const AUTOMATION_MIGRATION = path.resolve(
+  __dirname,
+  "../../../supabase/migrations/20260919050000_content_automation_orchestrator.sql",
+);
+
+describe("content automation orchestrator migration", () => {
+  const sql = readFileSync(AUTOMATION_MIGRATION, "utf8");
+
+  it("adds scheduler, lock, execution, and fingerprint storage", () => {
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS authoritative_state_fingerprint TEXT");
+    expect(sql).toContain("CREATE TABLE public.content_automation_schedule");
+    expect(sql).toContain("CREATE TABLE public.content_automation_locks");
+    expect(sql).toContain("CREATE TABLE public.content_automation_executions");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.acquire_content_automation_lock");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.release_content_automation_lock");
+    expect(sql).toContain("last_successful_publish_at");
+    expect(sql).toContain("next_publish_at");
+    expect(sql).toContain("COMPLETED_DRY_RUN");
+    expect(sql).not.toContain("publishGuide");
+  });
+
+  it("locks SECURITY DEFINER RPCs to service_role", () => {
+    expect(sql).toContain("SET search_path = public");
+    expect(sql).toContain(
+      "REVOKE ALL ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) FROM PUBLIC",
+    );
+    expect(sql).toContain(
+      "REVOKE ALL ON FUNCTION public.release_content_automation_lock(text, uuid) FROM PUBLIC",
+    );
+    expect(sql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.acquire_content_automation_lock(text, uuid, integer) TO service_role",
+    );
+    expect(sql).toContain(
+      "REVOKE ALL ON TABLE public.content_automation_schedule FROM PUBLIC, anon, authenticated",
+    );
+    expect(sql).toContain(
+      "REVOKE ALL ON TABLE public.content_automation_executions FROM PUBLIC, anon, authenticated",
+    );
+  });
+});
+
 describe("content pipeline benefit-tier migration", () => {
   const sql = readFileSync(TIER_MIGRATION, "utf8");
 
