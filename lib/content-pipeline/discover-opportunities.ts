@@ -12,6 +12,7 @@ import {
 export type DiscoverOpportunitiesInput = {
   records: DiscoveryRecord[];
   now?: Date;
+  publishedProgramIds?: readonly string[];
 };
 
 export type DiscoverOpportunitiesResult = {
@@ -19,7 +20,14 @@ export type DiscoverOpportunitiesResult = {
   skipped: SkippedDiscovery[];
 };
 
-function skipReason(record: DiscoveryRecord, nowMs: number): DiscoverySkipReason | null {
+function skipReason(
+  record: DiscoveryRecord,
+  nowMs: number,
+  publishedProgramIds: Set<string>,
+): DiscoverySkipReason | null {
+  if (publishedProgramIds.has(record.program_id)) {
+    return "ALREADY_PUBLISHED_GUIDE";
+  }
   const program = record.program;
   if (program.status !== "ACTIVE") {
     return "STATUS_NOT_ACTIVE";
@@ -87,11 +95,12 @@ export function discoverOpportunities(
   input: DiscoverOpportunitiesInput,
 ): DiscoverOpportunitiesResult {
   const nowMs = (input.now ?? new Date()).getTime();
+  const publishedProgramIds = new Set(input.publishedProgramIds ?? []);
   const candidates: DiscoveredOpportunity[] = [];
   const skipped: SkippedDiscovery[] = [];
 
   for (const record of input.records) {
-    const reason = skipReason(record, nowMs);
+    const reason = skipReason(record, nowMs, publishedProgramIds);
     if (reason) {
       skipped.push({
         external_id: record.program.external_id || record.program_id,

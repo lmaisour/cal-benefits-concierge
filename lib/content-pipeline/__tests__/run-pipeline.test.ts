@@ -37,6 +37,26 @@ describe("runDryRunContentPipeline", () => {
     expect(result.validation?.passed).toBe(true);
     expect(result.draft?.source_claims.length).toBeGreaterThan(0);
     expect(result.evidence?.official_sources.length).toBeGreaterThan(0);
+    expect(result.run.authoritative_state_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(result.evidence?.authoritative_state_fingerprint).toBe(
+      result.run.authoritative_state_fingerprint,
+    );
+  });
+
+  it("does not select a program that already has a published guide", async () => {
+    const store = new MemoryContentPipelineStore();
+    const result = await runDryRunContentPipeline({
+      context: context([makeRecord(), makeRecord({
+        program_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        program: { slug: "other-home-rebate", external_id: "TEST-OTHER-1", name: "Other Home Rebate" },
+      })]),
+      provider: new FakeContentDraftProvider(),
+      store,
+      now: NOW,
+      publishedProgramIds: [FIXTURE_PROGRAM_ID],
+    });
+    expect(result.opportunity?.program_id).toBe("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    expect(result.skipped.some((row) => row.reason === "ALREADY_PUBLISHED_GUIDE")).toBe(true);
   });
 
   it("records provider failure as ERROR", async () => {

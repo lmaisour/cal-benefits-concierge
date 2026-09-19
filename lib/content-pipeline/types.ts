@@ -78,7 +78,8 @@ export type DiscoverySkipReason =
   | "LOW_CONFIDENCE"
   | "MISSING_OFFICIAL_SOURCE"
   | "STALE_VERIFICATION"
-  | "GOLD_STANDARD_COMPLETE";
+  | "GOLD_STANDARD_COMPLETE"
+  | "ALREADY_PUBLISHED_GUIDE";
 
 export type SkippedDiscovery = {
   external_id: string;
@@ -147,6 +148,7 @@ export type ContentPipelineRunRecord = {
   validation_snapshot: ValidationResult | null;
   error_message: string | null;
   provider_metadata: ProviderMetadata | null;
+  authoritative_state_fingerprint: string | null;
   created_at: string;
 };
 
@@ -226,6 +228,7 @@ export type EvidencePackage = {
   faqs: EditorialFaq[];
   brief: EditorialBrief | null;
   content_evidence: EditorialEvidenceRow[];
+  authoritative_state_fingerprint?: string | null;
   boilerplate: {
     not_exhaustive: string;
     cannot_determine_personal_eligibility: string;

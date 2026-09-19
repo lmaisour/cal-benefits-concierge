@@ -25,6 +25,7 @@ const PIPELINE_INSERT_DEFAULTS = {
   validation_snapshot: null,
   error_message: null,
   provider_metadata: null,
+  authoritative_state_fingerprint: null,
   guide_id: null,
   next_eligible_at: null,
 };
@@ -43,6 +44,9 @@ export function createFakeSupabase(options: FakeSupabaseOptions = {}) {
     program_benefit_tiers: [],
     content_opportunities: [],
     content_pipeline_runs: [],
+    content_automation_schedule: [],
+    content_automation_locks: [],
+    content_automation_executions: [],
     guides: [],
     guide_programs: [],
     ...(options.tables

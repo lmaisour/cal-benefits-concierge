@@ -15,7 +15,10 @@ export {
 export { createContentDraftProvider } from "@/lib/content-pipeline/create-draft-provider";
 export { validateDraft } from "@/lib/content-pipeline/validate-draft";
 export { runDryRunContentPipeline } from "@/lib/content-pipeline/run-pipeline";
+export { runContentAutomation } from "@/lib/content-pipeline/run-automation";
+export { assertAutomationLeaseOwned } from "@/lib/content-pipeline/automation-lease";
 export { authorizeContentPipelineRequest } from "@/lib/content-pipeline/auth";
+export { authorizeContentAutomationRequest } from "@/lib/content-pipeline/automation-auth";
 export { toDryRunSummary } from "@/lib/content-pipeline/summary";
 export { loadLivePipelineContext, recordsFromLiveRows } from "@/lib/content-pipeline/live-context";
 export { SupabaseContentPipelineStore } from "@/lib/content-pipeline/supabase-store";
