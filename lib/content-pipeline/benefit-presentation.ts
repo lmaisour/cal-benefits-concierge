@@ -90,34 +90,34 @@ export function amountFaqQuestion(type: BenefitType): string {
 export function unknownAmountGuidance(type: BenefitType): string {
   switch (type) {
     case "CASH":
-      return "The cash amount is not fully listed in the structured catalog. Confirm the current amount on the official source.";
+      return "The current cash amount is not listed here. Confirm it on the official source.";
     case "REBATE":
-      return "The rebate amount is not fully listed in the structured catalog. Confirm the current amount on the official source.";
+      return "The current rebate amount is not listed here. Confirm it on the official source.";
     case "TAX_CREDIT":
-      return "The tax credit amount is not fully listed in the structured catalog. Confirm the current amount on the official source.";
+      return "The current tax credit amount is not listed here. Confirm it on the official source.";
     case "BILL_SAVINGS":
       return "Bill savings depend on program conditions. Confirm the current details on the official source.";
     case "LOAN":
     case "FINANCING":
     case "FORGIVABLE_LOAN":
-      return "Financing terms are not fully listed in the structured catalog. Confirm the current terms on the official source.";
+      return "Financing terms are not listed here. Confirm the current terms on the official source.";
     case "FREE_SERVICE":
       return "This is a free service, not a cash award.";
     case "FREE_PRODUCT":
       return "This is a free product, not a cash award.";
     case "OTHER":
-      return "Details of this benefit are not fully classified in the catalog. Confirm what the program provides on the official source.";
+      return "Details of this benefit are not fully classified here. Confirm what the program provides on the official source.";
   }
 }
 
 export function tieredAmountGuidance(type: BenefitType): string {
   if (isFinancingBenefitType(type)) {
-    return "You may qualify for one of the following financing amounts, depending on the structured conditions below. Each listed amount applies only when its stated condition is met.";
+    return "You may qualify for one of the following financing amounts, depending on the conditions below. Each listed amount applies only when its stated condition is met.";
   }
   if (type === "BILL_SAVINGS") {
-    return "You may qualify for one of the following savings amounts, depending on the structured conditions below. Each listed amount applies only when its stated condition is met.";
+    return "You may qualify for one of the following savings amounts, depending on the conditions below. Each listed amount applies only when its stated condition is met.";
   }
-  return "You may qualify for one of the following awards, depending on the structured conditions below. Each listed amount applies only when its stated condition is met.";
+  return "You may qualify for one of the following awards, depending on the conditions below. Each listed amount applies only when its stated condition is met.";
 }
 
 export function overviewTieredGuidance(type: BenefitType): string {

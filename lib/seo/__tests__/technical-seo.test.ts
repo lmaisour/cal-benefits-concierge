@@ -162,6 +162,8 @@ describe("technical SEO hardening", () => {
       "/results",
       "/results/",
       "/api/",
+      "/guides/preview",
+      "/guides/preview/",
     ]);
   });
 

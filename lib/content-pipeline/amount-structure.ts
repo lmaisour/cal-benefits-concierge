@@ -23,7 +23,7 @@ const SYNTHESIZED_RANGE =
   /\$\s*[\d,]+(?:\.\d+)?\s*(?:to|through|–|—|-)\s*\$\s*[\d,]+(?:\.\d+)?/i;
 
 const DEFINITE_SYNTHESIZED_AMOUNT =
-  /\b(?:structured catalog (?:range|minimum|maximum|value)|get|gets|receive|receives|award(?:s)? (?:is|are|of)|worth)\b.{0,40}\$\s*[\d,]+/i;
+  /\b(?:structured catalog (?:range|minimum|maximum|value)|listed (?:range|amount|value)|get|gets|receive|receives|award(?:s)? (?:is|are|of)|worth)\b.{0,40}\$\s*[\d,]+/i;
 
 export function isBenefitAmountStructure(
   value: unknown,

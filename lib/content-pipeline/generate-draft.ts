@@ -24,7 +24,6 @@ import {
 import {
   authoritativeProgramFaqs,
   isCoveredByExisting,
-  normalizeFactText,
   programFaqsCoverQuestion,
   verifiedFactsForSection,
 } from "@/lib/content-pipeline/verified-facts";
@@ -141,19 +140,14 @@ export function isOptionalDefaultClaim(claim: SourceClaim): boolean {
   return (
     /^faq-[qa]-tier-\d+$/.test(claim.claim_id) ||
     claim.claim_id === "faq-q-only" ||
-    claim.claim_id === "faq-a-only"
+    claim.claim_id === "faq-a-only" ||
+    claim.claim_id === "faq-q-qualify" ||
+    claim.claim_id === "faq-a-qualify"
   );
 }
 
 export function selectDefaultClaims(allowed: SourceClaim[]): SourceClaim[] {
   return allowed.filter((item) => !isOptionalDefaultClaim(item));
-}
-
-function sameFact(left: string | null | undefined, right: string | null | undefined): boolean {
-  if (!left?.trim() || !right?.trim()) {
-    return false;
-  }
-  return normalizeFactText(left) === normalizeFactText(right);
 }
 
 function verifiedClaimText(item: {
@@ -224,7 +218,7 @@ function geographyClaim(
   if (evidence.geography.statewide) {
     return claim(
       "overview-geography",
-      "Available statewide in California.",
+      "Available statewide in California. Statewide availability does not mean every local pathway is open or that funding remains.",
       "geography.statewide",
       sourceUrl,
       "overview",
@@ -237,7 +231,7 @@ function geographyClaim(
       .join(", ") || "a limited service area";
   return claim(
     "overview-geography",
-    `Available in ${locations}.`,
+    `This program is not statewide. It is available in ${locations}.`,
     evidence.geography.locations[0]
       ? "geography.locations.0.value"
       : "geography.statewide",
@@ -329,18 +323,6 @@ function overviewClaims(
   sourceUrl: string | null,
 ): SourceClaim[] {
   const claims: SourceClaim[] = [];
-  const description = evidence.short_description?.trim();
-  if (description) {
-    claims.push(
-      claim(
-        "overview-does",
-        asSentence(description),
-        "short_description",
-        sourceUrl,
-        "overview",
-      ),
-    );
-  }
   claims.push(
     claim(
       "overview-admin",
@@ -373,27 +355,12 @@ function overviewClaims(
 
   const structure = evidence.benefit.amount_structure;
   const summary = evidence.benefit.summary?.trim() ?? "";
-  const headline = safeConsumerHeadline(evidence);
   if (structure === "TIERED" && !isFreeInKindBenefitType(evidence.benefit.type)) {
     claims.push(
       claim(
         "overview-benefit-guidance",
         evidence.boilerplate.overview_tiered_guidance,
         "boilerplate.overview_tiered_guidance",
-        sourceUrl,
-        "overview",
-      ),
-    );
-  } else if (
-    canUseBenefitSummary(evidence, summary) &&
-    !sameFact(summary, headline) &&
-    !sameFact(summary, description)
-  ) {
-    claims.push(
-      claim(
-        "overview-benefit-summary",
-        asSentence(summary),
-        "benefit.summary",
         sourceUrl,
         "overview",
       ),
@@ -415,7 +382,10 @@ function overviewClaims(
   } else if (
     !isFreeInKindBenefitType(evidence.benefit.type) &&
     !canUseBenefitSummary(evidence, summary) &&
-    structure !== "UNKNOWN"
+    structure !== "UNKNOWN" &&
+    structure !== "SINGLE" &&
+    structure !== "RANGE" &&
+    structure !== "TIERED"
   ) {
     claims.push(
       claim(
@@ -598,7 +568,7 @@ function pushStructuredAmountClaims(
       claims.push(
         claim(
           "benefit-amount",
-          `The structured catalog value is ${formatAmount(amount)}.`,
+          `The listed amount is ${formatAmount(amount)}.`,
           path,
           sourceUrl,
           "what_you_get",
@@ -615,7 +585,7 @@ function pushStructuredAmountClaims(
     claims.push(
       claim(
         "benefit-amount",
-        `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
+        `The listed range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
         "benefit.max",
         sourceUrl,
         "what_you_get",
@@ -695,11 +665,11 @@ function eligibilityClaims(
   if (evidence.eligibility.unmodeled_required) {
     const extra =
       evidence.eligibility.unmodeled_summary?.trim() ||
-      "Additional required eligibility is not fully modeled and is not treated as satisfied.";
+      "Confirm the full eligibility requirements with the program administrator before applying.";
     claims.push(
       claim(
         "eligibility-unmodeled",
-        `Additional required criteria are not fully modeled and may also apply: ${extra}`,
+        `Additional requirements may also apply: ${extra}`,
         evidence.eligibility.unmodeled_summary
           ? "eligibility.unmodeled_summary"
           : "eligibility.unmodeled_required",
@@ -712,6 +682,17 @@ function eligibilityClaims(
   return claims;
 }
 
+function preserveStructuredText(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (trimmed.includes("\n") || /^[-•] /.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
+    return trimmed;
+  }
+  return asSentence(trimmed);
+}
+
 function howToApplyClaims(
   evidence: EvidencePackage,
   sourceUrl: string | null,
@@ -722,7 +703,7 @@ function howToApplyClaims(
     claims.push(
       claim(
         "how-to-apply",
-        asSentence(howToApply),
+        preserveStructuredText(howToApply),
         "application.how_to_apply",
         sourceUrl,
         "how_to_apply",
@@ -755,7 +736,8 @@ function howToApplyClaims(
   }
 
   const cta = officialApplicationCta(evidence);
-  if (cta) {
+  const covered = claims.map((item) => item.text);
+  if (cta && !isCoveredByExisting(cta.label, [...covered, howToApply])) {
     const hrefPath = evidence.application.application_url
       ? "application.application_url"
       : evidence.application.official_url
@@ -770,7 +752,7 @@ function howToApplyClaims(
         "how_to_apply",
       ),
     );
-  } else {
+  } else if (!cta && !howToApply) {
     claims.push(
       claim(
         "how-to-apply-review",
@@ -782,15 +764,18 @@ function howToApplyClaims(
     );
   }
 
-  claims.push(
-    claim(
-      "how-to-apply-confirm",
-      `Always confirm current steps with ${administratorName(evidence)}.`,
-      administratorPath(evidence),
-      sourceUrl,
-      "how_to_apply",
-    ),
-  );
+  const confirm = `Always confirm current steps with ${administratorName(evidence)}.`;
+  if (!isCoveredByExisting(confirm, claims.map((item) => item.text))) {
+    claims.push(
+      claim(
+        "how-to-apply-confirm",
+        confirm,
+        administratorPath(evidence),
+        sourceUrl,
+        "how_to_apply",
+      ),
+    );
+  }
 
   if (!howToApply) {
     pushVerifiedFacts(claims, evidence, "how_to_apply", claims.map((item) => item.text));
@@ -806,7 +791,7 @@ function documentClaims(
   const claims: SourceClaim[] = [
     claim(
       "documents",
-      documents || evidence.boilerplate.documents_unlisted,
+      documents ? preserveStructuredText(documents) : evidence.boilerplate.documents_unlisted,
       documents ? "application.documents" : "boilerplate.documents_unlisted",
       sourceUrl,
       "documents",
@@ -831,6 +816,12 @@ function importantNotesClaims(
     if (/\brepayable financing\b/i.test(warning) && isFinancingBenefitType(evidence.benefit.type)) {
       return;
     }
+    if (/\bconfidence:/i.test(warning) || /never convert uncertainty/i.test(warning)) {
+      return;
+    }
+    if (/structured status is/i.test(warning)) {
+      return;
+    }
     claims.push(
       claim(
         `warning-${index}`,
@@ -847,7 +838,7 @@ function importantNotesClaims(
     claims.push(
       claim(
         "notes-deadline-date",
-        `The structured application deadline is ${formatUtcCalendarDate(deadline)}.`,
+        `The application deadline is ${formatUtcCalendarDate(deadline)}.`,
         "deadline.application_deadline",
         sourceUrl,
         "important_notes",
@@ -859,13 +850,6 @@ function importantNotesClaims(
         "notes-deadline-none",
         evidence.boilerplate.deadline_none,
         "boilerplate.deadline_none",
-        sourceUrl,
-        "important_notes",
-      ),
-      claim(
-        "notes-deadline-check",
-        evidence.boilerplate.check_official_dates,
-        "boilerplate.check_official_dates",
         sourceUrl,
         "important_notes",
       ),
@@ -898,7 +882,7 @@ function importantNotesClaims(
     claims.push(
       claim(
         "notes-unmodeled",
-        "Some required eligibility is not fully modeled here and may also apply.",
+        "Other eligibility requirements may also apply. Confirm the full requirements with the program administrator.",
         "eligibility.unmodeled_required",
         sourceUrl,
         "important_notes",
@@ -906,6 +890,55 @@ function importantNotesClaims(
     );
   }
   return claims;
+}
+
+function amountFaqAnswerClaim(
+  evidence: EvidencePackage,
+  sourceUrl: string | null,
+): SourceClaim | null {
+  const structure = evidence.benefit.amount_structure;
+  if (!shouldIncludeAmountFaq(evidence.benefit.type, structure)) {
+    return null;
+  }
+  if (structure === "TIERED" && evidence.benefit.tiers.length > 0) {
+    return claim(
+      "faq-a-amount",
+      `${evidence.boilerplate.tiered_amount_guidance}\n\n${evidence.benefit.tiers
+        .map((tier) => formatTierEntry(tier))
+        .join("\n\n")}`,
+      "benefit.tiers",
+      sourceUrl,
+      "faqs",
+    );
+  }
+  if (structure === "SINGLE" && evidence.benefit.amounts_are_structured_facts) {
+    const amount = evidence.benefit.min ?? evidence.benefit.max;
+    if (amount === null) {
+      return null;
+    }
+    const path = evidence.benefit.min !== null ? "benefit.min" : "benefit.max";
+    return claim(
+      "faq-a-amount",
+      `The listed amount is ${formatAmount(amount)}.`,
+      path,
+      sourceUrl,
+      "faqs",
+    );
+  }
+  if (
+    structure === "RANGE" &&
+    evidence.benefit.min !== null &&
+    evidence.benefit.max !== null
+  ) {
+    return claim(
+      "faq-a-amount",
+      `The listed range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
+      "benefit.max",
+      sourceUrl,
+      "faqs",
+    );
+  }
+  return null;
 }
 
 function faqClaims(
@@ -982,7 +1015,7 @@ function faqClaims(
   }
 
   const documentsListed = Boolean(evidence.application.documents?.trim());
-  if (!programFaqsCoverQuestion(programFaqs, /\b(documents?|photos?)\b/i)) {
+  if (documentsListed && !programFaqsCoverQuestion(programFaqs, /\b(documents?|photos?)\b/i)) {
     claims.push(
       claim(
         "faq-q-documents",
@@ -996,11 +1029,7 @@ function faqClaims(
         documentsListed
           ? evidence.boilerplate.faq_documents_pointer
           : documentsText,
-        documentsListed
-          ? "boilerplate.faq_documents_pointer"
-          : evidence.application.documents?.trim()
-            ? "application.documents"
-            : "boilerplate.documents_unlisted",
+        "boilerplate.faq_documents_pointer",
         sourceUrl,
         "faqs",
       ),
@@ -1008,7 +1037,8 @@ function faqClaims(
   }
 
   const structure = evidence.benefit.amount_structure;
-  if (shouldIncludeAmountFaq(evidence.benefit.type, structure)) {
+  const amountFaqAnswer = amountFaqAnswerClaim(evidence, sourceUrl);
+  if (amountFaqAnswer) {
     claims.push(
       claim(
         "faq-q-amount",
@@ -1017,61 +1047,8 @@ function faqClaims(
         sourceUrl,
         "faqs",
       ),
+      amountFaqAnswer,
     );
-    if (structure === "TIERED" && evidence.benefit.tiers.length > 0) {
-      claims.push(
-        claim(
-          "faq-a-amount",
-          `${evidence.boilerplate.tiered_amount_guidance}\n\n${evidence.benefit.tiers
-            .map((tier) => formatTierEntry(tier))
-            .join("\n\n")}`,
-          "benefit.tiers",
-          sourceUrl,
-          "faqs",
-        ),
-      );
-    } else if (
-      structure === "SINGLE" &&
-      evidence.benefit.amounts_are_structured_facts
-    ) {
-      const amount = evidence.benefit.min ?? evidence.benefit.max;
-      const path = evidence.benefit.min !== null ? "benefit.min" : "benefit.max";
-      claims.push(
-        claim(
-          "faq-a-amount",
-          amount !== null
-            ? `The structured catalog value is ${formatAmount(amount)}.`
-            : evidence.boilerplate.unknown_amount_guidance,
-          amount !== null ? path : "boilerplate.unknown_amount_guidance",
-          sourceUrl,
-          "faqs",
-        ),
-      );
-    } else if (
-      structure === "RANGE" &&
-      evidence.benefit.min !== null &&
-      evidence.benefit.max !== null
-    ) {
-      claims.push(
-        claim(
-          "faq-a-amount",
-          `The structured catalog range is ${formatAmount(evidence.benefit.min)} to ${formatAmount(evidence.benefit.max)}.`,
-          "benefit.max",
-          sourceUrl,
-          "faqs",
-        ),
-      );
-    } else {
-      claims.push(
-        claim(
-          "faq-a-amount",
-          evidence.boilerplate.unknown_amount_guidance,
-          "boilerplate.unknown_amount_guidance",
-          sourceUrl,
-          "faqs",
-        ),
-      );
-    }
   }
 
   const deadline = parseUtcCalendarDate(evidence.deadline.application_deadline);
@@ -1090,7 +1067,7 @@ function faqClaims(
       ),
       claim(
         "faq-a-deadline",
-        `The structured application deadline is ${formatUtcCalendarDate(deadline)}.`,
+        `The application deadline is ${formatUtcCalendarDate(deadline)}.`,
         "deadline.application_deadline",
         sourceUrl,
         "faqs",
@@ -1108,7 +1085,7 @@ function faqClaims(
     ),
     claim(
       "faq-a-only",
-      "No. This catalog is not exhaustive. Other local, state, or federal programs may also exist.",
+      "No. This page is not a complete list of California programs. Other local, state, or federal programs may also exist.",
       "boilerplate.not_exhaustive",
       sourceUrl,
       "faqs",
@@ -1144,13 +1121,13 @@ export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
   const documents = documentClaims(evidence, sourceUrl);
   const claims: SourceClaim[] = [
     ...titleClaims(evidence, sourceUrl),
-    claim(
-      "dek-status",
-      `${evidence.official_name} is listed as ${evidence.status}.`,
-      "status",
+    ...(evidence.short_description?.trim() ? [claim(
+      "dek-purpose",
+      asSentence(evidence.short_description.trim()),
+      "short_description",
       sourceUrl,
       "dek",
-    ),
+    )] : []),
     claim(
       "dek-limit",
       evidence.boilerplate.cannot_determine_personal_eligibility,
@@ -1195,7 +1172,7 @@ export function renderDraftFromClaims(
       },
       {
         href: "/programs",
-        label: "Browse programs",
+        label: "Browse California programs",
         required: true,
       },
       {
