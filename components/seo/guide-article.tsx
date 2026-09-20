@@ -233,7 +233,7 @@ function ApplyButton({ cta }: { cta: GuideLink }) {
     <ButtonLink
       href={cta.href}
       size="lg"
-      className="w-full"
+      className="h-auto w-full whitespace-normal px-4 py-3 text-center leading-snug"
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
       {cta.label}
