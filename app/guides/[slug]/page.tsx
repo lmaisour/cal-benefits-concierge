@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { TrackLink } from "@/components/analytics/track-link";
 import { TrackView } from "@/components/analytics/track-view";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
+import { GuideBody } from "@/components/seo/guide-body";
 import { ButtonLink } from "@/components/ui/button";
 import { isCurrentlyAvailable } from "@/lib/content/currently-available";
 import { siteConfig } from "@/lib/config/site";
@@ -98,7 +99,7 @@ export default async function GuidePage({ params }: PageProps) {
       </div>
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         {guide.body.trim() ? (
-          <div className="whitespace-pre-line leading-relaxed text-foreground">{guide.body}</div>
+          <GuideBody body={guide.body} />
         ) : null}
 
         {relatedPrograms.length > 0 ? (

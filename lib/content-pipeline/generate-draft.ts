@@ -695,11 +695,11 @@ function eligibilityClaims(
   if (evidence.eligibility.unmodeled_required) {
     const extra =
       evidence.eligibility.unmodeled_summary?.trim() ||
-      "Additional required eligibility is not fully modeled and is not treated as satisfied.";
+      "Confirm the full eligibility requirements with the program administrator before applying.";
     claims.push(
       claim(
         "eligibility-unmodeled",
-        `Additional required criteria are not fully modeled and may also apply: ${extra}`,
+        `Additional requirements may also apply: ${extra}`,
         evidence.eligibility.unmodeled_summary
           ? "eligibility.unmodeled_summary"
           : "eligibility.unmodeled_required",
@@ -898,7 +898,7 @@ function importantNotesClaims(
     claims.push(
       claim(
         "notes-unmodeled",
-        "Some required eligibility is not fully modeled here and may also apply.",
+        "Other eligibility requirements may also apply. Confirm the full requirements with the program administrator.",
         "eligibility.unmodeled_required",
         sourceUrl,
         "important_notes",
@@ -1144,9 +1144,16 @@ export function buildFactualClaims(evidence: EvidencePackage): SourceClaim[] {
   const documents = documentClaims(evidence, sourceUrl);
   const claims: SourceClaim[] = [
     ...titleClaims(evidence, sourceUrl),
+    ...(evidence.short_description?.trim() ? [claim(
+      "dek-purpose",
+      asSentence(evidence.short_description.trim()),
+      "short_description",
+      sourceUrl,
+      "dek",
+    )] : []),
     claim(
       "dek-status",
-      `${evidence.official_name} is listed as ${evidence.status}.`,
+      `Program status in our records: ${evidence.status.toLowerCase().replaceAll("_", " ")}.`,
       "status",
       sourceUrl,
       "dek",

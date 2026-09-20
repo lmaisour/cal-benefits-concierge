@@ -178,7 +178,7 @@ describe("consumer-quality composition", () => {
     expect(draft.how_to_apply).not.toMatch(/https:\/\//);
     expect(draft.suggested_official_cta?.href).toBe("https://example.invalid/apply");
     expect(draft.documents).toMatch(/not fully listed/);
-    expect(draft.important_notes).toMatch(/not fully modeled/);
+    expect(draft.important_notes).toMatch(/Other eligibility requirements may also apply/);
     expect(draft.important_notes).toMatch(/No structured application deadline/);
     expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(true);
     expect(draft.faqs.some((faq) => faq.question.startsWith("What award applies for"))).toBe(false);
@@ -271,8 +271,8 @@ describe("consumer-quality composition", () => {
 
   it("preserves unmodeled eligibility caveats and does not invent a deadline", async () => {
     const { draft, evidence } = await pair(barRecord());
-    expect(draft.who_may_qualify).toMatch(/not fully modeled/);
-    expect(draft.important_notes).toMatch(/not fully modeled/);
+    expect(draft.who_may_qualify).toMatch(/Additional requirements may also apply/);
+    expect(draft.important_notes).toMatch(/Other eligibility requirements may also apply/);
     expect(draft.important_notes).toMatch(/No structured application deadline/);
     expect(`${draft.overview}\n${draft.what_you_get}\n${draft.how_to_apply}`).not.toMatch(
       /\b(apply by|deadline|due by)\b/i,

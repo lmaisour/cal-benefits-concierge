@@ -22,6 +22,9 @@ export function buildLlmSystemPrompt(): string {
     "- Put detailed TIERED amounts in what_you_get, not overview.",
     "- Prefer the combined how-much FAQ over repeating per-tier FAQ atoms.",
     "- Keep each claim_id in the section the server assigned.",
+    "- Prefer concrete program-specific facts to generic introductions and filler.",
+    "- Avoid repeating the same benefit summary in overview and what_you_get; prefer what_you_get for benefit details. Never omit required safety atoms or award conditions to reduce repetition.",
+    "- Order application steps as supplied by the evidence; do not invent missing steps, documents, income tables, deadlines, or verification dates.",
     "- Return JSON that matches the schema. Do not add extra keys or prose fields.",
   ].join("\n");
 }
