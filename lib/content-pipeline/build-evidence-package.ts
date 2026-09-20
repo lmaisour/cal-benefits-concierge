@@ -53,7 +53,9 @@ export function buildEvidencePackage(
     );
   }
   if (program.status !== "ACTIVE") {
-    warnings.push(`Structured status is ${program.status}, not ACTIVE.`);
+    warnings.push(
+      `This program is not listed as active (${program.status.replaceAll("_", " ").toLowerCase()}). Confirm current availability with the official administrator. Catalog status is not the same as open applications.`,
+    );
   }
 
   return {
@@ -128,17 +130,18 @@ export function buildEvidencePackage(
     brief: record.brief,
     content_evidence: record.evidence_rows,
     boilerplate: {
-      not_exhaustive: "This catalog is not exhaustive.",
+      not_exhaustive: "This page is not a complete list of California programs.",
       cannot_determine_personal_eligibility:
         "This page cannot determine personal eligibility.",
       confirm_with_administrator:
         "Always confirm eligibility, funding, and deadlines with the official administrator.",
       documents_unlisted:
-        "Required documents are not fully listed in the structured catalog. Use the official application checklist.",
-      deadline_none: "No structured application deadline is recorded.",
+        "Required documents are not listed here. Use the official application checklist.",
+      deadline_none:
+        "No application deadline is listed here. Check the official source for current dates.",
       check_official_dates: "Check the official source for current dates.",
       eligibility_rules_limited:
-        "Modeled eligibility rules are limited. Confirm requirements on the official source.",
+        "Only some eligibility requirements are listed here. Confirm the full requirements on the official source.",
       seo_title_suffix: ": who may qualify and how to apply",
       h1_qualify_suffix: " — who may qualify",
       meta_description_suffix: metaDescriptionSuffix(program.benefit_type),

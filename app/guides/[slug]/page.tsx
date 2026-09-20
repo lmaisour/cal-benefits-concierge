@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TrackLink } from "@/components/analytics/track-link";
 import { TrackView } from "@/components/analytics/track-view";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
-import { GuideBody } from "@/components/seo/guide-body";
-import { ButtonLink } from "@/components/ui/button";
-import { isCurrentlyAvailable } from "@/lib/content/currently-available";
+import { GuideArticle } from "@/components/seo/guide-article";
 import { siteConfig } from "@/lib/config/site";
 import { getPublishedGuideBySlug } from "@/lib/guides/public-queries";
 import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
@@ -58,7 +54,7 @@ export default async function GuidePage({ params }: PageProps) {
     guide.meta_description ?? guide.excerpt ?? siteConfig.description;
 
   return (
-    <article className="pb-16">
+    <>
       <TrackView event="guide_viewed" props={{ guide_slug: guide.slug }} />
       <JsonLdScript
         data={[
@@ -74,69 +70,13 @@ export default async function GuidePage({ params }: PageProps) {
           ]),
         ]}
       />
-      <div className="border-b border-border bg-hero">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-            <ol className="flex flex-wrap items-center gap-1">
-              <li>
-                <Link href={siteConfig.urls.guides} className="font-semibold text-primary hover:underline">
-                  Guides
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li className="text-foreground" aria-current="page">
-                {guide.title}
-              </li>
-            </ol>
-          </nav>
-          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
-            {guide.title}
-          </h1>
-          {guide.excerpt ? (
-            <p className="mt-4 text-lg text-muted-foreground">{guide.excerpt}</p>
-          ) : null}
-        </div>
-      </div>
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        {guide.body.trim() ? (
-          <GuideBody body={guide.body} />
-        ) : null}
-
-        {relatedPrograms.length > 0 ? (
-          <section className="mt-10">
-            <h2 className="font-serif text-2xl font-semibold">Related programs</h2>
-            <ul className="mt-4 space-y-3">
-              {relatedPrograms.map((program) => (
-                <li key={program.id} className="rounded-2xl border border-border bg-card p-4">
-                  <TrackLink
-                    href={`${siteConfig.urls.programs}/${program.slug}`}
-                    event="guide_program_clicked"
-                    eventProps={{ guide_slug: guide.slug, program_slug: program.slug }}
-                    className="font-semibold text-primary hover:underline"
-                  >
-                    {program.name}
-                  </TrackLink>
-                  {program.short_description ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {program.short_description}
-                    </p>
-                  ) : null}
-                  {!isCurrentlyAvailable(program) ? (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Not currently available ({program.status}).
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <div className="mt-10">
-          <ButtonLink href={siteConfig.urls.check}>Check what you qualify for</ButtonLink>
-        </div>
-        <p className="mt-8 text-sm text-muted-foreground">{siteConfig.disclaimer}</p>
-      </div>
-    </article>
+      <GuideArticle
+        title={guide.title}
+        excerpt={guide.excerpt}
+        slug={guide.slug}
+        body={guide.body}
+        relatedPrograms={relatedPrograms}
+      />
+    </>
   );
 }

@@ -181,6 +181,7 @@ describe("program FAQ authority boundary", () => {
           benefit_type: "REBATE",
           benefit_min: 200,
           benefit_max: 500,
+          benefit_amount_structure: "RANGE",
         },
         faqs: [UNGROUNDED_PLAUSIBLE_FAQ, FABRICATED_VETERAN_FAQ],
       }),
@@ -188,10 +189,12 @@ describe("program FAQ authority boundary", () => {
 
     expect(authoritativeProgramFaqs(evidence)).toEqual([]);
     const questions = draft.faqs.map((faq) => faq.question);
-    expect(questions).toContain("Who may qualify?");
+    const allowed = buildFactualClaims(evidence);
     expect(questions).toContain("How do I apply?");
-    expect(questions).toContain("What documents might I need?");
     expect(questions).toContain("How much could I receive?");
+    expect(questions).not.toContain("Who may qualify?");
+    expect(questions).not.toContain("What documents might I need?");
+    expect(allowed.some((claim) => claim.claim_id === "faq-q-qualify")).toBe(true);
     expect(questions).not.toContain(UNGROUNDED_PLAUSIBLE_FAQ.question);
     expect(questions).not.toContain(FABRICATED_VETERAN_FAQ.question);
     expect(validate(draft, evidence).passed).toBe(true);
@@ -301,9 +304,12 @@ describe("LEAP stored FAQ authority", () => {
       expect(draft.faqs.some((faq) => faq.question === question)).toBe(false);
     }
 
-    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(false);
     expect(draft.faqs.some((faq) => faq.question === "How do I apply?")).toBe(true);
     expect(draft.faqs.some((faq) => faq.question === "What documents might I need?")).toBe(false);
+    expect(buildFactualClaims(evidence).some((claim) => claim.claim_id === "faq-q-qualify")).toBe(
+      true,
+    );
     expect(validate(draft, evidence).passed).toBe(true);
   });
 });

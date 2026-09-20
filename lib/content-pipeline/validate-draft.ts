@@ -22,6 +22,7 @@ import {
   isFinancingBenefitType,
   isFreeInKindBenefitType,
 } from "@/lib/content-pipeline/benefit-presentation";
+import { detectEditorialContradictions } from "@/lib/content-pipeline/editorial-contradictions";
 import { authoritativeVerifiedEvidence } from "@/lib/content-pipeline/verified-facts";
 import {
   FACTUAL_DRAFT_SECTIONS,
@@ -383,7 +384,7 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
     deadlineMentions &&
     !evidence.deadline.application_deadline &&
     !evidence.deadline.effective_end &&
-    !/\bno structured application deadline\b/i.test(text)
+    !/\bno (?:structured )?application deadline\b/i.test(text)
   ) {
     errors.push(
       issue(
@@ -683,6 +684,12 @@ export function validateDraft(input: ValidateDraftInput): ValidationResult {
         "Unmodeled required eligibility was omitted in a way that makes the program sound fully determinable.",
         "eligibility.unmodeled_required",
       ),
+    );
+  }
+
+  for (const contradiction of detectEditorialContradictions(draft, evidence)) {
+    errors.push(
+      issue(contradiction.code, contradiction.message, contradiction.evidence_path),
     );
   }
 

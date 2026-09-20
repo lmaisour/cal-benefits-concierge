@@ -146,9 +146,11 @@ describe("consumer-quality composition", () => {
     expect(evidence.benefit.tiers.map((tier) => tier.amount)).toEqual([1350, 1500, 2000]);
     expect(draft.h1).toBe("BAR Consumer Assistance Program Vehicle Retirement");
     expect(draft.seo_title).toBe("BAR Consumer Assistance Program Vehicle Retirement");
-    expect(draft.overview).toMatch(/Cash to retire an eligible vehicle/);
+    expect(draft.dek).toMatch(/Cash to retire an eligible vehicle/);
+    expect(draft.dek).not.toMatch(/Program status in our records/);
     expect(draft.overview).toMatch(/California Bureau of Automotive Repair/);
     expect(draft.overview).toMatch(/Available statewide in California/);
+    expect(draft.overview).not.toMatch(/Cash to retire an eligible vehicle/);
     expect(draft.overview).toMatch(/Award amounts are condition-dependent/);
     expect(draft.overview).not.toMatch(/No household-income test/);
     expect(draft.overview).not.toMatch(/225%/);
@@ -177,10 +179,11 @@ describe("consumer-quality composition", () => {
     expect(draft.how_to_apply).not.toMatch(/\bbuy\b/i);
     expect(draft.how_to_apply).not.toMatch(/https:\/\//);
     expect(draft.suggested_official_cta?.href).toBe("https://example.invalid/apply");
-    expect(draft.documents).toMatch(/not fully listed/);
+    expect(draft.documents).toMatch(/not listed here/);
     expect(draft.important_notes).toMatch(/Other eligibility requirements may also apply/);
-    expect(draft.important_notes).toMatch(/No structured application deadline/);
+    expect(draft.important_notes).toMatch(/No application deadline is listed/);
     expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(false);
     expect(draft.faqs.some((faq) => faq.question.startsWith("What award applies for"))).toBe(false);
     expect(validate(draft, evidence).passed).toBe(true);
   });
@@ -273,7 +276,7 @@ describe("consumer-quality composition", () => {
     const { draft, evidence } = await pair(barRecord());
     expect(draft.who_may_qualify).toMatch(/Additional requirements may also apply/);
     expect(draft.important_notes).toMatch(/Other eligibility requirements may also apply/);
-    expect(draft.important_notes).toMatch(/No structured application deadline/);
+    expect(draft.important_notes).toMatch(/No application deadline is listed/);
     expect(`${draft.overview}\n${draft.what_you_get}\n${draft.how_to_apply}`).not.toMatch(
       /\b(apply by|deadline|due by)\b/i,
     );
@@ -301,7 +304,7 @@ describe("consumer-quality composition", () => {
     );
     expect(listed.draft.documents).toMatch(/Proof of vehicle registration/);
     expect(listed.draft.documents).toMatch(/Income documentation/);
-    expect(listed.draft.documents).not.toMatch(/not fully listed/);
+    expect(listed.draft.documents).not.toMatch(/not listed here/);
     expect(
       listed.draft.faqs.find((faq) => faq.question === "What documents might I need?")?.answer,
     ).toMatch(/See the documents listed on this page/);
@@ -311,7 +314,7 @@ describe("consumer-quality composition", () => {
     expect(validate(listed.draft, listed.evidence).passed).toBe(true);
 
     const unknown = await pair(barRecord());
-    expect(unknown.draft.documents).toMatch(/not fully listed/);
+    expect(unknown.draft.documents).toMatch(/not listed here/);
     expect(validate(unknown.draft, unknown.evidence).passed).toBe(true);
   });
 
@@ -434,6 +437,104 @@ describe("consumer-quality composition", () => {
     expect(draft.source_claims.some((claim) => claim.claim_id === "benefit-tier-2")).toBe(true);
     const selection = claimIdsBySection(selectDefaultClaims(allowed));
     selection.what_you_get = selection.what_you_get.filter((id) => id !== "benefit-tier-1");
+    expect(() =>
+      composeDraftFromSelectedClaimIds(selection, allowed, evidence, opportunity),
+    ).toThrow(/omitted required claim/i);
+  });
+
+  it("does not lead with catalog status or repeat the program purpose in overview", async () => {
+    const { draft, evidence } = await pair(barRecord());
+    expect(draft.dek).toMatch(/Cash to retire an eligible vehicle/);
+    expect(draft.dek).toMatch(/cannot determine personal eligibility/);
+    expect(draft.dek).not.toMatch(/listed as ACTIVE|program status in our records|structured catalog/i);
+    expect(draft.overview).not.toMatch(/listed as ACTIVE|structured catalog|not fully modeled/i);
+    expect(draft.what_you_get).not.toMatch(/structured catalog/i);
+    expect(draft.overview.match(/Cash to retire an eligible vehicle/g)?.length ?? 0).toBe(0);
+    expect(validate(draft, evidence).passed).toBe(true);
+  });
+
+  it("does not emit an amount FAQ that contradicts a listed benefit summary", async () => {
+    const { draft, evidence } = await pair(
+      makeRecord({
+        program: {
+          consumer_headline: null,
+          benefit_summary: "Up to $12,000 toward a qualifying clean vehicle",
+          benefit_min: 7500,
+          benefit_max: 12000,
+        },
+      }),
+    );
+    expect(evidence.benefit.amount_structure).toBe("UNKNOWN");
+    expect(draft.what_you_get).toMatch(/\$12,000/);
+    expect(draft.faqs.some((faq) => /not listed here|not fully listed/i.test(faq.answer))).toBe(
+      false,
+    );
+    expect(draft.faqs.some((faq) => faq.question === "How much could I receive?")).toBe(false);
+    expect(validate(draft, evidence).passed).toBe(true);
+  });
+
+  it("uses listed-amount wording for SINGLE and RANGE facts", async () => {
+    const single = await pair(
+      makeRecord({
+        program: {
+          consumer_headline: null,
+          benefit_min: 35000,
+          benefit_max: 35000,
+          benefit_summary: "A $35,000 grant",
+          benefit_amount_structure: "SINGLE",
+        },
+      }),
+    );
+    expect(single.draft.what_you_get).toMatch(/The listed amount is \$35,000/);
+    expect(single.draft.what_you_get).not.toMatch(/structured catalog/i);
+    expect(single.draft.faqs.find((faq) => faq.question === "How much could I receive?")?.answer).toMatch(
+      /listed amount is \$35,000/,
+    );
+    expect(validate(single.draft, single.evidence).passed).toBe(true);
+
+    const range = await pair(
+      makeRecord({
+        program: {
+          consumer_headline: null,
+          benefit_min: 200,
+          benefit_max: 500,
+          benefit_amount_structure: "RANGE",
+        },
+      }),
+    );
+    expect(range.draft.what_you_get).toMatch(/The listed range is \$200 to \$500/);
+    expect(validate(range.draft, range.evidence).passed).toBe(true);
+  });
+
+  it("blocks a contradictory amount FAQ and a missing structured amount", async () => {
+    const { draft, evidence, opportunity } = await pair(
+      makeRecord({
+        program: {
+          consumer_headline: null,
+          benefit_min: 1500,
+          benefit_max: 1500,
+          benefit_summary: "A $1,500 rebate",
+          benefit_amount_structure: "SINGLE",
+        },
+      }),
+    );
+    const contradicted: ContentDraft = {
+      ...draft,
+      faqs: [
+        ...draft.faqs,
+        {
+          question: "How much could I receive?",
+          answer: "The current rebate amount is not listed here. Confirm it on the official source.",
+        },
+      ],
+    };
+    const contradiction = validate(contradicted, evidence);
+    expect(contradiction.passed).toBe(false);
+    expect(contradiction.errors.some((error) => error.code === "CONTRADICTORY_FACTS")).toBe(true);
+
+    const allowed = buildFactualClaims(evidence);
+    const selection = claimIdsBySection(selectDefaultClaims(allowed));
+    selection.what_you_get = selection.what_you_get.filter((id) => id !== "benefit-amount");
     expect(() =>
       composeDraftFromSelectedClaimIds(selection, allowed, evidence, opportunity),
     ).toThrow(/omitted required claim/i);

@@ -33,11 +33,14 @@ function validate(draft: ContentDraft, evidence: EvidencePackage) {
 describe("FAQ question safety", () => {
   it("accepts generic deterministic FAQ questions", async () => {
     const { draft, evidence } = await pair();
+    const allowed = buildFactualClaims(evidence);
     const questions = draft.faqs.map((faq) => faq.question);
     expect(questions).toContain("How do I apply?");
-    expect(questions).toContain("What documents might I need?");
-    expect(questions).toContain("Who may qualify?");
-    expect(questions).toContain("How much could I receive?");
+    expect(questions).not.toContain("Who may qualify?");
+    expect(questions).not.toContain("What documents might I need?");
+    expect(questions).not.toContain("How much could I receive?");
+    expect(allowed.some((claim) => claim.claim_id === "faq-q-qualify")).toBe(true);
+    expect(allowed.some((claim) => claim.claim_id === "faq-q-amount")).toBe(false);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 

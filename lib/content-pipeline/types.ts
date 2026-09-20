@@ -334,7 +334,9 @@ export type ValidationIssueCode =
   | "INVALID_SOURCE_URL"
   | "STALE_TIME_SENSITIVE"
   | "UNMODELED_CRITERIA_OMITTED"
-  | "NON_MONETARY_FRAMED_AS_AWARD";
+  | "NON_MONETARY_FRAMED_AS_AWARD"
+  | "CONTRADICTORY_FACTS"
+  | "MISSING_MATERIAL_FACTS";
 
 export type ValidationIssue = {
   passed: false;

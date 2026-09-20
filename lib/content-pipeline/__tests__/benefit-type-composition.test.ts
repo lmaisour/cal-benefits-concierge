@@ -372,7 +372,7 @@ describe("verified researched facts", () => {
       }),
     );
     expect(draft.faqs.some((faq) => faq.question === "What happens after I apply?")).toBe(false);
-    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(false);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 
@@ -405,7 +405,7 @@ describe("verified researched facts", () => {
       "Prepare an owner-permission letter and five photos of the existing front-yard landscape.",
     );
     expect(draft.faqs.some((faq) => faq.question === "What documents might I need?")).toBe(false);
-    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(true);
+    expect(draft.faqs.some((faq) => faq.question === "Who may qualify?")).toBe(false);
     expect(validate(draft, evidence).passed).toBe(true);
   });
 });

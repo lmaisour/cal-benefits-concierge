@@ -188,6 +188,7 @@ function isRequiredSelectedClaim(claim: SourceClaim): boolean {
     claim.claim_id === "notes-not-exhaustive" ||
     claim.claim_id === "benefit-type-framing" ||
     claim.claim_id === "benefit-repayable" ||
+    claim.claim_id === "benefit-amount" ||
     (claim.section === "what_you_get" && /^benefit-tier-\d+$/.test(claim.claim_id))
   );
 }
